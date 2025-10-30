@@ -1,0 +1,8 @@
+﻿namespace Api.Infrastructure.Database.MongoDb.Entities;
+
+public class Certification
+{
+    public string? Title { get; set; }
+    public string? Institution { get; set; }
+    public int? Year { get; set; }
+}
