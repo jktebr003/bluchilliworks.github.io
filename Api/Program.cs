@@ -17,7 +17,14 @@ using Asp.Versioning;
 
 using Carter;
 
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+
 using FluentValidation;
+
+using Hangfire;
+using Hangfire.Mongo;
+using Hangfire.Mongo.Migration.Strategies;
+using Hangfire.Mongo.Migration.Strategies.Backup;
 
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
@@ -176,25 +183,43 @@ catch (Exception ex)
     Console.WriteLine($"⚠️ Database repository registrations failed: {ex.Message}");
 }
 
-//try
-//{
-//    builder.Services.AddHangfire(x =>
-//    {
-//        x.UseSimpleAssemblyNameTypeSerializer()
-//            .UseRecommendedSerializerSettings()
-//            .UseMongoStorage(builder.Configuration.GetValue<string>("Database:ConnectionString") ?? throw new InvalidOperationException("Hangfire MongoDB connection string is not configured"), new MongoStorageOptions
-//            {
-//                Prefix = "hangfire.mongo."
-//            });
-//    });
-//    builder.Services.AddHangfireServer();
+try
+{
+    // Hangfire configuration: ensure MongoDB storage is set before using Hangfire APIs
+    string connectionUri = $"{builder.Configuration.GetValue<string>("Database:ConnectionString")}";
+    string databaseName = $"{builder.Configuration.GetValue<string>("Database:DatabaseName")}";
 
-//    Console.WriteLine("✅ Hangfire server registered successfully");
-//}
-//catch (Exception ex)
-//{
-//    Console.WriteLine($"⚠️ Hangfire server registration failed: {ex.Message}");
-//}
+    var mongoUrlBuilder = new MongoUrlBuilder($"{connectionUri}/{databaseName}");
+    var mongoClient = new MongoClient(mongoUrlBuilder.ToMongoUrl());
+
+    // Add Hangfire services. Hangfire.AspNetCore nuget required
+    builder.Services.AddHangfire(configuration => configuration
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UseMongoStorage(mongoClient, mongoUrlBuilder.DatabaseName, new MongoStorageOptions
+        {
+            MigrationOptions = new MongoMigrationOptions
+            {
+                MigrationStrategy = new MigrateMongoMigrationStrategy(),
+                BackupStrategy = new CollectionMongoBackupStrategy()
+            },
+            Prefix = "hangfire.mongo",
+            CheckConnection = true
+        })
+    );
+    // Add the processing server as IHostedService
+    builder.Services.AddHangfireServer(serverOptions =>
+    {
+        serverOptions.ServerName = "Hangfire.Mongo server 1";
+    });
+
+    Console.WriteLine("✅ Hangfire server registered successfully");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"⚠️ Hangfire server registration failed: {ex.Message}");
+}
 
 
 // configure serilog
@@ -265,7 +290,7 @@ app.UseCors();
 //app.UseAuthentication();
 
 //app.UseAuthorization();
-//app.UseHangfireDashboard();
+app.UseHangfireDashboard();
 
 try
 {
