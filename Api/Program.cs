@@ -1,4 +1,4 @@
-﻿//var builder = WebApplication.CreateBuilder(args);
+//var builder = WebApplication.CreateBuilder(args);
 //var app = builder.Build();
 
 //app.MapGet("/", () => "Hello World!");
@@ -19,11 +19,7 @@ using Carter;
 
 using FluentValidation;
 
-using Hangfire;
-using Hangfire.Mongo;
-
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
@@ -35,9 +31,10 @@ using Serilog.Exceptions;
 
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-using System;
-
 var builder = WebApplication.CreateBuilder(args);
+
+//builder.AddServiceDefaults();
+builder.AddServiceDefaults();
 
 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory())
                      .AddJsonFile("appsettings.json", false, true)
@@ -215,6 +212,8 @@ Console.WriteLine("✅ All available services registered successfully");
 
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
