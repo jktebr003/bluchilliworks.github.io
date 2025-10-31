@@ -1,0 +1,796 @@
+/* Modern Desktop Styling for Safety App */
+/* This file contains desktop-specific styling that follows the mobile design patterns */
+
+/* Desktop-only styles - ensure no impact on mobile */
+@media (min-width: 641px) {
+    
+    /* Hide mobile-specific classes on desktop */
+    .mobile-app-container,
+    .mobile-header,
+    .mobile-main-content,
+    .mobile-content,
+    .mobile-footer,
+    .welcome-section,
+    .quicklinks-section,
+    .home-features-section {
+        display: none !important;
+    }
+
+    /* Hide old desktop layout elements */
+    .page,
+    .sidebar,
+    .top-row,
+    .header,
+    .content,
+    .footer {
+        display: none !important;
+    }
+
+    /* Reset body styling for desktop */
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%) !important;
+        font-family: "Gotham", "Century Gothic", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        overflow: hidden !important; /* Prevent body scroll */
+    }
+
+    /* Modern Desktop Container */
+    .desktop-modern-container {
+        display: flex;
+        height: 100vh; /* Use viewport height instead of min-height */
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%);
+        font-family: "Gotham", "Century Gothic", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        width: 100vw;
+        position: fixed; /* Fix the entire container */
+        top: 0;
+        left: 0;
+        overflow: hidden; /* Prevent container scroll */
+    }
+
+    /* Modern Sidebar with Logo */
+    .desktop-sidebar {
+        width: 280px;
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        z-index: 1000;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Sidebar Header with Logo */
+    .desktop-sidebar-header {
+        padding: 1.5rem 1rem;
+        text-align: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .desktop-sidebar-logo {
+        height: 3rem;
+        width: auto;
+        filter: brightness(0) invert(1);
+        margin-bottom: 0.75rem;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .desktop-sidebar-title h2 {
+        color: white !important;
+        font-size: 1.25rem !important;
+        font-weight: 600 !important;
+        margin: 0 0 0.25rem 0 !important;
+        line-height: 1.2;
+    }
+
+    .desktop-sidebar-title span {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 0.75rem !important;
+        font-weight: 400 !important;
+        display: block;
+    }
+
+    /* Sidebar Navigation */
+    .desktop-sidebar-nav {
+        flex: 1;
+        padding: 0;
+    }
+
+    /* Hide the NavMenu's built-in header and conflicting elements */
+    .desktop-sidebar-nav .top-row,
+    .desktop-sidebar-nav .navbar,
+    .desktop-sidebar-nav .navbar-brand,
+    .desktop-sidebar-nav .bold-text,
+    .desktop-sidebar-nav .navbar-toggler,
+    .desktop-sidebar-nav .container-fluid,
+    .desktop-sidebar-nav .ps-3 {
+        display: none !important;
+    }
+
+    /* Style the navigation container */
+    .desktop-sidebar-nav .nav-scrollable {
+        height: auto !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        display: block !important;
+    }
+
+    /* Remove collapse functionality on desktop */
+    .desktop-sidebar-nav .nav-scrollable.collapse {
+        display: block !important;
+        height: auto !important;
+        visibility: visible !important;
+    }
+
+    /* Style the navigation flex column */
+    .desktop-sidebar-nav .flex-column {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    /* Style the navigation items */
+    .desktop-sidebar-nav .nav-item {
+        margin: 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        width: 100% !important;
+    }
+
+    .desktop-sidebar-nav .nav-link {
+        color: rgba(255, 255, 255, 0.9) !important;
+        padding: 1rem 1.5rem !important;
+        border-radius: 0 !important;
+        transition: all 0.3s ease !important;
+        border-left: 3px solid transparent !important;
+        display: flex !important;
+        align-items: center !important;
+        text-decoration: none !important;
+        font-size: 0.9rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .desktop-sidebar-nav .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border-left-color: rgba(255, 255, 255, 0.3) !important;
+        text-decoration: none !important;
+    }
+
+    .desktop-sidebar-nav .nav-link.active {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: white !important;
+        border-left-color: #3498db !important;
+        font-weight: 600 !important;
+    }
+
+    /* Style navigation icons */
+    .desktop-sidebar-nav .nav-link .bi {
+        margin-right: 0.75rem !important;
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+        background-size: contain !important;
+        display: inline-block !important;
+    }
+
+    /* Main Content Area */
+    .desktop-main {
+        flex: 1;
+        margin-left: 280px;
+        display: flex;
+        flex-direction: column;
+        height: 100vh; /* Full viewport height */
+        width: calc(100vw - 280px);
+        overflow: hidden; /* Prevent main area scroll */
+    }
+
+    /* Updated Header with Navigation on Left, User on Right */
+    .desktop-header {
+        background: linear-gradient(135deg, #001489 0%, #007dba 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 900;
+        padding: 1rem 2rem;
+        width: 100%;
+        flex-shrink: 0; /* Prevent header from shrinking */
+    }
+
+    .desktop-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    /* Left Side - Global Navigation */
+    .desktop-header-nav {
+        display: flex;
+        align-items: center;
+    }
+
+    .desktop-nav-items {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .desktop-nav-button {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-weight: 500 !important;
+        text-transform: none !important;
+        padding: 0.5rem 1rem !important;
+        border-radius: 6px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .desktop-nav-button:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+
+    .desktop-nav-button .mud-icon-root {
+        color: inherit !important;
+        margin-right: 0.5rem !important;
+    }
+
+    /* Right Side - User Info */
+    .desktop-header-user {
+        display: flex;
+        align-items: center;
+    }
+
+    .desktop-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .desktop-user-icon {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 1.25rem !important;
+    }
+
+    .desktop-user-name {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+        min-width: 60px;
+    }
+
+    .desktop-auth-button {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-weight: 500 !important;
+        text-transform: none !important;
+        padding: 0.4rem 0.8rem !important;
+        border-radius: 6px !important;
+        transition: all 0.3s ease !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+
+    .desktop-auth-button:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .desktop-auth-button .mud-icon-root {
+        color: inherit !important;
+        margin-right: 0.25rem !important;
+        font-size: 1rem !important;
+    }
+
+    /* Sync Progress */
+    .desktop-sync-progress {
+        position: sticky;
+        top: 0;
+        z-index: 899;
+        width: 100%;
+        flex-shrink: 0; /* Prevent sync progress from shrinking */
+    }
+
+    /* Content Area - Scrollable between header and footer */
+    .desktop-content {
+        flex: 1; /* Take remaining space */
+        padding: 1rem; 
+        overflow-y: auto; /* Enable scrolling for content only */
+        overflow-x: hidden; /* Prevent horizontal scroll */
+        width: 100%;
+        box-sizing: border-box;
+        /* Remove max-height constraint */
+    }
+
+    .desktop-content-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    /* Desktop Welcome Section - Condensed */
+    .desktop-welcome-section {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 2rem 1.5rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .desktop-welcome-title {
+        font-size: 2.25rem !important;
+        font-weight: 700 !important;
+        margin-bottom: 0.75rem !important;
+        line-height: 1.2;
+        background: linear-gradient(135deg, #001489, #007dba);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .desktop-welcome-subtitle {
+        font-size: 1.125rem !important;
+        color: #6c757d !important;
+        margin-bottom: 0 !important;
+        font-weight: 400;
+        max-width: 85%;
+        margin: 0 auto !important;
+        line-height: 1.4;
+    }
+
+    /* Desktop QuickLinks - Condensed */
+    .desktop-quicklinks-section {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .desktop-quicklinks-title {
+        color: #2c3e50 !important;
+        font-size: 1.75rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 1.5rem !important;
+        background: linear-gradient(135deg, #001489, #007dba);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .desktop-quicklinks-container {
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        flex-wrap: wrap;
+    }
+
+    .desktop-quicklink-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .desktop-quicklink-button {
+        width: 100px !important;
+        height: 100px !important;
+        border-radius: 20px !important;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12) !important;
+        transition: all 0.3s ease !important;
+        backdrop-filter: blur(10px) !important;
+    }
+
+        .desktop-quicklink-button:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2) !important;
+        }
+
+    .desktop-quicklink-contact {
+        background: linear-gradient(135deg, #3498db, #2980b9) !important;
+    }
+
+    .desktop-quicklink-incident {
+        background: linear-gradient(135deg, #001489, #007dba) !important;
+    }
+
+    .desktop-quicklink-button .mud-icon-root {
+        font-size: 2.5rem !important;
+        color: white !important;
+    }
+
+    .desktop-quicklink-label {
+        color: #2c3e50 !important;
+        font-size: 1.125rem !important;
+        font-weight: 600 !important;
+        text-align: center;
+    }
+
+    /* Desktop Features Section - Condensed */
+    .desktop-features-section {
+        margin-bottom: 2rem;
+        padding: 2rem 1.5rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .desktop-features-title {
+        color: #2c3e50 !important;
+        font-size: 1.75rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 1.5rem !important;
+        text-align: center;
+        background: linear-gradient(135deg, #001489, #007dba);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .desktop-features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Force exactly 2 columns */
+        gap: 1.25rem;
+        margin-top: 1.25rem;
+        max-width: 800px; /* Limit width for better proportions */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .desktop-feature-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+    }
+
+        .desktop-feature-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+    .desktop-feature-icon {
+        min-width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #001489, #007dba);
+        box-shadow: 0 3px 12px rgba(0, 20, 137, 0.25);
+    }
+
+        .desktop-feature-icon .mud-icon-root {
+            color: white !important;
+            font-size: 1.5rem !important;
+        }
+
+    .desktop-feature-content {
+        flex: 1;
+    }
+
+    .desktop-feature-title {
+        color: #2c3e50 !important;
+        font-size: 1.125rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.375rem !important;
+        line-height: 1.3;
+    }
+
+    .desktop-feature-description {
+        color: #6c757d !important;
+        font-size: 0.9rem !important;
+        line-height: 1.4;
+        margin-bottom: 0 !important;
+    }
+
+    /* Desktop Login Section - Condensed */
+    .desktop-login-section {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 2rem 1.5rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .desktop-login-title {
+        color: #2c3e50 !important;
+        font-size: 1.75rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.75rem !important;
+        background: linear-gradient(135deg, #001489, #007dba);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .desktop-login-description {
+        color: #6c757d !important;
+        font-size: 1rem !important;
+        margin-bottom: 1.5rem !important;
+        line-height: 1.4;
+    }
+
+    .desktop-login-button {
+        background: linear-gradient(135deg, #001489, #007dba) !important;
+        color: white !important;
+        border: none !important;
+        padding: 12px 32px !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 3px 12px rgba(0, 20, 137, 0.25) !important;
+        transition: all 0.3s ease !important;
+        text-transform: none !important;
+    }
+
+        .desktop-login-button:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 20px rgba(0, 20, 137, 0.35) !important;
+        }
+
+    /* Regular Article Content */
+    .desktop-article {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Fixed Desktop Footer */
+    .desktop-footer {
+        background: linear-gradient(135deg, #2c3e50, #34495e) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(10px);
+        padding: 0.75rem 2rem;
+        width: 100%;
+        height: 80px !important; /* Fixed height */
+        flex-shrink: 0; /* Prevent footer from shrinking */
+        position: relative; /* Remove any positioning that might interfere */
+    }
+
+    .desktop-footer-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-width: 1400px;
+        margin: 0 auto;
+        gap: 0.75rem;
+        height: 100%;
+        text-align: center;
+    }
+
+    .footer-icons {
+        order: 1; /* Ensure icons appear first */
+    }
+
+    .footer-icon-button {
+        color: rgba(255, 255, 255, 0.8) !important;
+        transition: all 0.3s ease !important;
+    }
+
+        .footer-icon-button:hover {
+            color: #3498db !important;
+            transform: translateY(-2px) !important;
+        }
+
+    .footer-text {
+        order: 2; /* Text appears after icons */
+        flex: none; /* Remove flex growth */
+        width: 100%;
+    }
+
+    /* Desktop Footer Text Styling - Match Mobile Layout */
+    .desktop-footer .footer-app-name,
+    .desktop-footer .footer-version,
+    .desktop-footer .footer-copyright {
+        text-align: center !important;
+        display: block;
+        width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .desktop-footer .footer-app-name {
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        color: white !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    .desktop-footer .footer-version {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.25rem !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .desktop-footer .footer-copyright {
+        font-size: 0.75rem !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    /* Ensure MudText components in footer display as blocks */
+    .desktop-footer .footer-text .mud-typography {
+        display: block !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    .desktop-footer-text {
+        flex: 1;
+    }
+
+    .desktop-footer-text span {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-size: 0.8rem !important;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .desktop-footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .footer-logos {
+        order: 3; /* Logos appear last */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .desktop-footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+        .desktop-footer-links a {
+            color: rgba(255, 255, 255, 0.7) !important;
+            text-decoration: none;
+            font-size: 0.75rem !important;
+            transition: color 0.3s ease;
+        }
+
+            .desktop-footer-links a:hover {
+                color: #3498db !important;
+            }
+
+    .desktop-footer-logos {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .desktop-footer-logo {
+        max-height: 2rem;
+        height: auto;
+    }
+
+    .desktop-footer-crest {
+        max-height: 2.5rem;
+        height: auto;
+    }
+
+    /* Hide conflicting elements */
+    .wcg-logo-wrapper {
+        display: none !important;
+    }
+
+    .desktop-content .content {
+        display: none !important;
+    }
+
+    .desktop-modern-container .page-container,
+    .desktop-modern-container article.content {
+        display: none !important;
+    }
+
+    /* Ensure MudBlazor components work properly in desktop layout */
+    .desktop-header .mud-toolbar,
+    .desktop-header .mud-button,
+    .desktop-header .mud-icon-button {
+        color: white !important;
+    }
+
+    /* Responsive adjustments for larger screens */
+    @media (min-width: 1200px) {
+        .desktop-sidebar {
+            width: 320px;
+        }
+
+        .desktop-main {
+            margin-left: 320px;
+            width: calc(100vw - 320px);
+        }
+
+        .desktop-content {
+            padding: 2rem;
+        }
+
+        .desktop-quicklinks-container {
+            gap: 4rem;
+        }
+
+        .desktop-quicklink-button {
+            width: 120px !important;
+            height: 120px !important;
+        }
+
+            .desktop-quicklink-button .mud-icon-root {
+                font-size: 3rem !important;
+            }
+    }
+
+    @media (min-width: 1600px) {
+        .desktop-content {
+            padding: 2.5rem;
+        }
+
+        .desktop-welcome-title {
+            font-size: 2.75rem !important;
+        }
+
+        .desktop-welcome-subtitle {
+            font-size: 1.25rem !important;
+        }
+
+        .desktop-features-grid {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+    }
+}
+
+/* Ensure mobile styles are preserved and not affected */
+@media (max-width: 640.98px) {
+    .desktop-modern-container,
+    .desktop-sidebar,
+    .desktop-main,
+    .desktop-header,
+    .desktop-content,
+    .desktop-footer,
+    .desktop-welcome-section,
+    .desktop-quicklinks-section,
+    .desktop-features-section,
+    .desktop-login-section,
+    .desktop-article {
+        display: none !important;
+    }
+}

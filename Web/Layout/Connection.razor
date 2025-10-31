@@ -1,0 +1,59 @@
+﻿     @using Microsoft.AspNetCore.Components
+@using MudBlazor
+@implements IDisposable
+@inject IJSRuntime JSRuntime
+
+<div class="connection-indicator">
+    @if (IsOnline)
+    {
+        <MudIcon Icon="@Icons.Material.Filled.Wifi" Color="Color.Success" Size="Size.Small" Title="Online" />
+    }
+    else
+    {
+        <MudIcon Icon="@Icons.Material.Filled.WifiOff" Color="Color.Error" Size="Size.Small" Title="Offline" />
+    }
+</div>
+
+@code {
+    private bool IsOnline { get; set; } = true;
+    private IJSObjectReference? _jsModule;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/connection.js");
+                IsOnline = await _jsModule.InvokeAsync<bool>("isOnline");
+                await _jsModule.InvokeVoidAsync("registerConnectionHandler", DotNetObjectReference.Create(this));
+                StateHasChanged();
+            }
+            catch (Exception)
+            {
+                // Fallback if JS module fails to load
+                IsOnline = true;
+            }
+        }
+    }
+
+    [JSInvokable]
+    public async Task UpdateConnectionStatus(bool isOnline)
+    {
+        IsOnline = isOnline;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        _jsModule?.DisposeAsync();
+    }
+}
+
+<style>
+    .connection-indicator {
+        display: flex;
+        align-items: center;
+        margin-right: 8px;
+    }
+</style>

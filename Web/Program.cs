@@ -9,6 +9,8 @@ using MudBlazor.Extensions;
 using Solutaris.InfoWARE.ProtectedBrowserStorage.Extensions;
 
 using Web;
+using Web.Services;
+using Web.Shared;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -31,16 +33,19 @@ builder.Services.AddGeolocationServices();
 // or this to add only the MudBlazor.Extensions but please ensure that this is added after mud servicdes are added. That means after `AddMudServices`
 builder.Services.AddMudServicesWithExtensions();
 
+builder.Services.AddSingleton<DeviceService>();
+builder.Services.AddSingleton<GeoLocationService>();
+
 // HTTP Client
-//builder.Services.AddHttpClient<WebApiClient>(client =>
-//{
-//    var baseApiServiceUrl = builder.Configuration["BaseApiServiceUrl"];
-//    if (string.IsNullOrEmpty(baseApiServiceUrl))
-//        throw new ArgumentNullException(nameof(baseApiServiceUrl), "BaseApiServiceUrl is not configured.");
-//    client.DefaultRequestHeaders.AcceptLanguage.Clear();
-//    client.DefaultRequestHeaders.Add("Authorization", builder.Configuration["AuthorizationKey"]);
-//    client.BaseAddress = new Uri(baseApiServiceUrl);
-//});
+builder.Services.AddHttpClient<WebApiClient>(client =>
+{
+    var baseApiServiceUrl = builder.Configuration["BaseApiServiceUrl"];
+    if (string.IsNullOrEmpty(baseApiServiceUrl))
+        throw new ArgumentNullException(nameof(baseApiServiceUrl), "BaseApiServiceUrl is not configured.");
+    client.DefaultRequestHeaders.AcceptLanguage.Clear();
+    client.DefaultRequestHeaders.Add("Authorization", builder.Configuration["AuthorizationKey"]);
+    client.BaseAddress = new Uri(baseApiServiceUrl);
+});
 
 // Fluxor (State Management)
 builder.Services.AddFluxor(options =>

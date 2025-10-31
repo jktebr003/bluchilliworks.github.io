@@ -1,0 +1,39 @@
+﻿:root {
+    /* ---------- Colours for portal site ---------- */
+    --wcg-primary-blue: 000, 020, 137;
+    --wcg-secondary-grey: 150, 140, 131;
+    --wcg-secondary-teal: 127, 169, 174;
+    --wcg-secondary-steel-blue: 169, 202, 76;
+    --wcg-body-black: 000, 000, 000;
+    --wcg-link-blue: 006, 069, 173;
+    --wcg-background-light-grey: 249, 249, 249;
+    --wcg-background-white: 255, 255, 255;
+    --wcg-background-dark-grey: 0, 0%, 29%;
+    /* ---------- Colour for SBT site ---------- */
+
+    --wcg-blue: 000, 020, 137;
+    --wcg-bright-blue: 000, 125, 186;
+    --wcg-teal: 127, 169, 174;
+    --wcg-steel-blue: 169, 202, 76;
+    --wcg-light-grey: 166, 187, 200;
+    --wcg-bright-purple: 137, 012, 088;
+    --wcg-pink: 237, 040, 145;
+    --wcg-light-purple: 141, 110, 151;
+    --wcg-red: 186, 012, 047;
+    --wcg-burnt-orange: 215, 056, 040;
+    --wcg-yellow: 255, 198, 000;
+    --wcg-grey: 150, 140, 131;
+    --wcg-warm-grey: 108, 096, 084;
+    --wcg-green: 143, 173, 021;
+    --wcg-lime: 196, 214, 000;
+    --wcg-black: 000, 000, 000;
+    --wcg-blue: 006, 069, 173;
+    --wcg-light-grey: 166, 187, 200;
+    --wcg-white: 255, 255, 255;
+    --header-text-hover: rgba(var(--mpact-green)); /* #90ce62 */
+    --menu-background: rgba(var(--mpact-black)); /* #2c2e35 */
+    /* 
+        rgb(169, 202, 76); [primary green] 
+        rgb(166, 92, 158); [secondary purple]
+    */
+}

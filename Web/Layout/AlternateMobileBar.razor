@@ -1,0 +1,168 @@
+﻿@using MudBlazor
+@using Solutaris.InfoWARE.ProtectedBrowserStorage.Services
+
+@inject NavigationManager Navigation
+@inject IIWLocalStorageService _localStorage
+@inject IJSRuntime JSRuntime
+
+@if (IsHomePage())
+{
+    <div class="mobile-header">
+        <div class="header-content">
+            <div class="header-logo">
+                @* <img src="img/wcg-logo-for-you.png" alt="Western Cape Government" class="wcg-logo-header" /> *@
+                <span class="header-title align-content-center">Safety App</span>
+            </div>
+            <Connection />
+            <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                           Class="menu-button"
+                           OnClick="ToggleDrawer" />
+        </div>
+    </div>
+}
+else
+{
+    <div class="capture-incident-header">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                       Color="Color.Inherit"
+                       OnClick='() => Navigation?.NavigateTo("/")'
+                       Class="back-button" />
+        <h2 class="page-title">@GetPageTitle()</h2>
+        <Connection />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Class="menu-button"
+                       OnClick="ToggleDrawer" />
+    </div>
+}
+
+<MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Temporary" Elevation="1">
+    <MudNavMenu>
+        <MudNavLink Href="/" Match="NavLinkMatch.All">
+            <MudIcon Icon="@Icons.Material.Filled.Home" />
+            <span>Home</span>
+        </MudNavLink>
+        <MudNavLink Href="/incidents/capture">
+            <MudIcon Icon="@Icons.Material.Filled.Warning" />
+            <span>Capture Incident</span>
+        </MudNavLink>
+        @if (isAuthenticated)
+        {
+            <MudNavLink Href="/incidents/list">
+                <MudIcon Icon="@Icons.Material.Filled.List" />
+                <span>View My Incidents</span>
+            </MudNavLink>
+
+            <MudNavLink OnClick="HandleLogout">
+                <MudIcon Icon="@Icons.Material.Filled.Logout" />
+                <span>Logout @UserFullName</span>
+            </MudNavLink>
+        }
+        else
+        {
+            <MudNavLink OnClick="HandleLogin">
+                <MudIcon Icon="@Icons.Material.Filled.Login" />
+                <span>Login</span>
+            </MudNavLink>
+        }
+    </MudNavMenu>
+</MudDrawer>
+
+@code {
+    private bool _drawerOpen = false;
+    private bool isAuthenticated = false;
+    protected string UserFullName { get; set; } = string.Empty;
+    bool Busy = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetLoggedInUser();
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
+    private bool IsHomePage()
+    {
+        var uri = new Uri(Navigation.Uri);
+        return uri.AbsolutePath == "/" || uri.AbsolutePath.Equals("/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetPageTitle()
+    {
+        var uri = new Uri(Navigation.Uri);
+        return uri.AbsolutePath.ToLowerInvariant() switch
+        {
+            "/incidents/capture" => "Capture an Incident",
+            "/incidents/list" => "View My Incidents",
+            "/authentication/login" => "Login",
+            "/authentication/logout" => "Logout",
+            _ => "Safety App"
+        };
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    protected async Task ShowLoginOverlay()
+    {
+        Busy = true;
+        StateHasChanged();
+        await Task.Delay(1);
+    }
+
+    private async Task GetLoggedInUser()
+    {
+        // AuthenticationState userContext = await _asp.GetAuthenticationStateAsync();
+        // if (userContext.User.Identity != null && userContext.User.Identity.IsAuthenticated)
+        // {
+        //     isAuthenticated = true;
+        //     string? givenName = userContext.User.Claims.FirstOrDefault(x => x.Type ==
+        //     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname")?.Value;
+        //     string? surname = userContext.User.Claims.FirstOrDefault(x => x.Type ==
+        //     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname")?.Value;
+
+        //     UserFullName = $"{givenName} {surname}";
+        // }
+        // else
+        // {
+        //     isAuthenticated = false;
+        //     UserFullName = string.Empty;
+        // }
+        // StateHasChanged();
+
+        isAuthenticated = false;
+        UserFullName = string.Empty;
+
+        StateHasChanged();
+    }
+
+    private async Task HandleLogin()
+    {
+        _drawerOpen = false;
+        Navigation.NavigateTo("/authentication/login");
+    }
+
+    private async Task HandleLogout()
+    {
+        _drawerOpen = false;
+
+        // Clear local storage like the working LoginDisplay does
+        await _localStorage.RemoveAllItemsAsync();
+
+        // Show logout overlay (optional)
+        Busy = true;
+        StateHasChanged();
+        await Task.Delay(1);
+
+        // Use NavigateToLogout instead of simple NavigateTo
+        //Navigation.NavigateToLogout("authentication/logout");
+    }
+}

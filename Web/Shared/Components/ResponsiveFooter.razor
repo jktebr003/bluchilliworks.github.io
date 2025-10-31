@@ -1,0 +1,54 @@
+﻿@using MudBlazor
+@using Web.Services
+@inject DeviceService DeviceService
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<footer class="@GetFooterClasses()">
+    <div class="footer-content @GetContentClasses() text-center">
+
+        <div class="footer-text text-center">
+            @* Updated desktop view to match mobile view layout *@
+            <MudText Class="footer-app-name text-center">@AppName</MudText>
+            <MudText Class="footer-version text-center">@VersionText</MudText>
+            <MudText Class="footer-copyright text-center">Western Cape Government. All rights reserved.</MudText>
+        </div>
+    </div>
+</footer>
+
+@code {
+    [Parameter] public string AppName { get; set; } = "POCS Safety (Development)";
+    [Parameter] public string VersionText { get; set; } = "VERSION 0.1.0";
+    [Parameter] public bool ShowIcons { get; set; } = true;
+    [Parameter] public bool ShowLogos { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await DeviceService.InitializeAsync();
+        DeviceService.ViewportChanged += OnViewportChanged;
+    }
+
+    private void OnViewportChanged(ViewportInfo viewport)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetFooterClasses()
+    {
+        var baseClass = DeviceService.IsMobile ? "mobile-footer" : "desktop-footer";
+        var positionClass = DeviceService.GetFooterPositionClass();
+
+        return $"{baseClass} {positionClass}";
+    }
+
+    private string GetContentClasses()
+    {
+        return DeviceService.IsMobile ? "mobile-footer-content" : "desktop-footer-content";
+    }
+
+    public void Dispose()
+    {
+        DeviceService.ViewportChanged -= OnViewportChanged;
+        DeviceService.Dispose();
+    }
+}

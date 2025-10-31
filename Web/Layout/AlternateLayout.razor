@@ -1,0 +1,177 @@
+﻿@using MudBlazor
+@using Web.Shared.Components
+@inherits LayoutComponentBase
+
+@* Required *@
+<MudThemeProvider Theme="MyCustomTheme" />
+<MudPopoverProvider />
+
+@* Needed for dialogs *@ 
+<MudDialogProvider />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
+
+@if (DeviceService.IsMobile)
+{
+    <div class="mobile-app-container @GetContainerClasses()">
+        <AlternateMobileBar />
+
+        <main class="mobile-main-content">
+            <div class="mobile-content">
+                @Body
+            </div>
+        </main>
+
+        @if (IsHomePage)
+        {
+            <ResponsiveFooter AppName="@($"POCS Safety ({_environment})")" 
+                            VersionText="@($"VERSION {_versionNumber}")" ShowIcons="true" />
+        }
+    </div>
+}
+else
+{
+    <!-- Modern Desktop Layout -->
+    <div class="desktop-modern-container @GetContainerClasses()">
+        <!-- Sidebar with Logo and Navigation -->
+        <div class="desktop-sidebar">
+            <!-- Sidebar Logo Section -->
+            <div class="desktop-sidebar-header">
+                <img src="img/wcg-crest-for-you-800px-blue-text.svg" alt="WCG Logo" class="desktop-sidebar-logo" />
+                <div class="desktop-sidebar-title">
+                    <h2>POCS Safety</h2>
+                    <span>Western Cape Government</span>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="desktop-sidebar-nav">
+                <AlternateNavMenu />
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="desktop-main">
+            <!-- Header Bar with Global Nav on Left, User Info on Right -->
+            <div class="desktop-header">
+                <div class="desktop-header-content">
+                    <!-- Left side - Global Navigation -->
+                    <div class="desktop-header-nav">
+                        <div class="desktop-nav-items">
+                            <MudButton Color="Color.Inherit"
+                                       StartIcon="@Icons.Material.Filled.Home"
+                                       Href="/"
+                                       Class="desktop-nav-button">
+                                Home
+                            </MudButton>
+                        </div>
+                    </div>
+                    
+                    <!-- Right side - User Info and Login/Logout -->
+                    <div class="desktop-header-user">
+                        <div class="desktop-user-info">
+                            <MudIcon Icon="@Icons.Material.Filled.Person"
+                                     Class="desktop-user-icon" />
+                            <MudText Class="desktop-user-name">Guest</MudText>
+                            <MudButton Color="Color.Inherit"
+                                       StartIcon="@Icons.Material.Filled.Login"
+                                       Href="/authentication/login"
+                                       Class="desktop-auth-button">
+                                Login
+                            </MudButton>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="desktop-content">
+                <div class="desktop-content-wrapper">
+                    @if (IsHomePage)
+                    {
+                        <!-- Desktop Home Page Layout -->
+                        <div class="desktop-welcome-section">
+                            <h1 class="desktop-welcome-title">Welcome to POCS Safety</h1>
+                            <p class="desktop-welcome-subtitle">Your comprehensive platform for incident reporting and safety management.</p>
+                        </div>
+
+                        <div class="desktop-login-section">
+                            <h2 class="desktop-login-title">Get Started</h2>
+                            <p class="desktop-login-description">Log in to access all features and start reporting incidents securely.</p>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.Login"
+                                       Href="/authentication/login"
+                                       Class="desktop-login-button">
+                                Sign In
+                            </MudButton>
+                        </div>
+
+                        <div class="desktop-features-section">
+                            <h2 class="desktop-features-title">Key Features</h2>
+                            <div class="desktop-features-grid">
+                                <div class="desktop-feature-card">
+                                    <div class="desktop-feature-icon">
+                                        <MudIcon Icon="@Icons.Material.Filled.Security" />
+                                    </div>
+                                    <div class="desktop-feature-content">
+                                        <h3 class="desktop-feature-title">Incident Reporting</h3>
+                                        <p class="desktop-feature-description">Report incidents quickly and securely with our comprehensive reporting system.</p>
+                                    </div>
+                                </div>
+                                <div class="desktop-feature-card">
+                                    <div class="desktop-feature-icon">
+                                        <MudIcon Icon="@Icons.Material.Filled.Speed" />
+                                    </div>
+                                    <div class="desktop-feature-content">
+                                        <h3 class="desktop-feature-title">Quick Response</h3>
+                                        <p class="desktop-feature-description">Fast response times with automated workflows and notifications.</p>
+                                    </div>
+                                </div>
+                                <div class="desktop-feature-card">
+                                    <div class="desktop-feature-icon">
+                                        <MudIcon Icon="@Icons.Material.Filled.CloudSync" />
+                                    </div>
+                                    <div class="desktop-feature-content">
+                                        <h3 class="desktop-feature-title">Offline Support</h3>
+                                        <p class="desktop-feature-description">Work offline and sync when connection is restored.</p>
+                                    </div>
+                                </div>
+                                <div class="desktop-feature-card">
+                                    <div class="desktop-feature-icon">
+                                        <MudIcon Icon="@Icons.Material.Filled.Verified" />
+                                    </div>
+                                    <div class="desktop-feature-content">
+                                        <h3 class="desktop-feature-title">Verified Safe</h3>
+                                        <p class="desktop-feature-description">Secure and compliant with government standards.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Regular Page Content -->
+                        <article class="desktop-article">
+                            @Body
+                        </article>
+                    }
+                </div>
+            </div>
+
+            <!-- Condensed Desktop Footer -->
+            <ResponsiveFooter AppName="@($"POCS Safety ({_environment})")" 
+                        VersionText="@($"{_versionNumber}")" 
+                        ShowIcons="true" />
+        </main>
+    </div>
+}
+
+<UpdateAvailableDetector />
+
+@code {
+    private bool IsHomePage => Navigation.Uri.EndsWith("/") || Navigation.Uri.EndsWith("/home", StringComparison.OrdinalIgnoreCase);
+
+    
+}
