@@ -2,12 +2,12 @@
 
 namespace Web.Services;
 
-public class DeviceService
+public class DeviceService : IDisposable
 {
     private readonly IJSRuntime _jsRuntime;
     private DotNetObjectReference<DeviceService>? _objRef;
 
-    public bool IsMobile { get; set; }
+    public bool IsMobile { get; private set; }
     public ViewportInfo? CurrentViewport { get; private set; }
 
     public event Action<ViewportInfo>? ViewportChanged;
@@ -19,13 +19,11 @@ public class DeviceService
 
     public async Task InitializeAsync()
     {
-        _objRef = DotNetObjectReference.Create(this);
+        _objRef ??= DotNetObjectReference.Create(this);
         try
         {
-            CurrentViewport = await _jsRuntime.InvokeAsync<ViewportInfo>("addResizeListener", _objRef, nameof(OnViewportChanged));
-
-            // Update IsMobile based on screen width
-            IsMobile = CurrentViewport?.Width <= 768;
+            var viewport = await _jsRuntime.InvokeAsync<ViewportInfo>("addResizeListener", _objRef, nameof(OnViewportChanged));
+            SetViewport(viewport);
         }
         catch (Exception ex)
         {
@@ -36,8 +34,7 @@ public class DeviceService
     [JSInvokable]
     public void OnViewportChanged(ViewportInfo viewportInfo)
     {
-        CurrentViewport = viewportInfo;
-        IsMobile = viewportInfo.Width <= 768;
+        SetViewport(viewportInfo);
         ViewportChanged?.Invoke(viewportInfo);
     }
 
@@ -45,37 +42,42 @@ public class DeviceService
     {
         try
         {
-            return await _jsRuntime.InvokeAsync<ViewportInfo>("getViewportInfo");
+            var viewport = await _jsRuntime.InvokeAsync<ViewportInfo>("getViewportInfo");
+            SetViewport(viewport);
+            return viewport;
         }
         catch
         {
-            return new ViewportInfo { Width = 1024, Height = 768 }; // Fallback
+            var fallback = new ViewportInfo { Width = 1024, Height = 768 };
+            SetViewport(fallback);
+            return fallback;
         }
     }
 
     public string GetFooterPositionClass()
     {
-        if (CurrentViewport == null) return "footer-auto";
+        var viewport = CurrentViewport;
+        if (viewport == null) return "footer-auto";
 
-        // Small screens (mobile phones)
-        if (CurrentViewport.Width <= 480)
-        {
-            return CurrentViewport.Height <= 600 ? "footer-fixed-bottom" : "footer-auto";
-        }
+        if (viewport.Width <= 480)
+            return viewport.Height <= 600 ? "footer-fixed-bottom" : "footer-auto";
 
-        // Medium screens (tablets)
-        if (CurrentViewport.Width <= 768)
-        {
-            return CurrentViewport.Height <= 800 ? "footer-sticky" : "footer-auto";
-        }
+        if (viewport.Width <= 768)
+            return viewport.Height <= 800 ? "footer-sticky" : "footer-auto";
 
-        // Large screens (desktops)
         return "footer-auto";
+    }
+
+    private void SetViewport(ViewportInfo? viewport)
+    {
+        CurrentViewport = viewport;
+        IsMobile = viewport?.Width <= 768;
     }
 
     public void Dispose()
     {
         _objRef?.Dispose();
+        _objRef = null;
     }
 }
 

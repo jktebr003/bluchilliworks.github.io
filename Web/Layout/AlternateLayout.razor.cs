@@ -15,12 +15,12 @@ namespace Web.Layout;
 
 public partial class AlternateLayout
 {
-    [Inject] private IIWLocalStorageService _localStorage { get; set; }
-    [Inject] private IConfiguration _configuration { get; set; }
-    [Inject] private WebApiClient WebApiClient { get; set; }
-    [Inject] private NavigationManager Navigation { get; set; }
-    [Inject] private DeviceService DeviceService { get; set; }
-    [Inject] private IJSRuntime JSRuntime { get; set; }
+    [Inject] private IIWLocalStorageService? _localStorage { get; set; }
+    [Inject] private IConfiguration? _configuration { get; set; }
+    [Inject] private WebApiClient? WebApiClient { get; set; }
+    [Inject] private NavigationManager? Navigation { get; set; }
+    [Inject] private DeviceService? DeviceService { get; set; }
+    [Inject] private IJSRuntime? JSRuntime { get; set; }
 
     #region Custom Theme
 
@@ -48,7 +48,6 @@ public partial class AlternateLayout
 
     #endregion Custom Theme
 
-    private bool busy = false;
     private bool networkOnline;
     private string syncMessage = string.Empty;
     private string _versionNumber = string.Empty;
@@ -68,14 +67,15 @@ public partial class AlternateLayout
             {
                 syncMessage = "No network connection. Please try again later.";
             }
-        }, null, 0, 120000); // every 120s
+        }, null, 0, 5000); // every 5s
 
-        DeviceService.IsMobile = await JSRuntime.InvokeAsync<bool>("deviceInfo.isMobile");
+        if (DeviceService is not null)
+            await DeviceService.InitializeAsync();
 
         try
         {
-            var buildInfo = _configuration.GetSection("BuildInfo").Get<BuildInfo>();
-            _environment = $"{_configuration["ASPNETCORE_ENVIRONMENT"]}";
+            var buildInfo = _configuration?.GetSection("BuildInfo").Get<BuildInfo>();
+            _environment = $"{_configuration?["ASPNETCORE_ENVIRONMENT"]}";
             string buildId, buildNumber;
 
             buildId = $"{buildInfo?.BuildId}";
@@ -85,23 +85,21 @@ public partial class AlternateLayout
                 ? "VERSION 1.0.0 | Invalid Build Information"
                 : GenerateVersionNumber(buildId, buildNumber);
         }
-        catch (Exception ex)
+        catch
         {
-            //LoggerService.Instance.Error("Error retrieving build information from configuration.", ex);
             _versionNumber = "VERSION 1.0.0 | Invalid Build Information";
         }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-            await JSRuntime.InitializeMudBlazorExtensionsAsync();
         await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task CheckNetworkStatus()
     {
-        networkOnline = await JSRuntime.InvokeAsync<bool>("Connection.IsOnline");
+        if (JSRuntime is not null)
+            networkOnline = await JSRuntime.InvokeAsync<bool>("Connection.IsOnline");
         StateHasChanged();
     }
 
@@ -116,6 +114,6 @@ public partial class AlternateLayout
 
     private string GetContainerClasses()
     {
-        return DeviceService.GetFooterPositionClass();
+        return DeviceService?.GetFooterPositionClass() ?? "footer-auto";
     }
 }
