@@ -67,11 +67,12 @@ public static class CreateUserSession
             // Use object initializer directly
             var record = new UserSession
             {
-                IdleDuration = 0, // set idle duration from configuration file later
+                ExpiresOn = DateTimeExtension.GetSouthAfricanTime().AddMinutes(30).ToString("o"),
+                IdleDuration = 30, // set idle duration from configuration file later
                 IsActive = true,
                 IsExpired = false,
                 LastAccessedOn = DateTimeExtension.GetSouthAfricanTime().ToString("o"),
-                SessionKey = ss.ToPlain(),
+                SessionToken = ss.ToPlain(),
                 UserId = request.UserId,
                 CreatedOn = request.CreatedOn.ToString("o"),
                 CreatedBy = request.CreatedBy

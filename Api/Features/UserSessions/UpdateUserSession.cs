@@ -16,7 +16,7 @@ public static class UpdateUserSession
     {
         public string Id { get; set; }
         public string? UserId { get; set; }
-        public string? SessionKey { get; set; }
+        public string? SessionToken { get; set; }
         public string? LastAccessedOn { get; set; }
         public bool IsExpired { get; set; }
         public DateTime ModifiedOn { get; set; } = DateTimeExtension.GetSouthAfricanTime();
@@ -28,7 +28,7 @@ public static class UpdateUserSession
         public Validator()
         {
             RuleFor(c => c.UserId).NotEmpty().WithMessage("Please ensure that you have entered your User Session {PropertyName}");
-            RuleFor(c => c.SessionKey).NotEmpty().WithMessage("Please ensure that you have entered your User Session {PropertyName}");
+            RuleFor(c => c.SessionToken).NotEmpty().WithMessage("Please ensure that you have entered your User Session {PropertyName}");
         }
     }
 
@@ -61,7 +61,7 @@ public static class UpdateUserSession
                 return new ApiResult<string>(string.Empty, false, "UpdateUserSession.UserNotFound", "The specified user was not found");
             }
 
-            var record = await _userSessionRepository.GetUserSessionBySessionKeyAsync(request.SessionKey);
+            var record = await _userSessionRepository.GetUserSessionBySessionTokenAsync(request.SessionToken);
             if (record == null)
             {
                 return new ApiResult<string>(string.Empty, false, "UpdateUserSession.UserSessionNotFound", "The specified user session was not found");
@@ -69,6 +69,7 @@ public static class UpdateUserSession
 
             // Direct property assignment
             record.LastAccessedOn = request.LastAccessedOn;
+            record.ExpiresOn = DateTimeExtension.GetSouthAfricanTime().AddMinutes(30).ToString("o");
             record.IsExpired = request.IsExpired;
             record.ModifiedBy = request.ModifiedBy;
             record.ModifiedOn = request.ModifiedOn.ToString("o");

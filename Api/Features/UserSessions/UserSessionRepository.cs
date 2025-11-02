@@ -22,9 +22,9 @@ public class UserSessionRepository : IUserSessionRepository
     public Task<UserSession> GetUserSessionByIdAsync(string id)
         => _mongoDbRepository.Get<UserSession>(id);
 
-    public Task<UserSession?> GetUserSessionBySessionKeyAsync(string sessionKey)
+    public Task<UserSession?> GetUserSessionBySessionTokenAsync(string sessionToken)
         => DB.Find<UserSession>()
-             .Match(b => b.SessionKey == sessionKey)
+             .Match(b => b.SessionToken == sessionToken)
              .ExecuteFirstAsync();
 
     public Task SaveUserSessionAsync(UserSession userSession)

@@ -13,7 +13,7 @@ public class UserRepository : IUserRepository
 
     public Task<List<User>> FilterUsersByEmailAddressAsync(string emailAddress)
         => DB.Find<User>()
-             .Match(b => b.EmailAddress == emailAddress)
+             .Match(b => b.EmailAddress == emailAddress && !b.IsDeleted)
              .ExecuteAsync();
 
     public Task<List<User>> GetAllUsersAsync()

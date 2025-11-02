@@ -16,7 +16,7 @@ public class UserSessionResponse : BaseResponse
     /// <summary>
     /// The Session Value
     /// </summary>
-    public string? SessionKey { get; set; }
+    public string? SessionToken { get; set; }
 
     /// <summary>
     /// The Session Idle Duration
@@ -27,6 +27,11 @@ public class UserSessionResponse : BaseResponse
     /// The Last Accessed Date
     /// </summary>
     public string? LastAccessedOn { get; set; }
+
+    /// <summary>
+    /// The Expires On Date
+    /// </summary>
+    public string? ExpiresOn { get; set; }
 
     /// <summary>
     /// Is Session Expired
