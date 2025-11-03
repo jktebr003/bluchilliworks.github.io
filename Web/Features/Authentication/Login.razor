@@ -1,0 +1,68 @@
+﻿@page "/login"
+
+@using System.ComponentModel.DataAnnotations
+@using Web.Shared
+
+<h3>Login</h3>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <InputText id="username" class="form-control" @bind-Value="loginModel.Username" />
+        <ValidationMessage For="@(() => loginModel.Username)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
+        <ValidationMessage For="@(() => loginModel.Password)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+</EditForm>
+
+@code {
+    [Inject] NavigationManager NavigationManager { get; set; }
+
+    [Inject] IAuthenticationService AuthService { get; set; }
+
+    [Inject] WebApiClient ApiClient { get; set; }
+
+    private LoginModel loginModel = new();
+    private string? ErrorMessage;
+
+    private async Task HandleLogin()
+    {
+        // TODO: Replace with actual authentication logic
+        var loginResult = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
+        //if (loginModel.Username == "admin" && loginModel.Password == "password")
+        if (loginResult.Succeeded)
+        {
+            // Redirect or set authentication state
+            ErrorMessage = null;
+            // Example: NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            ErrorMessage = loginResult.ErrorMessage;
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required]
+        public string Username { get; set; } = string.Empty;
+
+        [Required]
+        public string Password { get; set; } = string.Empty;
+    }
+}

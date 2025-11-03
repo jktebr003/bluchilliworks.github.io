@@ -1,15 +1,20 @@
-﻿using Shared.Models;
+﻿using HandlebarsDotNet;
+
+using Microsoft.AspNetCore.Components.Authorization;
+
+using Shared.Models;
 
 using Web.Shared;
+using Web.Shared.Helpers;
 
-namespace Web.Services;
+namespace Web.Features.Authentication;
 
 public interface IAuthenticationService
 {
     Task<AuthResult> LoginAsync(string username, string password);
     Task LogoutAsync();
     Task<AuthResult> RegisterAsync(string username, string email, string password, string[]? roles = null);
-    //Task<ApplicationUser?> GetCurrentUserAsync();
+    Task<UserResponse?> GetCurrentUserAsync();
     Task<bool> IsUserInRoleAsync(string role);
     Task<bool> HasClaimAsync(string claimType, string claimValue);
 }
@@ -18,10 +23,26 @@ public interface IAuthenticationService
 public class AuthenticationService : IAuthenticationService
 {
     private readonly WebApiClient _webApiClient;
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
+    private readonly LocalStorageHelper _localStorageHelper;
 
-    public AuthenticationService(WebApiClient webApiClient)
+    public AuthenticationService(WebApiClient webApiClient, AuthenticationStateProvider authenticationStateProvider, LocalStorageHelper localStorageHelper)
     {
         _webApiClient = webApiClient;
+        _authenticationStateProvider = authenticationStateProvider;
+        _localStorageHelper = localStorageHelper;
+    }
+
+    public async Task<UserResponse?> GetCurrentUserAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated)
+            return null;
+
+        var username = user.Identity.Name;
+        return await _localStorageHelper.GetCurrentUserAsync();
     }
 
     public async Task<bool> HasClaimAsync(string claimType, string claimValue)
@@ -50,12 +71,15 @@ public class AuthenticationService : IAuthenticationService
         if (string.IsNullOrEmpty(password) || !string.Equals(password, user.DecryptedPassword, StringComparison.Ordinal))
             return AuthResult.Failure("Invalid password");
 
+        // Notify authentication state change
+        await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserAuthenticationAsync(user);
+
         return AuthResult.Success();
     }
 
     public async Task LogoutAsync()
     {
-        throw new NotImplementedException();
+        await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserLogoutAsync();
     }
 
     public async Task<AuthResult> RegisterAsync(string username, string email, string password, string[]? roles = null)
