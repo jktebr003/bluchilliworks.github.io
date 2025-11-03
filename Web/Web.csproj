@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\Login\**" />
+    <Content Remove="Features\Login\**" />
+    <EmbeddedResource Remove="Features\Login\**" />
+    <None Remove="Features\Login\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Blazor.Geolocation.WebAssembly" Version="9.0.1" />
     <PackageReference Include="Blazor.SubtleCrypto" Version="9.0.0" />
     <PackageReference Include="BlazorDownloadFile" Version="2.4.0.2" />
@@ -16,8 +23,12 @@
     <PackageReference Include="Fluxor.Blazor.Web" Version="6.8.0" />
     <PackageReference Include="Fluxor.Blazor.Web.ReduxDevTools" Version="6.8.0" />
     <PackageReference Include="Handlebars.Net" Version="2.1.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="9.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="9.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.10" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
     <PackageReference Include="MudBlazor" Version="8.13.0" />
@@ -30,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Login\" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>
