@@ -1,9 +1,12 @@
-﻿@using MudBlazor
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using MudBlazor
 @using Solutaris.InfoWARE.ProtectedBrowserStorage.Services
-
+@using Web.Features.Authentication
+@inject AuthenticationStateProvider _asp
 @inject NavigationManager Navigation
 @inject IIWLocalStorageService _localStorage
 @inject IJSRuntime JSRuntime
+@inject IAuthenticationService AuthService
 
 @if (IsHomePage())
 {
@@ -43,25 +46,25 @@ else
                 <MudIcon Icon="@Icons.Material.Filled.Home" />
                 <span>Home</span>
             </MudNavLink>
-            <MudNavLink Href="/incidents/capture">
+            <MudNavLink Href="/incidents/capture" Match="NavLinkMatch.Prefix">
                 <MudIcon Icon="@Icons.Material.Filled.Warning" />
                 <span>Capture Incident</span>
             </MudNavLink>
             @if (isAuthenticated)
             {
-                <MudNavLink Href="/incidents/list">
+                <MudNavLink Href="/incidents/list" Match="NavLinkMatch.Prefix">
                     <MudIcon Icon="@Icons.Material.Filled.List" />
                     <span>View My Incidents</span>
                 </MudNavLink>
 
-                <MudNavLink OnClick="HandleLogout">
+                <MudNavLink OnClick="HandleLogout" Match="NavLinkMatch.Prefix">
                     <MudIcon Icon="@Icons.Material.Filled.Logout" />
                     <span>Logout @UserFullName</span>
                 </MudNavLink>
             }
             else
             {
-                <MudNavLink OnClick="HandleLogin">
+                <MudNavLink Href="/authentication/login" Match="NavLinkMatch.Prefix">
                     <MudIcon Icon="@Icons.Material.Filled.Login" />
                     <span>Login</span>
                 </MudNavLink>
@@ -87,6 +90,8 @@ else
     </div>
 </MudDrawer>
 
+<ProgressSpinner IsBusy="Busy" />
+
 @code {
     private bool _drawerOpen = false;
     private bool isAuthenticated = false;
@@ -97,6 +102,8 @@ else
     {
         await GetLoggedInUser();
         Navigation.LocationChanged += OnLocationChanged;
+
+        StateHasChanged();
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
@@ -139,10 +146,21 @@ else
 
     private async Task GetLoggedInUser()
     {
-        isAuthenticated = false;
-        UserFullName = string.Empty;
+        AuthenticationState userContext = await _asp.GetAuthenticationStateAsync();
+        if (userContext.User.Identity != null && userContext.User.Identity.IsAuthenticated)
+        {
+            isAuthenticated = true;
+            string? givenName = userContext.User.Identity.Name;
 
-        StateHasChanged();
+            UserFullName = $"{givenName}";
+        }
+        else
+        {
+            isAuthenticated = false;
+            UserFullName = string.Empty;
+        }
+
+        // StateHasChanged();
     }
 
     private async Task HandleLogin()
@@ -155,10 +173,23 @@ else
     {
         _drawerOpen = false;
 
-        await _localStorage.RemoveAllItemsAsync();
+        // Show the overlay to indicate a busy state
+        await ToggleOverlay(true);
 
-        Busy = true;
+        await AuthService.LogoutAsync();
+        isAuthenticated = false;
+        UserFullName = string.Empty;
+
+        // Hide the overlay to indicate a busy state
+        await ToggleOverlay(false);
+    }
+
+    private async Task ToggleOverlay(bool value)
+    {
+        Busy = value;
+
+        // Update the UI state
         StateHasChanged();
-        await Task.Delay(1);
+        await Task.Delay(1);  // allow the GUI to catch up
     }
 }
