@@ -35,6 +35,7 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<LocalStorageHelper>();
 builder.Services.AddIWProtectedBrowserStorageAsSingleton("WFCC7h70VDhZjS7AIJsGpvOGVoNNLp3aVM0OCNf8CSZQ78MphFCeNhf3XrxKLAnyO1iAWoBPJtUSIKsc");
 builder.Services.AddGeolocationServices();
+builder.Services.AddAuthorizationCore();
 
 // or this to add only the MudBlazor.Extensions but please ensure that this is added after mud servicdes are added. That means after `AddMudServices`
 builder.Services.AddMudServicesWithExtensions();

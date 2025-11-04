@@ -1,5 +1,7 @@
-﻿@using MudBlazor
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using MudBlazor
 @using Web.Shared.Components
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inherits LayoutComponentBase
 
 @* Required *@
@@ -25,8 +27,8 @@
 
         @if (IsHomePage)
         {
-            <ResponsiveFooter AppName="@($"POCS Safety ({_environment})")" 
-                            VersionText="@($"VERSION {_versionNumber}")" ShowIcons="true" />
+            <ResponsiveFooter AppName="@($"POCS Safety ({_environment})")"
+                              VersionText="@($"VERSION {_versionNumber}")" ShowIcons="true" />
         }
     </div>
 }
@@ -44,7 +46,7 @@ else
                     <span>Western Cape Government</span>
                 </div>
             </div>
-            
+
             <!-- Navigation Menu -->
             <div class="desktop-sidebar-nav">
                 <AlternateNavMenu />
@@ -67,21 +69,40 @@ else
                             </MudButton>
                         </div>
                     </div>
-                    
-                    <!-- Right side - User Info and Login/Logout -->
-                    <div class="desktop-header-user">
-                        <div class="desktop-user-info">
-                            <MudIcon Icon="@Icons.Material.Filled.Person"
-                                     Class="desktop-user-icon" />
-                            <MudText Class="desktop-user-name">Guest</MudText>
-                            <MudButton Color="Color.Inherit"
-                                       StartIcon="@Icons.Material.Filled.Login"
-                                       Href="/authentication/login"
-                                       Class="desktop-auth-button">
-                                Login
-                            </MudButton>
-                        </div>
-                    </div>
+
+                    <AuthorizeView>
+                        <!-- Right side - User Info and Login/Logout -->
+                        <Authorized>                            
+                            <div class="desktop-header-user">
+                                <div class="desktop-user-info">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person"
+                                             Class="desktop-user-icon" />
+                                    <MudText Class="desktop-user-name">@context.User.Identity.Name</MudText>
+                                    <MudButton Color="Color.Inherit"
+                                               StartIcon="@Icons.Material.Filled.Logout"
+                                               OnClick="() => LogoutAsync()"
+                                               Class="desktop-auth-button">
+                                        Logout
+                                    </MudButton>
+                                </div>
+                            </div>
+                        </Authorized>
+                        <NotAuthorized>
+                            <div class="desktop-header-user">
+                                <div class="desktop-user-info">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person"
+                                             Class="desktop-user-icon" />
+                                    <MudText Class="desktop-user-name">Guest</MudText>
+                                    <MudButton Color="Color.Inherit"
+                                               StartIcon="@Icons.Material.Filled.Login"
+                                               Href="/authentication/login"
+                                               Class="desktop-auth-button">
+                                        Login
+                                    </MudButton>
+                                </div>
+                            </div>
+                        </NotAuthorized>
+                    </AuthorizeView>
                 </div>
             </div>
 
@@ -161,9 +182,9 @@ else
             </div>
 
             <!-- Condensed Desktop Footer -->
-            <ResponsiveFooter AppName="@($"POCS Safety ({_environment})")" 
-                        VersionText="@($"{_versionNumber}")" 
-                        ShowIcons="true" />
+            <ResponsiveFooter AppName="@($"POCS Safety ({_environment})")"
+                              VersionText="@($"{_versionNumber}")"
+                              ShowIcons="true" />
         </main>
     </div>
 }
@@ -173,5 +194,5 @@ else
 @code {
     private bool IsHomePage => Navigation.Uri.EndsWith("/") || Navigation.Uri.EndsWith("/home", StringComparison.OrdinalIgnoreCase);
 
-    
+
 }

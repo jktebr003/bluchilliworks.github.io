@@ -8,6 +8,7 @@ using Solutaris.InfoWARE.ProtectedBrowserStorage.Services;
 
 using System.Globalization;
 
+using Web.Features.Authentication;
 using Web.Services;
 using Web.Shared;
 
@@ -20,6 +21,7 @@ public partial class AlternateLayout
     [Inject] private WebApiClient? WebApiClient { get; set; }
     [Inject] private NavigationManager? Navigation { get; set; }
     [Inject] private DeviceService? DeviceService { get; set; }
+    [Inject] IAuthenticationService AuthService { get; set; }
     [Inject] private IJSRuntime? JSRuntime { get; set; }
 
     #region Custom Theme
@@ -94,6 +96,11 @@ public partial class AlternateLayout
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
     }
 
     private async Task CheckNetworkStatus()
