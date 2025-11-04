@@ -3,40 +3,64 @@
 @using System.ComponentModel.DataAnnotations
 @using Web.Shared
 
+<div class="login-center-wrapper">
+    <div class="login-card shadow-lg p-4 rounded">
+        <div class="text-center mb-4">
+            <img src="img/bluchilliworks-logo.png" alt="BluChilliWorks Logo" class="login-logo mb-2" />
+            <h2 class="login-title">Sign in to your account</h2>
+            <p class="login-subtitle">Welcome back! Please enter your details.</p>
+        </div>
 
-<h3>Login</h3>
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger">@ErrorMessage</div>
+        }
 
-@if (!string.IsNullOrEmpty(ErrorMessage))
-{
-    <div class="alert alert-danger">@ErrorMessage</div>
-}
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
 
-<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <InputText id="username" class="form-control login-input" @bind-Value="loginModel.Username" placeholder="Enter your username" />
+                <ValidationMessage For="@(() => loginModel.Username)" />
+            </div>
 
-    <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <InputText id="username" class="form-control" @bind-Value="loginModel.Username" />
-        <ValidationMessage For="@(() => loginModel.Username)" />
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <InputText id="password" type="password" class="form-control login-input" @bind-Value="loginModel.Password" placeholder="Enter your password" />
+                <ValidationMessage For="@(() => loginModel.Password)" />
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="/authentication/forgot-password" class="login-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 login-btn">
+                @if (_busy)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span>Signing in...</span>
+                }
+                else
+                {
+                    <span>Sign In</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="text-center mt-4">
+            <span>Don't have an account?</span>
+            <a href="/authentication/register" class="login-link ms-1">Sign up</a>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
-        <ValidationMessage For="@(() => loginModel.Password)" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Login</button>
-</EditForm>
+</div>
 
 <ProgressSpinner IsBusy="_busy" />
 
 @code {
     [Inject] NavigationManager NavigationManager { get; set; }
-
     [Inject] IAuthenticationService AuthService { get; set; }
-
     [Inject] WebApiClient ApiClient { get; set; }
 
     private LoginModel loginModel = new();
@@ -45,17 +69,12 @@
 
     private async Task HandleLogin()
     {
-        // Show the overlay to indicate a busy state
         await ToggleOverlay(true);
 
-        // TODO: Replace with actual authentication logic
         var loginResult = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
-        //if (loginModel.Username == "admin" && loginModel.Password == "password")
         if (loginResult.Succeeded)
         {
-            // Redirect or set authentication state
             ErrorMessage = null;
-            // Example: NavigationManager.NavigateTo("/");
             NavigationManager.NavigateTo("/");
         }
         else
@@ -63,18 +82,14 @@
             ErrorMessage = loginResult.ErrorMessage;
         }
 
-        // Hide the overlay to indicate a busy state
         await ToggleOverlay(false);
     }
 
-    // Method to toggle the overlay visibility
     private async Task ToggleOverlay(bool value)
     {
         _busy = value;
-
-        // Update the UI state
         StateHasChanged();
-        await Task.Delay(1);  // allow the GUI to catch up
+        await Task.Delay(1);
     }
 
     public class LoginModel

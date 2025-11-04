@@ -1,9 +1,7 @@
 ﻿@using MudBlazor
 
-<MudOverlay @bind-Visible="@IsBusy" DarkBackground="@DarkBackground" AutoClose="@AutoClose" ZIndex="9999" Class="progress-spinner-overlay">
-    <div class="progress-spinner">
-        <MudProgressCircular Color="@Color" Class="progress-spinner-circular" Indeterminate="@Indeterminate" />
-    </div>
+<MudOverlay @bind-Visible="@IsBusy" DarkBackground="@DarkBackground" AutoClose="@AutoClose" ZIndex="9999">
+    <MudProgressCircular Color="@Color" Class="progress-spinner-circular" Indeterminate="@Indeterminate" />
 </MudOverlay>
 
 @code {
