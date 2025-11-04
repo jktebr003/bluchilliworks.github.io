@@ -10,10 +10,10 @@
     <div class="mobile-header">
         <div class="header-content">
             <div class="header-logo">
-                @* <img src="img/wcg-logo-for-you.png" alt="Western Cape Government" class="wcg-logo-header" /> *@
-                <span class="header-title align-content-center">Safety App</span>
+                <img src="img/bluchilliworks-logo.png" alt="BluChilliWorks Logo" class="bluchilliworks-logo-header" />
+                <span class="header-title align-content-center">The Teachers Lounge</span>
             </div>
-            <Connection />
+            @* <Connection /> *@
             <MudIconButton Icon="@Icons.Material.Filled.Menu"
                            Class="menu-button"
                            OnClick="ToggleDrawer" />
@@ -28,7 +28,7 @@ else
                        OnClick='() => Navigation?.NavigateTo("/")'
                        Class="back-button" />
         <h2 class="page-title">@GetPageTitle()</h2>
-        <Connection />
+        @* <Connection /> *@
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
                        Color="Color.Inherit"
                        Class="menu-button"
@@ -37,35 +37,54 @@ else
 }
 
 <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Temporary" Elevation="1">
-    <MudNavMenu>
-        <MudNavLink Href="/" Match="NavLinkMatch.All">
-            <MudIcon Icon="@Icons.Material.Filled.Home" />
-            <span>Home</span>
-        </MudNavLink>
-        <MudNavLink Href="/incidents/capture">
-            <MudIcon Icon="@Icons.Material.Filled.Warning" />
-            <span>Capture Incident</span>
-        </MudNavLink>
-        @if (isAuthenticated)
-        {
-            <MudNavLink Href="/incidents/list">
-                <MudIcon Icon="@Icons.Material.Filled.List" />
-                <span>View My Incidents</span>
+    <div class="drawer-flex-container">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.Home" />
+                <span>Home</span>
             </MudNavLink>
+            <MudNavLink Href="/incidents/capture">
+                <MudIcon Icon="@Icons.Material.Filled.Warning" />
+                <span>Capture Incident</span>
+            </MudNavLink>
+            @if (isAuthenticated)
+            {
+                <MudNavLink Href="/incidents/list">
+                    <MudIcon Icon="@Icons.Material.Filled.List" />
+                    <span>View My Incidents</span>
+                </MudNavLink>
 
-            <MudNavLink OnClick="HandleLogout">
-                <MudIcon Icon="@Icons.Material.Filled.Logout" />
-                <span>Logout @UserFullName</span>
-            </MudNavLink>
-        }
-        else
-        {
-            <MudNavLink OnClick="HandleLogin">
-                <MudIcon Icon="@Icons.Material.Filled.Login" />
-                <span>Login</span>
-            </MudNavLink>
-        }
-    </MudNavMenu>
+                <MudNavLink OnClick="HandleLogout">
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" />
+                    <span>Logout @UserFullName</span>
+                </MudNavLink>
+            }
+            else
+            {
+                <MudNavLink OnClick="HandleLogin">
+                    <MudIcon Icon="@Icons.Material.Filled.Login" />
+                    <span>Login</span>
+                </MudNavLink>
+            }
+        </MudNavMenu>
+        <footer class="drawer-footer">
+            <MudDivider />
+            <MudStack Spacing="0" Class="mt-2">
+                <MudText Typo="Typo.caption" Class="drawer-footer-text">
+                    Version 1.0.0
+                </MudText>
+                <MudText Typo="Typo.caption" Class="drawer-footer-text">
+                    The Teachers Lounge
+                </MudText>
+                <MudText Typo="Typo.caption" Class="drawer-footer-text">
+                    &copy; @DateTime.Now.Year BluChilliWorks.
+                </MudText>
+                <MudText Typo="Typo.caption" Class="drawer-footer-text">
+                    All rights reserved.
+                </MudText>
+            </MudStack>
+        </footer>
+    </div>
 </MudDrawer>
 
 @code {
@@ -120,24 +139,6 @@ else
 
     private async Task GetLoggedInUser()
     {
-        // AuthenticationState userContext = await _asp.GetAuthenticationStateAsync();
-        // if (userContext.User.Identity != null && userContext.User.Identity.IsAuthenticated)
-        // {
-        //     isAuthenticated = true;
-        //     string? givenName = userContext.User.Claims.FirstOrDefault(x => x.Type ==
-        //     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname")?.Value;
-        //     string? surname = userContext.User.Claims.FirstOrDefault(x => x.Type ==
-        //     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname")?.Value;
-
-        //     UserFullName = $"{givenName} {surname}";
-        // }
-        // else
-        // {
-        //     isAuthenticated = false;
-        //     UserFullName = string.Empty;
-        // }
-        // StateHasChanged();
-
         isAuthenticated = false;
         UserFullName = string.Empty;
 
@@ -154,15 +155,10 @@ else
     {
         _drawerOpen = false;
 
-        // Clear local storage like the working LoginDisplay does
         await _localStorage.RemoveAllItemsAsync();
 
-        // Show logout overlay (optional)
         Busy = true;
         StateHasChanged();
         await Task.Delay(1);
-
-        // Use NavigateToLogout instead of simple NavigateTo
-        //Navigation.NavigateToLogout("authentication/logout");
     }
 }

@@ -1304,7 +1304,7 @@ h6 {
     gap: 0.75rem;
 }
 
-.wcg-logo-header {
+.bluchilliworks-logo-header {
     height: 2rem;
     width: auto;
     /*filter: brightness(0) invert(1);*/
@@ -3050,13 +3050,7 @@ h6 {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-}
-
-.wcg-logo-header {
-    height: 2rem;
-    width: auto;
-    /*filter: brightness(0) invert(1);*/
-}
+} 
 
 .header-title {
     font-size: 1.1rem;
@@ -4843,4 +4837,27 @@ body, html {
     width: 70px !important;
     height: 70px !important;
     pointer-events: auto;
+}
+
+.navmenu-footer-text {
+    color: #64748b;
+}
+
+.drawer-flex-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 100vh;
+}
+
+.drawer-footer {
+    margin-top: auto;
+    padding: 1rem;
+    text-align: center;
+    background: transparent;
+}
+
+.drawer-footer-text {
+    color: #64748b;
+    font-size: .75rem;
 }

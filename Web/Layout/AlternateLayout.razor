@@ -25,11 +25,11 @@
             </div>
         </main>
 
-        @if (IsHomePage)
+        @* @if (IsHomePage)
         {
             <ResponsiveFooter AppName="@($"POCS Safety ({_environment})")"
                               VersionText="@($"VERSION {_versionNumber}")" ShowIcons="true" />
-        }
+        } *@
     </div>
 }
 else
@@ -40,10 +40,11 @@ else
         <div class="desktop-sidebar">
             <!-- Sidebar Logo Section -->
             <div class="desktop-sidebar-header">
-                <img src="img/wcg-crest-for-you-800px-blue-text.svg" alt="WCG Logo" class="desktop-sidebar-logo" />
+                @* <img src="img/wcg-crest-for-you-800px-blue-text.svg" alt="WCG Logo" class="desktop-sidebar-logo" /> *@
+                <img src="img/bluchilliworks-logo.png" alt="BluChilliWorks Logo" class="desktop-sidebar-logo" />
                 <div class="desktop-sidebar-title">
-                    <h2>POCS Safety</h2>
-                    <span>Western Cape Government</span>
+                    <h2>The Teachers Lounge</h2>
+                    <span>BluChilliWorks</span>
                 </div>
             </div>
 
@@ -113,13 +114,13 @@ else
                     {
                         <!-- Desktop Home Page Layout -->
                         <div class="desktop-welcome-section">
-                            <h1 class="desktop-welcome-title">Welcome to POCS Safety</h1>
-                            <p class="desktop-welcome-subtitle">Your comprehensive platform for incident reporting and safety management.</p>
+                            <h1 class="desktop-welcome-title">Welcome to The Teachers Lounge</h1>
+                            <p class="desktop-welcome-subtitle">Your comprehensive platform for .............</p>
                         </div>
 
                         <div class="desktop-login-section">
                             <h2 class="desktop-login-title">Get Started</h2>
-                            <p class="desktop-login-description">Log in to access all features and start reporting incidents securely.</p>
+                            <p class="desktop-login-description">Log in to access all features and start .......... </p>
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.Login"
@@ -182,9 +183,9 @@ else
             </div>
 
             <!-- Condensed Desktop Footer -->
-            <ResponsiveFooter AppName="@($"POCS Safety ({_environment})")"
+            @* <ResponsiveFooter AppName="@($"POCS Safety ({_environment})")"
                               VersionText="@($"{_versionNumber}")"
-                              ShowIcons="true" />
+                              ShowIcons="true" /> *@
         </main>
     </div>
 }

@@ -104,6 +104,19 @@
             color: white;
         }
 
+.navmenu-flex-container {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 160px);
+}
+
+.navmenu-footer {
+    margin-top: auto;
+    padding: 1rem;
+    text-align: center;
+    background: transparent !important;
+}
+
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;
