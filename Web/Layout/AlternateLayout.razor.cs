@@ -50,7 +50,8 @@ public partial class AlternateLayout
 
     #endregion Custom Theme
 
-    private bool networkOnline;
+    private bool _networkOnline;
+    private bool _busy = false;
     private string syncMessage = string.Empty;
     private string _versionNumber = string.Empty;
     private string _environment = string.Empty;
@@ -62,7 +63,7 @@ public partial class AlternateLayout
         syncTimer = new Timer(async _ =>
         {
             await CheckNetworkStatus();
-            if (networkOnline)
+            if (_networkOnline)
             {
             }
             else
@@ -100,13 +101,19 @@ public partial class AlternateLayout
 
     protected async Task LogoutAsync()
     {
+        // Show the overlay to indicate a busy state
+        await ToggleOverlay(true);
+
         await AuthService.LogoutAsync();
+
+        // Hide the overlay to indicate a busy state
+        await ToggleOverlay(false);
     }
 
     private async Task CheckNetworkStatus()
     {
         if (JSRuntime is not null)
-            networkOnline = await JSRuntime.InvokeAsync<bool>("Connection.IsOnline");
+            _networkOnline = await JSRuntime.InvokeAsync<bool>("Connection.IsOnline");
         StateHasChanged();
     }
 
@@ -122,5 +129,15 @@ public partial class AlternateLayout
     private string GetContainerClasses()
     {
         return DeviceService?.GetFooterPositionClass() ?? "footer-auto";
+    }
+
+    // Method to toggle the overlay visibility
+    private async Task ToggleOverlay(bool value)
+    {
+        _busy = value;
+
+        // Update the UI state
+        StateHasChanged();
+        await Task.Delay(1);  // allow the GUI to catch up
     }
 }

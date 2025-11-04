@@ -4794,3 +4794,53 @@ body, html {
         grid-template-columns: 1fr;
     }
 }
+.loading-linear {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 2rem 0;
+    width: 100%;
+}
+
+.loading-linear-progress {
+    width: 80%;
+    margin: 1.5rem 0;
+}
+
+.loading-linear-paper {
+    background-color: ghostwhite !important;
+    width: 80%;
+    padding: 1rem;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+}
+
+.loading-linear-stack {
+    align-items: center;
+    width: 100%;
+}
+.progress-spinner-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.progress-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.progress-spinner-circular {
+    width: 70px !important;
+    height: 70px !important;
+    pointer-events: auto;
+}

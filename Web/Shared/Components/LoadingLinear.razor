@@ -1,0 +1,22 @@
+﻿@using MudBlazor
+
+<div class="loading-linear">
+    <MudProgressLinear Color="_color" Size="Size.Small" Class="loading-linear-progress" Indeterminate Rounded />
+    <MudPaper Class="loading-linear-paper" Elevation="0">
+        <MudStack Spacing="2" Class="loading-linear-stack">
+            <MudText Typo="Typo.subtitle1" Color="Color.Dark">
+                <b>@_text</b>
+            </MudText>
+        </MudStack>
+    </MudPaper>
+</div>
+
+@code {
+    [Parameter] public bool _loading { get; set; } = true;
+    [Parameter] public string? _text { get; set; }
+    [Parameter] public string? _classText { get; set; }
+    [Parameter] public string? _styleText { get; set; }
+    [Parameter] public string? _classLoader { get; set; }
+    [Parameter] public string? _styleLoader { get; set; }
+    [Parameter] public Color _color { get; set; } = Color.Tertiary;
+}

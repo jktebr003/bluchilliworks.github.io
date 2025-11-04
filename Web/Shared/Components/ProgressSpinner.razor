@@ -1,0 +1,15 @@
+﻿@using MudBlazor
+
+<MudOverlay @bind-Visible="@IsBusy" DarkBackground="@DarkBackground" AutoClose="@AutoClose" ZIndex="9999" Class="progress-spinner-overlay">
+    <div class="progress-spinner">
+        <MudProgressCircular Color="@Color" Class="progress-spinner-circular" Indeterminate="@Indeterminate" />
+    </div>
+</MudOverlay>
+
+@code {
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public bool DarkBackground { get; set; } = true;
+    [Parameter] public bool AutoClose { get; set; } = false;
+    [Parameter] public Color Color { get; set; } = Color.Tertiary;
+    [Parameter] public bool Indeterminate { get; set; } = true;
+}

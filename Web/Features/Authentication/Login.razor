@@ -3,6 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using Web.Shared
 
+
 <h3>Login</h3>
 
 @if (!string.IsNullOrEmpty(ErrorMessage))
@@ -29,6 +30,8 @@
     <button type="submit" class="btn btn-primary">Login</button>
 </EditForm>
 
+<ProgressSpinner IsBusy="_busy" />
+
 @code {
     [Inject] NavigationManager NavigationManager { get; set; }
 
@@ -37,10 +40,14 @@
     [Inject] WebApiClient ApiClient { get; set; }
 
     private LoginModel loginModel = new();
+    private bool _busy = false;
     private string? ErrorMessage;
 
     private async Task HandleLogin()
     {
+        // Show the overlay to indicate a busy state
+        await ToggleOverlay(true);
+
         // TODO: Replace with actual authentication logic
         var loginResult = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
         //if (loginModel.Username == "admin" && loginModel.Password == "password")
@@ -55,6 +62,19 @@
         {
             ErrorMessage = loginResult.ErrorMessage;
         }
+
+        // Hide the overlay to indicate a busy state
+        await ToggleOverlay(false);
+    }
+
+    // Method to toggle the overlay visibility
+    private async Task ToggleOverlay(bool value)
+    {
+        _busy = value;
+
+        // Update the UI state
+        StateHasChanged();
+        await Task.Delay(1);  // allow the GUI to catch up
     }
 
     public class LoginModel
