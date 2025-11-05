@@ -1,5 +1,96 @@
-﻿<h3>Index</h3>
+﻿@page "/contact"
+@using System.ComponentModel.DataAnnotations
+@using MudBlazor
+
+<div>
+    <div class="div-page-content">
+        <span class="heading-meta">Contact</span>
+        <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Get in touch</MudText>
+
+        <div class="ttl-contact">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <div>
+                        <MudCard Class="pb-3 div-contact" Elevation="2">
+                            <MudCardContent>
+                                <div class="mb-2">
+                                    <MudText Typo="Typo.caption">* indicates a required field</MudText>
+                                </div>
+
+                                <EditForm Model="@contactModel" OnValidSubmit="HandleValidSubmit">
+                                    <DataAnnotationsValidator />
+                                    <ValidationSummary />
+
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Name</label>
+                                        <InputText id="name" class="form-control" @bind-Value="contactModel.Name" />
+                                        <ValidationMessage For="@(() => contactModel.Name)" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">Email Address</label>
+                                        <InputText id="email" class="form-control" @bind-Value="contactModel.Email" />
+                                        <ValidationMessage For="@(() => contactModel.Email)" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="subject" class="form-label">Subject</label>
+                                        <InputText id="subject" class="form-control" @bind-Value="contactModel.Subject" />
+                                        <ValidationMessage For="@(() => contactModel.Subject)" />
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="message" class="form-label">Message</label>
+                                        <InputTextArea id="message" class="form-control" @bind-Value="contactModel.Message" />
+                                        <ValidationMessage For="@(() => contactModel.Message)" />
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary">Send</button>
+                                </EditForm>
+
+                                @if (successMessage != null)
+                                {
+                                    <div class="alert alert-success mt-3">@successMessage</div>
+                                }
+                            </MudCardContent>
+                        </MudCard>
+                    </div>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <div class="div-contact-image">
+                        <MudImage Src="img/connect-with-us-alt.png" Alt="connect-with-us" Height="500" ObjectFit="ObjectFit.Cover" ObjectPosition="ObjectPosition.Center" />
+                    </div>
+                </MudItem>
+            </MudGrid>
+        </div>
+
+    </div>
+</div>
 
 @code {
+    private ContactModel contactModel = new();
+    private string? successMessage;
 
+    private void HandleValidSubmit()
+    {
+        // For demonstration, just show a success message.
+        successMessage = "Thank you for contacting us!";
+        contactModel = new(); // Reset form
+    }
+
+    public class ContactModel
+    {
+        [Required(ErrorMessage = "Name is required")]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "Subject is required")]
+        public string? Subject { get; set; }
+
+        [Required(ErrorMessage = "Message is required")]
+        public string? Message { get; set; }
+    }
 }
