@@ -43,7 +43,7 @@ public partial class AlternateLayout
         {
             Default = new DefaultTypography()
             {
-                FontFamily = new[] { "Gotham", "Century Gothic", "Montserrat", "Roboto", "Tahoma", "sans-serif" }
+                FontFamily = new[] { "Inter", "Josefin Sans", "Quicksand" }
             }
         }
     };
