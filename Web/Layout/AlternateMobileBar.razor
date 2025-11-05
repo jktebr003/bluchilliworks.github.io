@@ -146,7 +146,7 @@ else
 
     private async Task GetLoggedInUser()
     {
-        AuthenticationState userContext = await _asp.GetAuthenticationStateAsync();
+        Microsoft.AspNetCore.Components.Authorization.AuthenticationState userContext = await _asp.GetAuthenticationStateAsync();
         if (userContext.User.Identity != null && userContext.User.Identity.IsAuthenticated)
         {
             isAuthenticated = true;

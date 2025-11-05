@@ -20,7 +20,7 @@ public class DatabaseAuthenticationStateProvider : AuthenticationStateProvider
         _localStorageHelper = localStorageHelper;
     }
 
-    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+    public override async Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState> GetAuthenticationStateAsync()
     {
         var principal = new ClaimsPrincipal(new ClaimsIdentity());
 
@@ -32,7 +32,7 @@ public class DatabaseAuthenticationStateProvider : AuthenticationStateProvider
             principal = new ClaimsPrincipal(new ClaimsIdentity(claims, "DatabaseAuthentication"));
         }
 
-        return new AuthenticationState(principal);
+        return new Microsoft.AspNetCore.Components.Authorization.AuthenticationState(principal);
     }
 
     public async Task NotifyUserAuthenticationAsync(UserResponse user)
@@ -44,7 +44,7 @@ public class DatabaseAuthenticationStateProvider : AuthenticationStateProvider
         var identity = new ClaimsIdentity(claims, "DatabaseAuthentication");
         var principal = new ClaimsPrincipal(identity);
 
-        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(principal)));
+        NotifyAuthenticationStateChanged(Task.FromResult(new Microsoft.AspNetCore.Components.Authorization.AuthenticationState(principal)));
     }
 
     public async Task NotifyUserLogoutAsync()
@@ -55,7 +55,7 @@ public class DatabaseAuthenticationStateProvider : AuthenticationStateProvider
         var identity = new ClaimsIdentity();
         var principal = new ClaimsPrincipal(identity);
 
-        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(principal)));
+        NotifyAuthenticationStateChanged(Task.FromResult(new Microsoft.AspNetCore.Components.Authorization.AuthenticationState(principal)));
     }
 
     private List<Claim> BuildClaims(UserResponse user)

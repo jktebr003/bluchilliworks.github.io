@@ -1,7 +1,14 @@
 ﻿@page "/authentication/login"
 
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
 @using System.ComponentModel.DataAnnotations
-@using Web.Shared
+
+@inject IState<AuthenticationState> AuthState
+@inject IDispatcher Dispatcher
+@inject NavigationManager NavigationManager
+
+@inherits FluxorComponent
 
 <div class="login-center-wrapper">
     <div class="login-card shadow-lg p-4 rounded">
@@ -11,12 +18,12 @@
             <p class="login-subtitle">Welcome back! Please enter your details.</p>
         </div>
 
-        @if (!string.IsNullOrEmpty(ErrorMessage))
+        @if (!string.IsNullOrEmpty(AuthState.Value.ErrorMessage))
         {
-            <div class="alert alert-danger">@ErrorMessage</div>
+            <div class="alert alert-danger">@AuthState.Value.ErrorMessage</div>
         }
 
-        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+        <EditForm Model="loginModel" OnValidSubmit="OnLogin">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
@@ -36,8 +43,8 @@
                 <a href="/authentication/forgot-password" class="login-link">Forgot password?</a>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 login-btn">
-                @if (_busy)
+            <button type="submit" class="btn btn-primary w-100 login-btn" disabled="@AuthState.Value.IsBusy">
+                @if (AuthState.Value.IsBusy)
                 {
                     <span class="spinner-border spinner-border-sm me-2"></span>
                     <span>Signing in...</span>
@@ -56,41 +63,23 @@
     </div>
 </div>
 
-<ProgressSpinner IsBusy="_busy" />
+<ProgressSpinner IsBusy="AuthState.Value.IsBusy" />
 
 @code {
-    [Inject] NavigationManager NavigationManager { get; set; }
-    [Inject] IAuthenticationService AuthService { get; set; }
-    [Inject] WebApiClient ApiClient { get; set; }
-
     private LoginModel loginModel = new();
-    private bool _busy = false;
-    private string? ErrorMessage;
 
-    private async Task HandleLogin()
+    private void OnLogin()
     {
-        await ToggleOverlay(true);
-
-        var loginResult = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
-        if (loginResult.Succeeded)
-        {
-            ErrorMessage = null;
-            NavigationManager.NavigateTo("/", true);
-        }
-        else
-        {
-            ErrorMessage = loginResult.ErrorMessage;
-        }
-
-        await ToggleOverlay(false);
+        Dispatcher.Dispatch(new LoginAction(loginModel.Username, loginModel.Password));
     }
 
-    private async Task ToggleOverlay(bool value)
-    {
-        _busy = value;
-        StateHasChanged();
-        await Task.Delay(1);
-    }
+    // protected override void OnAfterRender(bool firstRender)
+    // {
+    //     if (firstRender && AuthState.Value.IsAuthenticated)
+    //     {
+    //         NavigationManager.NavigateTo("/", true);
+    //     }
+    // }
 
     public class LoginModel
     {
