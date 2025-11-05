@@ -110,7 +110,7 @@ else
             <!-- Main Content Area -->
             <div class="desktop-content">
                 <div class="desktop-content-wrapper">
-                    @if (IsHomePage)
+                    @* @if (IsHomePage)
                     {
                         <!-- Desktop Home Page Layout -->
                         <div class="desktop-welcome-section">
@@ -274,7 +274,12 @@ else
                         <article class="desktop-article">
                             @Body
                         </article>
-                    }
+                    } *@
+
+                    <!-- Regular Page Content -->
+                    <article class="desktop-article">
+                        @Body
+                    </article>
                 </div>
             </div>
 
