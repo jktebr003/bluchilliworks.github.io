@@ -1,0 +1,121 @@
+﻿@page "/pricing"
+
+@using MudBlazor
+@using global::Shared.Models
+@using global::Shared.Enums
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+
+@inject IState<PricingState> PricingState
+@inject IDispatcher Dispatcher
+@inject ISnackbar Snackbar
+
+@inherits FluxorComponent
+
+<div class="div-page-content">
+    <span class="heading-meta">Pricing</span>
+    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Our Packages</MudText>
+
+    <div class="ttl-pricing">
+        <!-- Package Type Filter -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6" md="4">
+                <MudSelect T="PackageType" 
+                          Label="Package Type" 
+                          Value="PricingState.Value.SelectedPackageType" 
+                          ValueChanged="@((PackageType value) => OnPackageTypeChanged(value))"
+                          Variant="Variant.Outlined"
+                          AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@PackageType.None">All Packages</MudSelectItem>
+                    <MudSelectItem Value="@PackageType.Monthly">Monthly</MudSelectItem>
+                    <MudSelectItem Value="@PackageType.TwoYearSubscription">2-year Subscription</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Loading State -->
+        @if (PricingState.Value.IsLoading)
+        {
+            <div class="text-center py-5">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Class="mt-3">Loading packages...</MudText>
+            </div>
+        }
+        else if (PricingState.Value.ErrorMessage != null)
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-4">
+                @PricingState.Value.ErrorMessage
+            </MudAlert>
+        }
+        else if (PricingState.Value.FilteredPackages == null || !PricingState.Value.FilteredPackages.Any())
+        {
+            <MudAlert Severity="MudBlazor.Severity.Info">
+                No packages available for the selected type.
+            </MudAlert>
+        }
+        else
+        {
+            <!-- Package Grid -->
+            <MudGrid>
+                @foreach (var package in PricingState.Value.FilteredPackages)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudCard Class="pricing-card" Elevation="3">
+                            <MudCardContent>
+                                <MudText Typo="Typo.h5" Class="mb-2">@package.Name</MudText>
+                                <MudText Typo="Typo.h4" Color="Color.Primary" Class="mb-3">
+                                    @package.Price
+                                </MudText>
+                                <MudDivider Class="mb-3" />
+                                <MudText Typo="Typo.body2" Class="mb-3">
+                                    @package.Description
+                                </MudText>
+                                <MudChip T="string" Color="Color.Secondary" Size="Size.Small">
+                                    @GetPackageTypeDisplayName(package.Type)
+                                </MudChip>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Filled" 
+                                          Color="Color.Primary" 
+                                          FullWidth="true"
+                                          OnClick="@(() => SelectPackage(package))">
+                                    Select Package
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Dispatcher.Dispatch(new LoadPackagesAction());
+    }
+
+    private void OnPackageTypeChanged(PackageType value)
+    {
+        Dispatcher.Dispatch(new FilterPackagesByTypeAction(value));
+    }
+
+    private void SelectPackage(PackageResponse package)
+    {
+        Dispatcher.Dispatch(new SelectPackageAction(package));
+        Snackbar.Add($"You selected: {package.Name}", MudBlazor.Severity.Success);
+        // TODO: Navigate to checkout or registration page
+    }
+
+    private string GetPackageTypeDisplayName(PackageType type)
+    {
+        return type switch
+        {
+            PackageType.Monthly => "Monthly",
+            PackageType.TwoYearSubscription => "2-year Subscription",
+            _ => "Standard"
+        };
+    }
+}
