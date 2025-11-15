@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 
 using Shared.Models;
+using Shared.Enums;
 
 using Web.Shared;
 using Web.Shared.Helpers;
@@ -13,7 +14,7 @@ public interface IAuthenticationService
 {
     Task<AuthResult> LoginAsync(string username, string password);
     Task LogoutAsync();
-    Task<AuthResult> RegisterAsync(string username, string email, string password, string[]? roles = null);
+    Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress);
     Task<UserResponse?> GetCurrentUserAsync();
     Task<bool> IsUserInRoleAsync(string role);
     Task<bool> HasClaimAsync(string claimType, string claimValue);
@@ -38,7 +39,7 @@ public class AuthenticationService : IAuthenticationService
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        if (!user.Identity.IsAuthenticated)
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
             return null;
 
         var username = user.Identity.Name;
@@ -82,9 +83,46 @@ public class AuthenticationService : IAuthenticationService
         await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserLogoutAsync();
     }
 
-    public async Task<AuthResult> RegisterAsync(string username, string email, string password, string[]? roles = null)
+    public async Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress)
     {
-        throw new NotImplementedException();
+        try
+        {
+            // Create the user request
+            var createUserRequest = new CreateUserRequest
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                EmailAddress = emailAddress,
+                Username = emailAddress, // Use email as username
+                Name = $"{firstName} {lastName}",
+                PackageId = "default-package-id", // You may need to adjust this based on your application logic
+                UserType = (int)UserType.Customer, // Adjust based on your enum
+                Avatar = 17,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "system"
+            };
+
+            var result = await _webApiClient.Post<CreateUserRequest, ApiResult<string>>(
+                new WebApiClientInfo<CreateUserRequest>
+                {
+                    Method = "/users",
+                    Request = createUserRequest
+                }
+            );
+
+            if (result.Success)
+            {
+                return AuthResult.Success();
+            }
+            else
+            {
+                return AuthResult.Failure(result.Message ?? "Registration failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            return AuthResult.Failure($"Registration failed: {ex.Message}");
+        }
     }
 }
 

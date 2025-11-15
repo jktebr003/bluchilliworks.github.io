@@ -29,4 +29,20 @@ public class AuthenticationEffects
             dispatcher.Dispatch(new LoginFailedAction(result.ErrorMessage ?? "Login failed"));
         }
     }
+
+    [EffectMethod]
+    public async Task HandleRegisterAction(RegisterAction action, IDispatcher dispatcher)
+    {
+        dispatcher.Dispatch(new SetBusyAction(true));
+        var result = await _authService.RegisterAsync(action.FirstName, action.LastName, action.EmailAddress);
+        if (result.Succeeded)
+        {
+            dispatcher.Dispatch(new RegisterSuccessAction(result.Succeeded));
+            _navigationManager.NavigateTo("/authentication/login", true); // <-- Redirect to login after successful registration
+        }
+        else
+        {
+            dispatcher.Dispatch(new RegisterFailedAction(result.ErrorMessage ?? "Registration failed"));
+        }
+    }
 }

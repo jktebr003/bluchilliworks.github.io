@@ -1,0 +1,105 @@
+@page "/authentication/register"
+
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@using System.ComponentModel.DataAnnotations
+@using MudBlazor
+
+@inject IState<AuthenticationState> AuthState
+@inject IDispatcher Dispatcher
+@inject NavigationManager NavigationManager
+
+@inherits FluxorComponent
+
+<div>
+    <div>
+        <span class="heading-meta">Register</span>
+        <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Sign-up</MudText>
+
+        <div>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudCard Class="pb-3 div-login" style="height:100%">
+                        <MudCardMedia Image="img/sign-in-to-our-community.png" />
+                        <MudCardContent>
+                            <div class="mb-2">
+                                <MudText Typo="Typo.caption">* indicates a required field</MudText>
+                            </div>
+                            @if (!string.IsNullOrEmpty(AuthState.Value.ErrorMessage))
+                            {
+                                <div class="alert alert-danger mb-3">@AuthState.Value.ErrorMessage</div>
+                            }
+                            <EditForm Model="registerModel" OnValidSubmit="OnRegister">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary />
+
+                                <div class="mb-3">
+                                    <label for="firstName" class="form-label">First Name *</label>
+                                    <InputText id="firstName" class="form-control login-input" @bind-Value="registerModel.FirstName" placeholder="Enter your first name" />
+                                    <ValidationMessage For="@(() => registerModel.FirstName)" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="lastName" class="form-label">Last Name *</label>
+                                    <InputText id="lastName" class="form-control login-input" @bind-Value="registerModel.LastName" placeholder="Enter your last name" />
+                                    <ValidationMessage For="@(() => registerModel.LastName)" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="emailAddress" class="form-label">Email Address *</label>
+                                    <InputText id="emailAddress" type="email" class="form-control login-input" @bind-Value="registerModel.EmailAddress" placeholder="Enter your email address" />
+                                    <ValidationMessage For="@(() => registerModel.EmailAddress)" />
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 login-btn" disabled="@AuthState.Value.IsBusy">
+                                    @if (AuthState.Value.IsBusy)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <span>Creating Account...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Create Account</span>
+                                    }
+                                </button>
+                            </EditForm>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <div class="div-login-register-form">
+                        <div class="div-login-register-form-contents">
+                            <MudText Typo="Typo.h6" GutterBottom="true" class="ttl-sub-heading">Join BluChilliWorks</MudText>
+                            <p>Already have an account?</p>
+                            <MudFab Color="Color.Transparent" Style="margin-top: 2rem; color: white; border: 2px solid white" StartIcon="@Icons.Material.Filled.Login" Label="Sign In" Href="/authentication/login" />
+                        </div>
+                    </div>
+                </MudItem>
+            </MudGrid>
+        </div>
+    </div>
+</div>
+
+<ProgressSpinner IsBusy="AuthState.Value.IsBusy" />
+
+@code {
+    private RegisterModel registerModel = new();
+
+    private void OnRegister()
+    {
+        Dispatcher.Dispatch(new RegisterAction(registerModel.FirstName, registerModel.LastName, registerModel.EmailAddress));
+    }
+
+    public class RegisterModel
+    {
+        [Required(ErrorMessage = "First name is required")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address format")]
+        public string EmailAddress { get; set; } = string.Empty;
+    }
+}

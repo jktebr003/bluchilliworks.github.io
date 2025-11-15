@@ -82,10 +82,6 @@ html, body {
     /*background-color: var(--background-secondary);*/
 }
 
-.div-contact, .div-register, .div-login {
-    /*background-color: var(--color-aureolin-one-two-five);*/
-}
-
 .div-login-register-form {
     background: var(--color-aureolin);
     color: var(--color-midnight-green);

@@ -15,4 +15,12 @@ public static class AuthenticationReducers
     [ReducerMethod]
     public static AuthenticationState ReduceLoginFailed(AuthenticationState state, LoginFailedAction action) =>
         state with { IsBusy = false, ErrorMessage = action.ErrorMessage, IsAuthenticated = false };
+
+    [ReducerMethod]
+    public static AuthenticationState ReduceRegisterSuccess(AuthenticationState state, RegisterSuccessAction action) =>
+        state with { IsBusy = false, ErrorMessage = null };
+
+    [ReducerMethod]
+    public static AuthenticationState ReduceRegisterFailed(AuthenticationState state, RegisterFailedAction action) =>
+        state with { IsBusy = false, ErrorMessage = action.ErrorMessage };
 }
