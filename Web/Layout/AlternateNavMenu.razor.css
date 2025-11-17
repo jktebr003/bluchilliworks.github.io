@@ -94,6 +94,10 @@
         padding-bottom: 1rem;
     }
 
+    .nav-item:any-link {
+        padding-top: 1rem;
+    }
+
     .nav-item ::deep a {
         /*color: #d7d7d7;*/
         color: rgba(var(--wcg-primary-blue));

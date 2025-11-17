@@ -1,0 +1,241 @@
+﻿@page "/users"
+
+@using MudBlazor
+@using global::Shared.Models
+@using global::Shared.Enums
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@using Web.Services
+
+@inject IState<UsersState> UsersState
+@inject IDispatcher Dispatcher
+@inject ISnackbar Snackbar
+@inject DeviceService DeviceService
+
+@inherits FluxorComponent
+
+<div class="div-page-content">
+    <span class="heading-meta">Users</span>
+    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">User Directory</MudText>
+
+    <div class="ttl-users">
+        <!-- Loading State -->
+        @if (UsersState.Value.IsLoading)
+        {
+            <div class="text-center py-5">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Class="mt-3">Loading users...</MudText>
+            </div>
+        }
+        else if (UsersState.Value.ErrorMessage != null)
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-4">
+                @UsersState.Value.ErrorMessage
+            </MudAlert>
+        }
+        else if (UsersState.Value.Users == null || !UsersState.Value.Users.Any())
+        {
+            <MudAlert Severity="MudBlazor.Severity.Info">
+                No users found.
+            </MudAlert>
+        }
+        else
+        {
+            @if (isMobileView)
+            {
+                <!-- Mobile Card View -->
+                <div class="users-card-container">
+                    @foreach (var user in UsersState.Value.Users)
+                    {
+                        <MudCard Class="user-card" Elevation="2">
+                            <MudCardContent>
+                                <div class="user-card-header">
+                                    <MudAvatar Color="Color.Primary" Size="Size.Large">
+                                        @GetInitials(user.Name ?? user.Username ?? "U")
+                                    </MudAvatar>
+                                    <div class="user-card-info">
+                                        <MudText Typo="Typo.h6" Class="user-name">@(user.Name ?? user.Username)</MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="@GetUserRoleColor(user.UserRole)">
+                                            @GetUserRoleDisplayName(user.UserRole)
+                                        </MudChip>
+                                    </div>
+                                </div>
+                                <MudDivider Class="my-3" />
+                                <div class="user-card-details">
+                                    @if (!string.IsNullOrEmpty(user.EmailAddress))
+                                    {
+                                        <div class="detail-row">
+                                            <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" />
+                                            <MudText Typo="Typo.body2">@user.EmailAddress</MudText>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(user.MobileNumber))
+                                    {
+                                        <div class="detail-row">
+                                            <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" />
+                                            <MudText Typo="Typo.body2">@user.MobileNumber</MudText>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(user.Gender))
+                                    {
+                                        <div class="detail-row">
+                                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                                            <MudText Typo="Typo.body2">@user.Gender</MudText>
+                                        </div>
+                                    }
+                                    @if (user.Package != null)
+                                    {
+                                        <div class="detail-row">
+                                            <MudIcon Icon="@Icons.Material.Filled.CardMembership" Size="Size.Small" />
+                                            <MudText Typo="Typo.body2">@user.Package.Name</MudText>
+                                        </div>
+                                    }
+                                </div>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Variant="Variant.Text" 
+                                          Color="Color.Primary" 
+                                          Size="Size.Small"
+                                          OnClick="@(() => ViewUserDetails(user))">
+                                    View Details
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    }
+                </div>
+            }
+            else
+            {
+                <!-- Desktop Data Grid View -->
+                <MudTable Items="@UsersState.Value.Users" 
+                         Hover="true" 
+                         Striped="true" 
+                         Elevation="2"
+                         Class="users-table">
+                    <HeaderContent>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Username</MudTh>
+                        <MudTh>Email</MudTh>
+                        <MudTh>Mobile</MudTh>
+                        <MudTh>Gender</MudTh>
+                        <MudTh>Package</MudTh>
+                        <MudTh>Role</MudTh>
+                        <MudTh>Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Name">
+                            <div class="d-flex align-center">
+                                <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-2">
+                                    @GetInitials(context.Name ?? context.Username ?? "U")
+                                </MudAvatar>
+                                @context.Name
+                            </div>
+                        </MudTd>
+                        <MudTd DataLabel="Username">@context.Username</MudTd>
+                        <MudTd DataLabel="Email">@context.EmailAddress</MudTd>
+                        <MudTd DataLabel="Mobile">@context.MobileNumber</MudTd>
+                        <MudTd DataLabel="Gender">@context.Gender</MudTd>
+                        <MudTd DataLabel="Package">@context.Package?.Name</MudTd>
+                        <MudTd DataLabel="Role">
+                            <MudChip T="string" Size="Size.Small" Color="@GetUserRoleColor(context.UserRole)">
+                                @GetUserRoleDisplayName(context.UserRole)
+                            </MudChip>
+                        </MudTd>
+                        <MudTd DataLabel="Actions">
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                          Color="Color.Primary" 
+                                          Size="Size.Small"
+                                          OnClick="@(() => ViewUserDetails(context))"
+                                          aria-label="view" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+
+            <!-- Pagination -->
+            @if (UsersState.Value.TotalPages > 1)
+            {
+                <div class="pagination-container">
+                    <MudPagination Count="@UsersState.Value.TotalPages" 
+                                  Selected="@UsersState.Value.CurrentPage" 
+                                  SelectedChanged="@OnPageChanged"
+                                  Color="Color.Primary"
+                                  Variant="Variant.Filled"
+                                  ShowFirstButton="true"
+                                  ShowLastButton="true" />
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private bool isMobileView;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        // Initialize device service and check if mobile
+        await DeviceService.InitializeAsync();
+        isMobileView = DeviceService.IsMobile;
+        
+        // Subscribe to viewport changes
+        DeviceService.ViewportChanged += OnViewportChanged;
+        
+        // Load users
+        Dispatcher.Dispatch(new LoadUsersAction());
+    }
+
+    private void OnViewportChanged(ViewportInfo viewportInfo)
+    {
+        isMobileView = viewportInfo.Width <= 768;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnPageChanged(int page)
+    {
+        Dispatcher.Dispatch(new ChangePageAction(page));
+    }
+
+    private void ViewUserDetails(UserResponse user)
+    {
+        Snackbar.Add($"Viewing details for: {user.Name ?? user.Username}", MudBlazor.Severity.Info);
+        // TODO: Navigate to user details page or open dialog
+    }
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        return name.Length >= 2 ? name.Substring(0, 2).ToUpper() : name[0].ToString().ToUpper();
+    }
+
+    private string GetUserRoleDisplayName(UserType role)
+    {
+        return role switch
+        {
+            UserType.Customer => "Customer",
+            UserType.Staff => "Staff",
+            _ => "Unknown"
+        };
+    }
+
+    private Color GetUserRoleColor(UserType role)
+    {
+        return role switch
+        {
+            UserType.Customer => Color.Primary,
+            UserType.Staff => Color.Secondary,
+            _ => Color.Default
+        };
+    }
+
+    public void Dispose()
+    {
+        DeviceService.ViewportChanged -= OnViewportChanged;
+    }
+}
