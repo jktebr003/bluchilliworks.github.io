@@ -65,7 +65,7 @@ public static class CreateUser
             var package = await _mongoDbRepository.Get<Package>(request.PackageId);
             if (package == null)
             {
-                return new ApiResult<string>(string.Empty, false, "CreateUser.PackageNotFound", "The specified package was not found");
+                // return new ApiResult<string>(string.Empty, false, "CreateUser.PackageNotFound", "The specified package was not found");
             }
 
             // Use object initializer directly
@@ -78,15 +78,15 @@ public static class CreateUser
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Name = request.Name,
-                Package = new Package
-                {
-                    Name = package.Name,
-                    Price = package.Price,
-                    Code = package.Code,
-                    Description = package.Description,
-                    ID = package.ID,
-                    Type = (int)package.Type
-                },
+                // Package = new Package
+                // {
+                //     Name = package.Name,
+                //     Price = package.Price,
+                //     Code = package.Code,
+                //     Description = package.Description,
+                //     ID = package.ID,
+                //     Type = (int)package.Type
+                // },
                 Username = request.Username,
                 UserType = (int)request.UserType,
                 CreatedOn = request.CreatedOn.ToString("o"),

@@ -1,3 +1,4 @@
+using Blazor.SubtleCrypto;
 using Fluxor;
 using Fluxor.Blazor.Web.ReduxDevTools;
 
@@ -60,5 +61,9 @@ builder.Services.AddFluxor(options =>
     options.ScanAssemblies(typeof(Program).Assembly);
     options.UseReduxDevTools();
 });
+
+builder.Services.AddSubtleCrypto(opt =>
+    opt.Key = "WFCC7h70VDhZjS7AIJsGpvOGVoNNLp3aVM0OCNf8CSZQ78MphFCeNhf3XrxKLAnyO1iAWoBPJtUSIKsc"
+);
 
 await builder.Build().RunAsync();

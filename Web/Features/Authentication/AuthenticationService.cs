@@ -7,6 +7,7 @@ using Shared.Enums;
 
 using Web.Shared;
 using Web.Shared.Helpers;
+using Blazor.SubtleCrypto;
 
 namespace Web.Features.Authentication;
 
@@ -14,7 +15,7 @@ public interface IAuthenticationService
 {
     Task<AuthResult> LoginAsync(string username, string password);
     Task LogoutAsync();
-    Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress);
+    Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress, string encryptedPassword = "", string plainTextPassword = "");
     Task<UserResponse?> GetCurrentUserAsync();
     Task<bool> IsUserInRoleAsync(string role);
     Task<bool> HasClaimAsync(string claimType, string claimValue);
@@ -25,7 +26,7 @@ public class AuthenticationService : IAuthenticationService
 {
     private readonly WebApiClient _webApiClient;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
-    private readonly LocalStorageHelper _localStorageHelper;
+    private readonly LocalStorageHelper _localStorageHelper;   
 
     public AuthenticationService(WebApiClient webApiClient, AuthenticationStateProvider authenticationStateProvider, LocalStorageHelper localStorageHelper)
     {
@@ -83,7 +84,7 @@ public class AuthenticationService : IAuthenticationService
         await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserLogoutAsync();
     }
 
-    public async Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress)
+    public async Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress, string encryptedPassword = "", string plainTextPassword = "")
     {
         try
         {
@@ -98,6 +99,8 @@ public class AuthenticationService : IAuthenticationService
                 PackageId = "default-package-id", // You may need to adjust this based on your application logic
                 UserType = (int)UserType.Customer, // Adjust based on your enum
                 Avatar = 17,
+                EncryptedPassword = encryptedPassword,
+                DecryptedPassword = plainTextPassword,
                 CreatedOn = DateTime.UtcNow,
                 CreatedBy = "system"
             };

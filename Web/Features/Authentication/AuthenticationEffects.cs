@@ -1,5 +1,7 @@
-﻿using Fluxor;
+﻿using Blazor.SubtleCrypto;
+using Fluxor;
 using Microsoft.AspNetCore.Components;
+using Shared.Extensions;
 
 namespace Web.Features.Authentication;
 
@@ -7,11 +9,13 @@ public class AuthenticationEffects
 {
     private readonly IAuthenticationService _authService;
     private readonly NavigationManager _navigationManager;
+    private readonly ICryptoService _cryptoService;
 
-    public AuthenticationEffects(IAuthenticationService authService, NavigationManager navigationManager)
+    public AuthenticationEffects(IAuthenticationService authService, NavigationManager navigationManager, ICryptoService cryptoService)
     {
         _authService = authService;
         _navigationManager = navigationManager;
+        _cryptoService = cryptoService;
     }
 
     [EffectMethod]
@@ -34,7 +38,11 @@ public class AuthenticationEffects
     public async Task HandleRegisterAction(RegisterAction action, IDispatcher dispatcher)
     {
         dispatcher.Dispatch(new SetBusyAction(true));
-        var result = await _authService.RegisterAsync(action.FirstName, action.LastName, action.EmailAddress);
+
+        var plainTextPassword = SecurityExtension.CreateRandomPassword();
+        var encryptedPassword = await _cryptoService.EncryptAsync(plainTextPassword);
+
+        var result = await _authService.RegisterAsync(action.FirstName, action.LastName, action.EmailAddress, encryptedPassword.Value, plainTextPassword);
         if (result.Succeeded)
         {
             dispatcher.Dispatch(new RegisterSuccessAction(result.Succeeded));

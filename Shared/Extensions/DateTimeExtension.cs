@@ -64,7 +64,7 @@ public static class DateTimeExtension
 
     public static DateTime GetSouthAfricanTime()
     {
-        var SoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+        var SoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Johannesburg");
         DateTime SoTime = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.Local, SoTimeZone);
 
         return SoTime;
@@ -75,7 +75,7 @@ public static class DateTimeExtension
         DateTime date = DateTime.Now;
         if (DateTime.TryParse(input, out date) && input != null)
         {
-            var SoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+            var SoTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Johannesburg");
             DateTime SoTime = TimeZoneInfo.ConvertTime(date, TimeZoneInfo.Local, SoTimeZone);
 
             return SoTime;
