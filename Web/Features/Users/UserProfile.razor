@@ -1,0 +1,615 @@
+﻿@page "/profile"
+
+@using MudBlazor
+@using global::Shared.Models
+@using global::Shared.Enums
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@using Web.Services
+@using Web.Features.Authentication
+
+@inject IState<UsersState> UsersState
+@inject IAuthenticationService AuthService
+@inject IDispatcher Dispatcher
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@inherits FluxorComponent
+
+<div class="div-page-content">
+    <span class="heading-meta">Profile</span>
+    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">My Profile</MudText>
+
+    @if (UsersState.Value.IsLoadingProfile)
+    {
+        <div class="text-center py-5">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            <MudText Typo="Typo.body1" Class="mt-3">Loading profile...</MudText>
+        </div>
+    }
+    else if (currentUser == null)
+    {
+        <MudAlert Severity="MudBlazor.Severity.Warning">
+            Please log in to view your profile.
+        </MudAlert>
+    }
+    else
+    {
+        <MudForm @ref="form" @bind-IsValid="@isFormValid">
+            <MudGrid>
+                <!-- Personal Details Section -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4 mb-4" Elevation="2">
+                        <MudText Typo="Typo.h6" Class="mb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" />
+                            Personal Details
+                        </MudText>
+                        <MudGrid>
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="currentUser.FirstName"
+                                            Label="First Name"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="First name is required" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="currentUser.LastName"
+                                            Label="Last Name"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="Last name is required" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="currentUser.EmailAddress"
+                                            Label="Email Address"
+                                            Variant="Variant.Outlined"
+                                            InputType="InputType.Email"
+                                            Required="true"
+                                            RequiredError="Email is required" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudSelect @bind-Value="currentUser.Gender"
+                                         Label="Gender"
+                                         Variant="Variant.Outlined"
+                                         AnchorOrigin="Origin.BottomCenter">
+                                    <MudSelectItem Value="@("Male")">Male</MudSelectItem>
+                                    <MudSelectItem Value="@("Female")">Female</MudSelectItem>
+                                    <MudSelectItem Value="@("Other")">Other</MudSelectItem>
+                                    <MudSelectItem Value="@("Prefer not to say")">Prefer not to say</MudSelectItem>
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudDatePicker @bind-Date="dateOfBirth"
+                                             Label="Date of Birth"
+                                             Variant="Variant.Outlined"
+                                             Editable="true"
+                                             MaxDate="DateTime.Today" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="currentUser.TelephoneNumber"
+                                            Label="Telephone Number"
+                                            Variant="Variant.Outlined" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudTextField @bind-Value="currentUser.MobileNumber"
+                                            Label="Mobile Number"
+                                            Variant="Variant.Outlined" />
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Package Section -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4 mb-4" Elevation="2">
+                        <MudText Typo="Typo.h6" Class="mb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.CardMembership" Class="mr-2" />
+                            Package
+                        </MudText>
+                        @if (currentUser.Package != null)
+                        {
+                            <MudCard Outlined="true">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6">@currentUser.Package.Name</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@currentUser.Package.Description</MudText>
+                                    <MudText Typo="Typo.body1" Class="mt-2">
+                                        <strong>Price:</strong> @currentUser.Package.Price
+                                    </MudText>
+                                    <MudChip T="string" Color="Color.Primary" Size="Size.Small" Class="mt-2">
+                                        @currentUser.Package.Type.ToString()
+                                    </MudChip>
+                                </MudCardContent>
+                            </MudCard>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="MudBlazor.Severity.Info">
+                                No package selected. Visit our pricing page to choose a package.
+                            </MudAlert>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Work Experience Section -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4 mb-4" Elevation="2">
+                        <div class="d-flex justify-space-between align-center mb-4">
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.Work" Class="mr-2" />
+                                Work Experience
+                            </MudText>
+                            <MudButton Variant="Variant.Filled"
+                                     Color="Color.Primary"
+                                     Size="Size.Small"
+                                     OnClick="AddJob"
+                                     StartIcon="@Icons.Material.Filled.Add">
+                                Add Job
+                            </MudButton>
+                        </div>
+                        @if (jobs.Any())
+                        {
+                            @foreach (var (job, index) in jobs.Select((j, i) => (j, i)))
+                            {
+                                <MudCard Class="mb-3" Outlined="true">
+                                    <MudCardContent>
+                                        <div class="d-flex justify-space-between align-center mb-3">
+                                            <MudText Typo="Typo.subtitle1" Color="Color.Primary">Job @(index + 1)</MudText>
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                         Color="Color.Error"
+                                                         Size="Size.Small"
+                                                         OnClick="@(() => RemoveJob(job))" />
+                                        </div>
+                                        <MudGrid>
+                                            <MudItem xs="12" sm="6">
+                                                <MudTextField @bind-Value="job.Company"
+                                                            Label="Company"
+                                                            Variant="Variant.Outlined"
+                                                            Margin="Margin.Dense" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="6">
+                                                <MudTextField @bind-Value="job.Position"
+                                                            Label="Position"
+                                                            Variant="Variant.Outlined"
+                                                            Margin="Margin.Dense" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="6">
+                                                <MudDatePicker Value="@GetJobStartDate(job)"
+                                                             ValueChanged="@((DateTime? date) => SetJobStartDate(job, date))"
+                                                             Label="Start Date"
+                                                             Variant="Variant.Outlined"
+                                                             Margin="Margin.Dense"
+                                                             Editable="true" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="6">
+                                                <MudDatePicker Value="@GetJobEndDate(job)"
+                                                             ValueChanged="@((DateTime? date) => SetJobEndDate(job, date))"
+                                                             Label="End Date"
+                                                             Variant="Variant.Outlined"
+                                                             Margin="Margin.Dense"
+                                                             Editable="true" />
+                                            </MudItem>
+                                            <MudItem xs="12">
+                                                <MudTextField @bind-Value="job.Responsibilities"
+                                                            Label="Responsibilities"
+                                                            Variant="Variant.Outlined"
+                                                            Lines="3"
+                                                            Margin="Margin.Dense" />
+                                            </MudItem>
+                                        </MudGrid>
+                                    </MudCardContent>
+                                </MudCard>
+                            }
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">No work experience added yet.</MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Education Section -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4 mb-4" Elevation="2">
+                        <div class="d-flex justify-space-between align-center mb-4">
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.School" Class="mr-2" />
+                                Education (Qualifications)
+                            </MudText>
+                            <MudButton Variant="Variant.Filled"
+                                     Color="Color.Primary"
+                                     Size="Size.Small"
+                                     OnClick="AddQualification"
+                                     StartIcon="@Icons.Material.Filled.Add">
+                                Add Qualification
+                            </MudButton>
+                        </div>
+                        @if (qualifications.Any())
+                        {
+                            @foreach (var (qual, index) in qualifications.Select((q, i) => (q, i)))
+                            {
+                                <MudCard Class="mb-3" Outlined="true">
+                                    <MudCardContent>
+                                        <div class="d-flex justify-space-between align-center mb-3">
+                                            <MudText Typo="Typo.subtitle1" Color="Color.Primary">Qualification @(index + 1)</MudText>
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                         Color="Color.Error"
+                                                         Size="Size.Small"
+                                                         OnClick="@(() => RemoveQualification(qual))" />
+                                        </div>
+                                        <MudGrid>
+                                            <MudItem xs="12" sm="6">
+                                                <MudTextField @bind-Value="qual.Institution"
+                                                            Label="Institution"
+                                                            Variant="Variant.Outlined"
+                                                            Margin="Margin.Dense" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="6">
+                                                <MudTextField @bind-Value="qual.Title"
+                                                            Label="Title"
+                                                            Variant="Variant.Outlined"
+                                                            Margin="Margin.Dense" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="6">
+                                                <MudNumericField @bind-Value="qual.Year"
+                                                               Label="Year"
+                                                               Variant="Variant.Outlined"
+                                                               Margin="Margin.Dense"
+                                                               Min="1900"
+                                                               Max="@DateTime.Now.Year" />
+                                            </MudItem>
+                                        </MudGrid>
+                                    </MudCardContent>
+                                </MudCard>
+                            }
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">No qualifications added yet.</MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Certifications Section -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4 mb-4" Elevation="2">
+                        <div class="d-flex justify-space-between align-center mb-4">
+                            <MudText Typo="Typo.h6">
+                                <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Class="mr-2" />
+                                Certifications
+                            </MudText>
+                            <MudButton Variant="Variant.Filled"
+                                     Color="Color.Primary"
+                                     Size="Size.Small"
+                                     OnClick="AddCertification"
+                                     StartIcon="@Icons.Material.Filled.Add">
+                                Add Certification
+                            </MudButton>
+                        </div>
+                        @if (certifications.Any())
+                        {
+                            @foreach (var (cert, index) in certifications.Select((c, i) => (c, i)))
+                            {
+                                <MudCard Class="mb-3" Outlined="true">
+                                    <MudCardContent>
+                                        <div class="d-flex justify-space-between align-center mb-3">
+                                            <MudText Typo="Typo.subtitle1" Color="Color.Primary">Certification @(index + 1)</MudText>
+                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                         Color="Color.Error"
+                                                         Size="Size.Small"
+                                                         OnClick="@(() => RemoveCertification(cert))" />
+                                        </div>
+                                        <MudGrid>
+                                            <MudItem xs="12" sm="6">
+                                                <MudTextField @bind-Value="cert.Institution"
+                                                            Label="Institution"
+                                                            Variant="Variant.Outlined"
+                                                            Margin="Margin.Dense" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="6">
+                                                <MudTextField @bind-Value="cert.Title"
+                                                            Label="Title"
+                                                            Variant="Variant.Outlined"
+                                                            Margin="Margin.Dense" />
+                                            </MudItem>
+                                            <MudItem xs="12" sm="6">
+                                                <MudNumericField @bind-Value="cert.Year"
+                                                               Label="Year"
+                                                               Variant="Variant.Outlined"
+                                                               Margin="Margin.Dense"
+                                                               Min="1900"
+                                                               Max="@DateTime.Now.Year" />
+                                            </MudItem>
+                                        </MudGrid>
+                                    </MudCardContent>
+                                </MudCard>
+                            }
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">No certifications added yet.</MudText>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Skills & Abilities Section -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4 mb-4" Elevation="2">
+                        <MudText Typo="Typo.h6" Class="mb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.Stars" Class="mr-2" />
+                            Skills & Abilities
+                        </MudText>
+                        <MudTextField @bind-Value="skillsText"
+                                    Label="Skills & Abilities"
+                                    Variant="Variant.Outlined"
+                                    Lines="6"
+                                    Placeholder="Enter your skills and abilities (e.g., Programming, Project Management, Communication, etc.)" />
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                            Enter skills separated by commas or line breaks
+                        </MudText>
+                    </MudPaper>
+                </MudItem>
+
+                <!-- Action Buttons -->
+                <MudItem xs="12">
+                    <div class="d-flex justify-end gap-2">
+                        <MudButton Variant="Variant.Outlined"
+                                 Color="Color.Default"
+                                 OnClick="Cancel">
+                            Cancel
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                 Color="Color.Primary"
+                                 OnClick="SaveProfile"
+                                 Disabled="@(!isFormValid || UsersState.Value.IsLoadingProfile)">
+                            @if (UsersState.Value.IsLoadingProfile)
+                            {
+                                <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <span>Save Profile</span>
+                            }
+                        </MudButton>
+                    </div>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    }
+</div>
+
+@code {
+    private MudForm form = null!;
+    private bool isFormValid;
+    private UserResponse? currentUser;
+    private DateTime? dateOfBirth;
+    private string? skillsText;
+
+    private List<JobResponse> jobs = new();
+    private List<QualificationResponse> qualifications = new();
+    private List<CertificationResponse> certifications = new();
+    private Dictionary<string, DateTime?> jobStartDates = new();
+    private Dictionary<string, DateTime?> jobEndDates = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // Get current user from authentication service
+        var authenticatedUser = await AuthService.GetCurrentUserAsync();
+        if (authenticatedUser != null)
+        {
+            currentUser = new UserResponse
+            {
+                ID = authenticatedUser.ID,
+                FirstName = authenticatedUser.FirstName,
+                LastName = authenticatedUser.LastName,
+                EmailAddress = authenticatedUser.EmailAddress,
+                Gender = authenticatedUser.Gender,
+                DateOfBirth = authenticatedUser.DateOfBirth,
+                TelephoneNumber = authenticatedUser.TelephoneNumber,
+                MobileNumber = authenticatedUser.MobileNumber,
+                Package = authenticatedUser.Package,
+                Username = authenticatedUser.Username,
+                UserRole = authenticatedUser.UserRole
+            };
+
+            // Parse date of birth
+            if (!string.IsNullOrEmpty(currentUser.DateOfBirth) &&
+                DateTime.TryParse(currentUser.DateOfBirth, out var dob))
+            {
+                dateOfBirth = dob;
+            }
+
+            // Load existing data
+            jobs = authenticatedUser.Jobs?.ToList() ?? new List<JobResponse>();
+            qualifications = authenticatedUser.Qualifications?.ToList() ?? new List<QualificationResponse>();
+            certifications = authenticatedUser.Certifications?.ToList() ?? new List<CertificationResponse>();
+
+            // Initialize job date dictionaries
+            foreach (var job in jobs)
+            {
+                if (!string.IsNullOrEmpty(job.ID))
+                {
+                    if (!string.IsNullOrEmpty(job.StartDate) && DateTime.TryParse(job.StartDate, out var startDate))
+                        jobStartDates[job.ID] = startDate;
+                    if (!string.IsNullOrEmpty(job.EndDate) && DateTime.TryParse(job.EndDate, out var endDate))
+                        jobEndDates[job.ID] = endDate;
+                }
+            }
+
+            // Load profile data if needed
+            if (!string.IsNullOrEmpty(currentUser.ID))
+            {
+                Dispatcher.Dispatch(new LoadUserProfileAction(currentUser.ID));
+            }
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        // Update current user from state if loaded
+        if (UsersState.Value.CurrentUser != null && currentUser != null)
+        {
+            currentUser = UsersState.Value.CurrentUser;
+            
+            // Update collections
+            jobs = currentUser.Jobs?.ToList() ?? new List<JobResponse>();
+            qualifications = currentUser.Qualifications?.ToList() ?? new List<QualificationResponse>();
+            certifications = currentUser.Certifications?.ToList() ?? new List<CertificationResponse>();
+
+            // Parse date of birth
+            if (!string.IsNullOrEmpty(currentUser.DateOfBirth) &&
+                DateTime.TryParse(currentUser.DateOfBirth, out var dob))
+            {
+                dateOfBirth = dob;
+            }
+        }
+
+        // Show success message after update
+        if (UsersState.Value.CurrentUser != null && !UsersState.Value.IsLoadingProfile && string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
+        {
+            Snackbar.Add("Profile updated successfully!", MudBlazor.Severity.Success);
+        }
+        else if (!string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
+        {
+            Snackbar.Add(UsersState.Value.ErrorMessage, MudBlazor.Severity.Error);
+        }
+    }
+
+    private void AddJob()
+    {
+        var newJob = new JobResponse
+        {
+            ID = Guid.NewGuid().ToString(),
+            Company = string.Empty,
+            Position = string.Empty,
+            StartDate = DateTime.Now.ToString("yyyy-MM-dd"),
+            EndDate = null,
+            Responsibilities = string.Empty
+        };
+        jobs.Add(newJob);
+        jobStartDates[newJob.ID] = DateTime.Now;
+        jobEndDates[newJob.ID] = null;
+    }
+
+    private void RemoveJob(JobResponse job)
+    {
+        jobs.Remove(job);
+        if (!string.IsNullOrEmpty(job.ID))
+        {
+            jobStartDates.Remove(job.ID);
+            jobEndDates.Remove(job.ID);
+        }
+    }
+
+    private DateTime? GetJobStartDate(JobResponse job)
+    {
+        return !string.IsNullOrEmpty(job.ID) && jobStartDates.ContainsKey(job.ID) ? jobStartDates[job.ID] : null;
+    }
+
+    private void SetJobStartDate(JobResponse job, DateTime? date)
+    {
+        if (!string.IsNullOrEmpty(job.ID))
+        {
+            jobStartDates[job.ID] = date;
+            job.StartDate = date?.ToString("yyyy-MM-dd");
+        }
+    }
+
+    private DateTime? GetJobEndDate(JobResponse job)
+    {
+        return !string.IsNullOrEmpty(job.ID) && jobEndDates.ContainsKey(job.ID) ? jobEndDates[job.ID] : null;
+    }
+
+    private void SetJobEndDate(JobResponse job, DateTime? date)
+    {
+        if (!string.IsNullOrEmpty(job.ID))
+        {
+            jobEndDates[job.ID] = date;
+            job.EndDate = date?.ToString("yyyy-MM-dd");
+        }
+    }
+
+    private void AddQualification()
+    {
+        qualifications.Add(new QualificationResponse
+        {
+            ID = Guid.NewGuid().ToString(),
+            Institution = string.Empty,
+            Title = string.Empty,
+            Year = DateTime.Now.Year
+        });
+    }
+
+    private void RemoveQualification(QualificationResponse qual)
+    {
+        qualifications.Remove(qual);
+    }
+
+    private void AddCertification()
+    {
+        certifications.Add(new CertificationResponse
+        {
+            ID = Guid.NewGuid().ToString(),
+            Institution = string.Empty,
+            Title = string.Empty,
+            Year = DateTime.Now.Year
+        });
+    }
+
+    private void RemoveCertification(CertificationResponse cert)
+    {
+        certifications.Remove(cert);
+    }
+
+    private async Task SaveProfile()
+    {
+        await form.Validate();
+
+        if (!isFormValid || currentUser == null)
+        {
+            Snackbar.Add("Please fill in all required fields", MudBlazor.Severity.Warning);
+            return;
+        }
+
+        // Update date of birth
+        currentUser.DateOfBirth = dateOfBirth?.ToString("yyyy-MM-dd");
+
+        // Update job dates from dictionaries
+        foreach (var job in jobs)
+        {
+            if (!string.IsNullOrEmpty(job.ID) && jobStartDates.ContainsKey(job.ID))
+                job.StartDate = jobStartDates[job.ID]?.ToString("yyyy-MM-dd");
+            if (!string.IsNullOrEmpty(job.ID) && jobEndDates.ContainsKey(job.ID))
+                job.EndDate = jobEndDates[job.ID]?.ToString("yyyy-MM-dd");
+        }
+
+        var updateRequest = new UpdateUserRequest
+        {
+            Id = currentUser.ID ?? string.Empty,
+            FirstName = currentUser.FirstName,
+            LastName = currentUser.LastName,
+            EmailAddress = currentUser.EmailAddress,
+            Gender = currentUser.Gender,
+            DateOfBirth = currentUser.DateOfBirth,
+            TelephoneNumber = currentUser.TelephoneNumber,
+            MobileNumber = currentUser.MobileNumber,
+            PackageId = currentUser.Package?.ID,
+            Jobs = jobs,
+            Qualifications = qualifications,
+            Certifications = certifications,
+            Username = currentUser.Username,
+            UserType = currentUser.UserRole
+        };
+
+        Dispatcher.Dispatch(new UpdateUserProfileAction(updateRequest));
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

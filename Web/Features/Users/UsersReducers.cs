@@ -40,4 +40,67 @@ public static class UsersReducers
             Users = new List<UserResponse>()
         };
     }
+
+    // Profile Reducers
+    [ReducerMethod(typeof(LoadUserProfileAction))]
+    public static UsersState ReduceLoadUserProfileAction(UsersState state)
+    {
+        return state with
+        {
+            IsLoadingProfile = true,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceLoadUserProfileSuccessAction(UsersState state, LoadUserProfileSuccessAction action)
+    {
+        return state with
+        {
+            IsLoadingProfile = false,
+            CurrentUser = action.User,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceLoadUserProfileFailedAction(UsersState state, LoadUserProfileFailedAction action)
+    {
+        return state with
+        {
+            IsLoadingProfile = false,
+            ErrorMessage = action.ErrorMessage
+        };
+    }
+
+    [ReducerMethod(typeof(UpdateUserProfileAction))]
+    public static UsersState ReduceUpdateUserProfileAction(UsersState state)
+    {
+        return state with
+        {
+            IsLoadingProfile = true,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceUpdateUserProfileSuccessAction(UsersState state, UpdateUserProfileSuccessAction action)
+    {
+        return state with
+        {
+            IsLoadingProfile = false,
+            CurrentUser = action.User,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceUpdateUserProfileFailedAction(UsersState state, UpdateUserProfileFailedAction action)
+    {
+        return state with
+        {
+            IsLoadingProfile = false,
+            ErrorMessage = action.ErrorMessage
+        };
+    }
 }

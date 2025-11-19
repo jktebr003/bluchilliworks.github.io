@@ -52,4 +52,60 @@ public class UsersEffects
     {
         dispatcher.Dispatch(new LoadUsersAction(action.PageNumber));
     }
+
+    [EffectMethod]
+    public async Task HandleLoadUserProfile(LoadUserProfileAction action, IDispatcher dispatcher)
+    {
+        try
+        {
+            var result = await _apiClient.Get<ApiResult<UserResponse>>(
+                new WebApiClientInfo<object>
+                {
+                    Method = $"/users/{action.UserId}",
+                    Request = string.Empty
+                }
+            );
+
+            if (result?.Success == true && result.Value != null)
+            {
+                dispatcher.Dispatch(new LoadUserProfileSuccessAction(result.Value));
+            }
+            else
+            {
+                dispatcher.Dispatch(new LoadUserProfileFailedAction(result?.Message ?? "Failed to load user profile"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new LoadUserProfileFailedAction($"Error loading user profile: {ex.Message}"));
+        }
+    }
+
+    [EffectMethod]
+    public async Task HandleUpdateUserProfile(UpdateUserProfileAction action, IDispatcher dispatcher)
+    {
+        try
+        {
+            var result = await _apiClient.Put<UpdateUserRequest, ApiResult<UserResponse>>(
+                new WebApiClientInfo<UpdateUserRequest>
+                {
+                    Method = $"/users/{action.Request.Id}",
+                    Request = action.Request
+                }
+            );
+
+            if (result?.Success == true && result.Value != null)
+            {
+                dispatcher.Dispatch(new UpdateUserProfileSuccessAction(result.Value));
+            }
+            else
+            {
+                dispatcher.Dispatch(new UpdateUserProfileFailedAction(result?.Message ?? "Failed to update user profile"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new UpdateUserProfileFailedAction($"Error updating user profile: {ex.Message}"));
+        }
+    }
 }
