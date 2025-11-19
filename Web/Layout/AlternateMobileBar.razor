@@ -58,6 +58,10 @@ else
                 <MudIcon Icon="@Icons.Material.Filled.Edit" />
                 <span> Register</span>
             </MudNavLink>
+            <MudNavLink Href="/posts" Match="NavLinkMatch.Prefix">
+                <MudIcon Icon="@Icons.Material.Filled.QuestionAnswer" />
+                <span> Posts</span>
+            </MudNavLink>
             @if (isAuthenticated)
             {
                 <MudNavLink Href="/users" Match="NavLinkMatch.Prefix">
@@ -142,6 +146,7 @@ else
             "/contact" => "Contact",
             "/users" => "Users",
             "/profile" => "Profile",
+            "/posts" => "Posts",
             "/authentication/login" => "Login",
             "/authentication/register" => "Register",
             _ => "The Teachers Lounge"
