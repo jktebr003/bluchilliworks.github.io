@@ -561,9 +561,14 @@ html, body {
         font-size: var(--mud-typography-h3-size);
     }*/
 
-    .ttl-heading {
-        margin-bottom: 3em;
+    .mud-alert {
+        background-color: #208b3a !important;
+        color: #ffffff !important;
     }
+
+    /* .ttl-heading {
+        margin-bottom: 3em;
+    } */
 
     .ttl-about,
     .ttl-benefits,

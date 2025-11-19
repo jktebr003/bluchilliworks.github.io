@@ -19,17 +19,18 @@
     <div class="ttl-pricing">
         <!-- Package Type Filter -->
         <MudGrid Class="mb-4">
-            <MudItem xs="12" sm="6" md="4">
-                <MudSelect T="PackageType" 
-                          Label="Package Type" 
-                          Value="PricingState.Value.SelectedPackageType" 
-                          ValueChanged="@((PackageType value) => OnPackageTypeChanged(value))"
-                          Variant="Variant.Outlined"
-                          AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem Value="@PackageType.None">All Packages</MudSelectItem>
-                    <MudSelectItem Value="@PackageType.Monthly">Monthly</MudSelectItem>
-                    <MudSelectItem Value="@PackageType.TwoYearSubscription">2-year Subscription</MudSelectItem>
-                </MudSelect>
+            <MudItem xs="12">
+                <MudText Typo="Typo.body1" Class="mb-2">Package Type</MudText>
+                <MudChipSet T="PackageType" 
+                           SelectedValue="PricingState.Value.SelectedPackageType" 
+                           SelectedValueChanged="@((PackageType value) => OnPackageTypeChanged(value))"
+                           SelectionMode="SelectionMode.SingleSelection"
+                           Filter="true"
+                           CheckMark="true">
+                    <MudChip T="PackageType" Value="@PackageType.None" Class="pricing-chip" Default="true">All Packages</MudChip>
+                    <MudChip T="PackageType" Value="@PackageType.Monthly" Class="pricing-chip">Monthly</MudChip>
+                    <MudChip T="PackageType" Value="@PackageType.TwoYearSubscription" Class="pricing-chip">2-year Subscription</MudChip>
+                </MudChipSet>
             </MudItem>
         </MudGrid>
 

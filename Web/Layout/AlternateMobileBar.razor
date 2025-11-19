@@ -44,19 +44,30 @@ else
         <MudNavMenu>
             <MudNavLink Href="/" Match="NavLinkMatch.All">
                 <MudIcon Icon="@Icons.Material.Filled.Home" />
-                <span>Home</span>
+                <span> Home</span>
             </MudNavLink>
-            <MudNavLink Href="/incidents/capture" Match="NavLinkMatch.Prefix">
-                <MudIcon Icon="@Icons.Material.Filled.Warning" />
-                <span>Capture Incident</span>
+            <MudNavLink Href="/pricing" Match="NavLinkMatch.Prefix">
+                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" />
+                <span> Pricing</span>
+            </MudNavLink>
+            <MudNavLink Href="/contact" Match="NavLinkMatch.Prefix">
+                <MudIcon Icon="@Icons.Material.Filled.ContactMail" />
+                <span> Contact</span>
+            </MudNavLink>
+            <MudNavLink Href="/authentication/register" Match="NavLinkMatch.Prefix">
+                <MudIcon Icon="@Icons.Material.Filled.Edit" />
+                <span> Register</span>
             </MudNavLink>
             @if (isAuthenticated)
             {
-                <MudNavLink Href="/incidents/list" Match="NavLinkMatch.Prefix">
-                    <MudIcon Icon="@Icons.Material.Filled.List" />
-                    <span>View My Incidents</span>
+                <MudNavLink Href="/users" Match="NavLinkMatch.Prefix">
+                    <MudIcon Icon="@Icons.Material.Filled.Group" />
+                    <span> Users</span>
                 </MudNavLink>
-
+                <MudNavLink Href="/profile" Match="NavLinkMatch.Prefix">
+                    <MudIcon Icon="@Icons.Material.Filled.Badge" />
+                    <span> Profile</span>
+                </MudNavLink>
                 <MudNavLink OnClick="HandleLogout" Match="NavLinkMatch.Prefix">
                     <MudIcon Icon="@Icons.Material.Filled.Logout" />
                     <span>Logout @UserFullName</span>
@@ -127,11 +138,13 @@ else
         var uri = new Uri(Navigation.Uri);
         return uri.AbsolutePath.ToLowerInvariant() switch
         {
-            "/incidents/capture" => "Capture an Incident",
-            "/incidents/list" => "View My Incidents",
+            "/pricing" => "Pricing",
+            "/contact" => "Contact",
+            "/users" => "Users",
+            "/profile" => "Profile",
             "/authentication/login" => "Login",
-            "/authentication/logout" => "Logout",
-            _ => "Safety App"
+            "/authentication/register" => "Register",
+            _ => "The Teachers Lounge"
         };
     }
 

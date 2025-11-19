@@ -103,6 +103,7 @@ h6 {
 .bluchilliworks-logo-header {
     height: 2rem;
     width: auto;
+    filter: brightness(0) invert(1);
 }
 
 .body-background-color {
@@ -1829,6 +1830,20 @@ h6 {
     color: #f39c12 !important;
     color: #fd7e14 !important;
 }
+
+.pricing-chip:not(.mud-chip-selected) {
+    opacity: 0.5;
+    color: white !important;
+}
+
+.pricing-chip {
+    color: white !important;
+    background-color: #1976d2 !important;
+}
+
+    .pricing-chip.mud-chip-selected {
+        font-weight: bold;
+    }
 
 .primary-button {
     background-color: #001489 !important;
