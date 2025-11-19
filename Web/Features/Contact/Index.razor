@@ -22,25 +22,25 @@
                                     <ValidationSummary />
 
                                     <div class="mb-3">
-                                        <label for="name" class="form-label">Name</label>
+                                        <label for="name" class="form-label">Name *</label>
                                         <InputText id="name" class="form-control" @bind-Value="contactModel.Name" />
                                         <ValidationMessage For="@(() => contactModel.Name)" />
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="email" class="form-label">Email Address</label>
+                                        <label for="email" class="form-label">Email Address *</label>
                                         <InputText id="email" class="form-control" @bind-Value="contactModel.Email" />
                                         <ValidationMessage For="@(() => contactModel.Email)" />
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="subject" class="form-label">Subject</label>
+                                        <label for="subject" class="form-label">Subject *</label>
                                         <InputText id="subject" class="form-control" @bind-Value="contactModel.Subject" />
                                         <ValidationMessage For="@(() => contactModel.Subject)" />
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="message" class="form-label">Message</label>
+                                        <label for="message" class="form-label">Message *</label>
                                         <InputTextArea id="message" class="form-control" @bind-Value="contactModel.Message" />
                                         <ValidationMessage For="@(() => contactModel.Message)" />
                                     </div>

@@ -21,7 +21,6 @@ code {
 h1 {
     font-weight: bold !important;
     margin-bottom: 0.5em !important;
-    margin-bottom: 0.5em;
 }
 
     h1:focus {
