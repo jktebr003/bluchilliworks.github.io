@@ -39,8 +39,8 @@ else
     </div>
 }
 
-<MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Temporary" Elevation="1">
-    <div class="drawer-flex-container">
+<div class="collapsible-menu @(_drawerOpen ? "open" : "")">
+    <MudPaper Elevation="2" Class="menu-content">
         <MudNavMenu>
             <MudNavLink Href="/" Match="NavLinkMatch.All">
                 <MudIcon Icon="@Icons.Material.Filled.Home" />
@@ -85,25 +85,15 @@ else
                 </MudNavLink>
             }
         </MudNavMenu>
-        <footer class="drawer-footer">
-            <MudDivider />
-            <MudStack Spacing="0" Class="mt-2">
-                <MudText Typo="Typo.caption" Class="drawer-footer-text">
-                    Version 1.0.0
-                </MudText>
-                <MudText Typo="Typo.caption" Class="drawer-footer-text">
-                    The Teachers Lounge
-                </MudText>
-                <MudText Typo="Typo.caption" Class="drawer-footer-text">
-                    &copy; @DateTime.Now.Year BluChilliWorks.
-                </MudText>
-                <MudText Typo="Typo.caption" Class="drawer-footer-text">
-                    All rights reserved.
-                </MudText>
-            </MudStack>
-        </footer>
-    </div>
-</MudDrawer>
+        <MudDivider Class="mt-2" />
+        <MudStack Spacing="0" Class="menu-footer">
+            <MudText Typo="Typo.caption">Version 1.0.0</MudText>
+            <MudText Typo="Typo.caption">The Teachers Lounge</MudText>
+            <MudText Typo="Typo.caption">&copy; @DateTime.Now.Year BluChilliWorks.</MudText>
+            <MudText Typo="Typo.caption">All rights reserved.</MudText>
+        </MudStack>
+    </MudPaper>
+</div>
 
 <ProgressSpinner IsBusy="Busy" />
 
@@ -123,6 +113,7 @@ else
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
+        _drawerOpen = false;
         StateHasChanged();
     }
 
@@ -154,6 +145,8 @@ else
     }
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    @* private void CloseMenu() => _drawerOpen = !_drawerOpen; *@
 
     protected async Task ShowLoginOverlay()
     {

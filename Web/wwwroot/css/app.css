@@ -218,9 +218,11 @@ h6 {
     padding: 0.75rem 1rem;
     background: rgba(44,62,80,0.95);
     backdrop-filter: blur(10px);
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
+    left: 0;
+    right: 0;
+    z-index: 1000;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
@@ -1601,6 +1603,32 @@ h6 {
     z-index: 1000;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
+
+.collapsible-menu {
+    position: fixed;
+    top: 64px; /* Adjust based on your header height */
+    left: 0;
+    right: 0;
+    z-index: 999;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+}
+
+    .collapsible-menu.open {
+        max-height: 500px; /* Adjust based on your menu content */
+    }
+
+    .collapsible-menu .menu-content {
+        background: #fff;
+        padding: 1rem;
+    }
+
+    .collapsible-menu .menu-footer {
+        padding: 0.5rem 1rem;
+        text-align: center;
+        color: #666;
+    }
 
 .mobile-main-content {
     margin-top: 4rem;
