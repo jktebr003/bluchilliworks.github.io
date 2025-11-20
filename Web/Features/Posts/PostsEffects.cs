@@ -52,4 +52,61 @@ public class PostsEffects
     {
         dispatcher.Dispatch(new LoadPostsAction(action.PageNumber));
     }
+
+    [EffectMethod]
+    public async Task HandleLoadPostDetail(LoadPostDetailAction action, IDispatcher dispatcher)
+    {
+        try
+        {
+            var result = await _apiClient.Get<ApiResult<PostResponse>>(
+                new WebApiClientInfo<object> 
+                { 
+                    Method = $"/posts/{action.PostId}",
+                    Request = string.Empty
+                }
+            );
+
+            if (result?.Success == true && result.Value != null)
+            {
+                dispatcher.Dispatch(new LoadPostDetailSuccessAction(result.Value));
+            }
+            else
+            {
+                dispatcher.Dispatch(new LoadPostDetailFailedAction(result?.Message ?? "Failed to load post details"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new LoadPostDetailFailedAction($"Error loading post details: {ex.Message}"));
+        }
+    }
+
+    [EffectMethod]
+    public async Task HandleUpdatePost(UpdatePostAction action, IDispatcher dispatcher)
+    {
+        try
+        {
+            var result = await _apiClient.Put<UpdatePostRequest, ApiResult<string>>(
+                new WebApiClientInfo<UpdatePostRequest>
+                {
+                    Method = "/posts",
+                    Request = action.Request
+                }
+            );
+
+            if (result?.Success == true)
+            {
+                // After successful update, reload the post details
+                dispatcher.Dispatch(new LoadPostDetailAction(action.Request.Id));
+            }
+            else
+            {
+                dispatcher.Dispatch(new UpdatePostFailedAction(result?.Message ?? "Failed to update post"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new UpdatePostFailedAction($"Error updating post: {ex.Message}"));
+        }
+    }
 }

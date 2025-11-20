@@ -10,7 +10,7 @@
 
 @if (IsHomePage())
 {
-    <div class="mobile-header">
+    <div class="mobile-header home">
         <div class="header-content">
             <div class="header-logo">
                 <img src="img/bluchilliworks-logo.png" alt="BluChilliWorks Logo" class="bluchilliworks-logo-header" />
@@ -25,7 +25,7 @@
 }
 else
 {
-    <div class="capture-incident-header">
+    <div class="mobile-header other">
         <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
                        Color="Color.Inherit"
                        OnClick='() => Navigation?.NavigateTo("/")'

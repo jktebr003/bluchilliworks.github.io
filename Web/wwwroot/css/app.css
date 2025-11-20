@@ -1604,6 +1604,33 @@ h6 {
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
+    .mobile-header.home {
+        background: rgba(44,62,80,0.95);
+        backdrop-filter: blur(10px);
+        padding: 1rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .mobile-header.other {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1rem;
+        background: rgba(44,62,80,0.95);
+        backdrop-filter: blur(10px);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
 .collapsible-menu {
     position: fixed;
     top: 64px; /* Adjust based on your header height */

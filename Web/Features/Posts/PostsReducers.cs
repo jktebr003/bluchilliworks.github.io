@@ -49,4 +49,69 @@ public static class PostsReducers
             CurrentPage = action.PageNumber
         };
     }
+
+    // Single post detail reducers
+    [ReducerMethod(typeof(LoadPostDetailAction))]
+    public static PostsState ReduceLoadPostDetailAction(PostsState state)
+    {
+        return state with
+        {
+            IsLoadingDetail = true,
+            DetailErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static PostsState ReduceLoadPostDetailSuccessAction(PostsState state, LoadPostDetailSuccessAction action)
+    {
+        return state with
+        {
+            IsLoadingDetail = false,
+            CurrentPost = action.Post,
+            DetailErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static PostsState ReduceLoadPostDetailFailedAction(PostsState state, LoadPostDetailFailedAction action)
+    {
+        return state with
+        {
+            IsLoadingDetail = false,
+            DetailErrorMessage = action.ErrorMessage,
+            CurrentPost = null
+        };
+    }
+
+    // Update post reducers
+    [ReducerMethod(typeof(UpdatePostAction))]
+    public static PostsState ReduceUpdatePostAction(PostsState state)
+    {
+        return state with
+        {
+            IsUpdating = true,
+            UpdateErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static PostsState ReduceUpdatePostSuccessAction(PostsState state, UpdatePostSuccessAction action)
+    {
+        return state with
+        {
+            IsUpdating = false,
+            CurrentPost = action.Post,
+            UpdateErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static PostsState ReduceUpdatePostFailedAction(PostsState state, UpdatePostFailedAction action)
+    {
+        return state with
+        {
+            IsUpdating = false,
+            UpdateErrorMessage = action.ErrorMessage
+        };
+    }
 }

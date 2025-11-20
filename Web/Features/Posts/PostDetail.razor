@@ -1,0 +1,475 @@
+@page "/posts/{PostId}"
+
+@using MudBlazor
+@using global::Shared.Models
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+
+@inject IState<PostsState> PostsState
+@inject IDispatcher Dispatcher
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@inherits FluxorComponent
+
+<div class="div-page-content">
+    @* <MudBreadcrumbs Items="_breadcrumbItems" Class="mb-4"></MudBreadcrumbs> *@
+    <span class="heading-meta">@(isEditMode ? "Edit Post" : "Post Details")</span>
+    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">@(isEditMode ? "Edit Post" : "Post Details")</MudText>
+
+    @if (PostsState.Value.IsLoadingDetail)
+    {
+        <div class="text-center py-5">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            <MudText Typo="Typo.body1" Class="mt-3">Loading post...</MudText>
+        </div>
+    }
+    else if (PostsState.Value.DetailErrorMessage != null)
+    {
+        <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-4">
+            @PostsState.Value.DetailErrorMessage
+        </MudAlert>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/posts"))">
+            Back to Posts
+        </MudButton>
+    }
+    else if (currentPost == null)
+    {
+        <MudAlert Severity="MudBlazor.Severity.Warning">
+            Post not found.
+        </MudAlert>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/posts"))">
+            Back to Posts
+        </MudButton>
+    }
+    else
+    {
+        <div class="post-detail-container">
+            <!-- Header Section -->
+            <div class="d-flex justify-space-between align-center mb-4">
+                @* <MudText Typo="Typo.h4" GutterBottom="true">
+                    @(isEditMode ? "Edit Post" : "Post Details")
+                </MudText> *@
+                <MudSpacer />
+                <div>
+                    @if (!isEditMode)
+                    {
+                        <MudButton Variant="Variant.Filled" 
+                                  Color="Color.Primary" 
+                                  StartIcon="@Icons.Material.Filled.Edit"
+                                  OnClick="@EnableEditMode">
+                            Edit Post
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Text" 
+                                  Color="Color.Default" 
+                                  OnClick="@CancelEdit"
+                                  Class="mr-2">
+                            Cancel
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled" 
+                                  Color="Color.Primary" 
+                                  StartIcon="@Icons.Material.Filled.Save"
+                                  OnClick="@SavePost"
+                                  Disabled="@PostsState.Value.IsUpdating">
+                            @(PostsState.Value.IsUpdating ? "Saving..." : "Save Changes")
+                        </MudButton>
+                    }
+                </div>
+            </div>
+
+            @if (PostsState.Value.UpdateErrorMessage != null)
+            {
+                <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-4" CloseIcon="@Icons.Material.Filled.Close" CloseIconClicked="@(() => ClearUpdateError())">
+                    @PostsState.Value.UpdateErrorMessage
+                </MudAlert>
+            }
+
+            <MudForm @ref="form" @bind-IsValid="@isFormValid">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudGrid>
+                        <!-- Title -->
+                        <MudItem xs="12">
+                            @if (isEditMode)
+                            {
+                                <MudTextField @bind-Value="currentPost.Title"
+                                            Label="Title"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="Title is required"
+                                            Lines="1" />
+                            }
+                            else
+                            {
+                                <div class="detail-field">
+                                    <MudText Typo="Typo.subtitle2" Class="field-label">Title</MudText>
+                                    <MudText Typo="Typo.h5">@currentPost.Title</MudText>
+                                </div>
+                            }
+                        </MudItem>
+
+                        <!-- Category -->
+                        <MudItem xs="12" sm="6">
+                            @if (isEditMode)
+                            {
+                                <MudTextField @bind-Value="currentPost.Category"
+                                            Label="Category"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="Category is required" />
+                            }
+                            else
+                            {
+                                <div class="detail-field">
+                                    <MudText Typo="Typo.subtitle2" Class="field-label">Category</MudText>
+                                    <MudChip T="string" Color="Color.Primary">@currentPost.Category</MudChip>
+                                </div>
+                            }
+                        </MudItem>
+
+                        <!-- Author -->
+                        <MudItem xs="12" sm="6">
+                            @if (isEditMode)
+                            {
+                                <MudTextField @bind-Value="currentPost.Author"
+                                            Label="Author"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="Author is required" />
+                            }
+                            else
+                            {
+                                <div class="detail-field">
+                                    <MudText Typo="Typo.subtitle2" Class="field-label">Author</MudText>
+                                    <MudText Typo="Typo.body1">@currentPost.Author</MudText>
+                                </div>
+                            }
+                        </MudItem>
+
+                        <!-- Heading -->
+                        <MudItem xs="12">
+                            @if (isEditMode)
+                            {
+                                <MudTextField @bind-Value="currentPost.Heading"
+                                            Label="Heading"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="Heading is required"
+                                            Lines="2" />
+                            }
+                            else
+                            {
+                                <div class="detail-field">
+                                    <MudText Typo="Typo.subtitle2" Class="field-label">Heading</MudText>
+                                    <MudText Typo="Typo.h6">@currentPost.Heading</MudText>
+                                </div>
+                            }
+                        </MudItem>
+
+                        <!-- Description -->
+                        <MudItem xs="12">
+                            @if (isEditMode)
+                            {
+                                <MudTextField @bind-Value="currentPost.Description"
+                                            Label="Description"
+                                            Variant="Variant.Outlined"
+                                            Lines="3" />
+                            }
+                            else
+                            {
+                                <div class="detail-field">
+                                    <MudText Typo="Typo.subtitle2" Class="field-label">Description</MudText>
+                                    <MudText Typo="Typo.body1">@currentPost.Description</MudText>
+                                </div>
+                            }
+                        </MudItem>
+
+                        <!-- Content -->
+                        <MudItem xs="12">
+                            @if (isEditMode)
+                            {
+                                <MudTextField @bind-Value="currentPost.Content"
+                                            Label="Content"
+                                            Variant="Variant.Outlined"
+                                            Required="true"
+                                            RequiredError="Content is required"
+                                            Lines="10" />
+                            }
+                            else
+                            {
+                                <div class="detail-field">
+                                    <MudText Typo="Typo.subtitle2" Class="field-label">Content</MudText>
+                                    <MudPaper Class="pa-3 content-display" Elevation="0">
+                                        <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@currentPost.Content</MudText>
+                                    </MudPaper>
+                                </div>
+                            }
+                        </MudItem>
+
+                        <!-- Stats (Read-only) -->
+                        <MudItem xs="12">
+                            <MudDivider Class="my-3" />
+                            <MudText Typo="Typo.subtitle2" Class="field-label mb-2">Post Statistics</MudText>
+                            <div class="post-stats">
+                                <div class="stat-item">
+                                    <MudIcon Icon="@Icons.Material.Filled.Comment" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">@(currentPost.TotalComments ?? 0) Comments</MudText>
+                                </div>
+                                <div class="stat-item">
+                                    <MudIcon Icon="@Icons.Material.Filled.ThumbUp" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">@(currentPost.TotalLikes ?? 0) Likes</MudText>
+                                </div>
+                                <div class="stat-item">
+                                    <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
+                                    <MudText Typo="Typo.body2">@(currentPost.TotalViews ?? 0) Views</MudText>
+                                </div>
+                                @if (!string.IsNullOrEmpty(currentPost.PostedOn))
+                                {
+                                    <div class="stat-item">
+                                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" />
+                                        <MudText Typo="Typo.body2">Posted: @FormatDate(currentPost.PostedOn)</MudText>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(currentPost.ModifiedOn))
+                                {
+                                    <div class="stat-item">
+                                        <MudIcon Icon="@Icons.Material.Filled.Update" Size="Size.Small" />
+                                        <MudText Typo="Typo.body2">Modified: @FormatDate(currentPost.ModifiedOn)</MudText>
+                                    </div>
+                                }
+                            </div>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudForm>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? PostId { get; set; }
+
+    private MudForm? form;
+    private bool isFormValid;
+    private bool isEditMode = false;
+    private PostResponse? currentPost;
+    private PostResponse? originalPost;
+    private List<BreadcrumbItem> _breadcrumbItems = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        _breadcrumbItems = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem("Home", href: "/"),
+            new BreadcrumbItem("Posts", href: "/posts"),
+            new BreadcrumbItem("Post Details", href: null, disabled: true)
+        };
+
+        if (!string.IsNullOrEmpty(PostId))
+        {
+            Dispatcher.Dispatch(new LoadPostDetailAction(PostId));
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        
+        // Update current post when state changes
+        if (PostsState.Value.CurrentPost != null)
+        {
+            // Create a copy for editing
+            currentPost = new PostResponse
+            {
+                ID = PostsState.Value.CurrentPost.ID,
+                Title = PostsState.Value.CurrentPost.Title,
+                Heading = PostsState.Value.CurrentPost.Heading,
+                Description = PostsState.Value.CurrentPost.Description,
+                Content = PostsState.Value.CurrentPost.Content,
+                Author = PostsState.Value.CurrentPost.Author,
+                UserId = PostsState.Value.CurrentPost.UserId,
+                Category = PostsState.Value.CurrentPost.Category,
+                TotalViews = PostsState.Value.CurrentPost.TotalViews,
+                TotalLikes = PostsState.Value.CurrentPost.TotalLikes,
+                TotalComments = PostsState.Value.CurrentPost.TotalComments,
+                PostedOn = PostsState.Value.CurrentPost.PostedOn,
+                CreatedOn = PostsState.Value.CurrentPost.CreatedOn,
+                ModifiedOn = PostsState.Value.CurrentPost.ModifiedOn,
+                CreatedBy = PostsState.Value.CurrentPost.CreatedBy,
+                ModifiedBy = PostsState.Value.CurrentPost.ModifiedBy,
+                IsDeleted = PostsState.Value.CurrentPost.IsDeleted
+            };
+
+            // Keep original for cancel operation
+            if (originalPost == null)
+            {
+                originalPost = PostsState.Value.CurrentPost;
+            }
+        }
+    }
+
+    private void EnableEditMode()
+    {
+        isEditMode = true;
+        // Store original values
+        originalPost = new PostResponse
+        {
+            ID = currentPost?.ID,
+            Title = currentPost?.Title,
+            Heading = currentPost?.Heading,
+            Description = currentPost?.Description,
+            Content = currentPost?.Content,
+            Author = currentPost?.Author,
+            UserId = currentPost?.UserId,
+            Category = currentPost?.Category,
+            TotalViews = currentPost?.TotalViews,
+            TotalLikes = currentPost?.TotalLikes,
+            TotalComments = currentPost?.TotalComments,
+            PostedOn = currentPost?.PostedOn,
+            CreatedOn = currentPost?.CreatedOn,
+            ModifiedOn = currentPost?.ModifiedOn,
+            CreatedBy = currentPost?.CreatedBy,
+            ModifiedBy = currentPost?.ModifiedBy,
+            IsDeleted = currentPost?.IsDeleted ?? false
+        };
+    }
+
+    private void CancelEdit()
+    {
+        isEditMode = false;
+        // Restore original values
+        if (originalPost != null && currentPost != null)
+        {
+            currentPost.Title = originalPost.Title;
+            currentPost.Heading = originalPost.Heading;
+            currentPost.Description = originalPost.Description;
+            currentPost.Content = originalPost.Content;
+            currentPost.Author = originalPost.Author;
+            currentPost.Category = originalPost.Category;
+        }
+    }
+
+    private async Task SavePost()
+    {
+        if (form != null)
+        {
+            await form.Validate();
+            
+            if (!isFormValid)
+            {
+                Snackbar.Add("Please fix validation errors", MudBlazor.Severity.Error);
+                return;
+            }
+        }
+
+        if (currentPost == null || string.IsNullOrEmpty(currentPost.ID))
+        {
+            Snackbar.Add("Invalid post data", MudBlazor.Severity.Error);
+            return;
+        }
+
+        var request = new UpdatePostRequest
+        {
+            Id = currentPost.ID,
+            Title = currentPost.Title,
+            Heading = currentPost.Heading,
+            Description = currentPost.Description,
+            Content = currentPost.Content,
+            Author = currentPost.Author,
+            UserId = currentPost.UserId,
+            Category = currentPost.Category,
+            TotalViews = currentPost.TotalViews,
+            ModifiedOn = DateTime.UtcNow,
+            ModifiedBy = "system" // TODO: Get from authenticated user
+        };
+
+        Dispatcher.Dispatch(new UpdatePostAction(request));
+        
+        // Wait a bit to see if update succeeded
+        await Task.Delay(1000);
+        
+        if (PostsState.Value.UpdateErrorMessage == null)
+        {
+            isEditMode = false;
+            Snackbar.Add("Post updated successfully", MudBlazor.Severity.Success);
+        }
+    }
+
+    private void ClearUpdateError()
+    {
+        // This would need a new action to clear the error
+        // For now, errors will clear on next action
+    }
+
+    private string FormatDate(string? dateString)
+    {
+        if (string.IsNullOrEmpty(dateString))
+            return "Unknown";
+
+        if (DateTime.TryParse(dateString, out var date))
+        {
+            return date.ToString("MMMM dd, yyyy 'at' hh:mm tt");
+        }
+
+        return dateString;
+    }
+}
+
+<style>
+    .post-detail-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .detail-field {
+        margin-bottom: 16px;
+    }
+
+    .field-label {
+        font-weight: 600;
+        color: var(--mud-palette-text-secondary);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .content-display {
+        background-color: var(--mud-palette-background-grey);
+        border: 1px solid var(--mud-palette-lines-default);
+    }
+
+    .post-stats {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 16px;
+        background-color: var(--mud-palette-background-grey);
+        border-radius: 4px;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--mud-palette-text-secondary);
+    }
+
+    .stat-item .mud-icon-root {
+        color: var(--mud-palette-primary);
+    }
+
+    @@media (max-width: 768px) {
+        .post-stats {
+            gap: 16px;
+        }
+
+        .stat-item {
+            font-size: 0.875rem;
+        }
+    }
+</style>
