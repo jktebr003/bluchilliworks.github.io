@@ -16,3 +16,8 @@ public record LoadPostDetailFailedAction(string ErrorMessage);
 public record UpdatePostAction(UpdatePostRequest Request);
 public record UpdatePostSuccessAction(PostResponse Post);
 public record UpdatePostFailedAction(string ErrorMessage);
+
+// Create post actions
+public record CreatePostAction(CreatePostRequest Request);
+public record CreatePostSuccessAction(string PostId);
+public record CreatePostFailedAction(string ErrorMessage);

@@ -109,4 +109,32 @@ public class PostsEffects
             dispatcher.Dispatch(new UpdatePostFailedAction($"Error updating post: {ex.Message}"));
         }
     }
+
+    [EffectMethod]
+    public async Task HandleCreatePost(CreatePostAction action, IDispatcher dispatcher)
+    {
+        try
+        {
+            var result = await _apiClient.Post<CreatePostRequest, ApiResult<string>>(
+                new WebApiClientInfo<CreatePostRequest>
+                {
+                    Method = "/posts",
+                    Request = action.Request
+                }
+            );
+
+            if (result?.Success == true && !string.IsNullOrEmpty(result.Value))
+            {
+                dispatcher.Dispatch(new CreatePostSuccessAction(result.Value));
+            }
+            else
+            {
+                dispatcher.Dispatch(new CreatePostFailedAction(result?.Message ?? "Failed to create post"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new CreatePostFailedAction($"Error creating post: {ex.Message}"));
+        }
+    }
 }

@@ -1,0 +1,228 @@
+@page "/posts/create"
+
+@using MudBlazor
+@using global::Shared.Models
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+
+@inject IState<PostsState> PostsState
+@inject IDispatcher Dispatcher
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@inherits FluxorComponent
+
+<div class="div-page-content">
+    @* <MudBreadcrumbs Items="_breadcrumbItems" Class="mb-4"></MudBreadcrumbs> *@
+    <div>
+        <span class="heading-meta">Posts</span>
+        <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Create Post</MudText>
+    </div>
+
+    <div class="create-post-container">
+        <!-- Header Section -->
+        <div class="d-flex justify-space-between align-center mb-4">
+            @* <MudText Typo="Typo.h4" GutterBottom="true">Create New Post</MudText> *@
+            <MudSpacer />
+            <MudButton Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.ArrowBack"
+                OnClick="@(() => NavigationManager.NavigateTo("/posts"))">
+                Back to Posts
+            </MudButton>
+        </div>
+
+        @if (PostsState.Value.CreateErrorMessage != null)
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-4" CloseIcon="@Icons.Material.Filled.Close"
+                CloseIconClicked="@ClearCreateError">
+                @PostsState.Value.CreateErrorMessage
+            </MudAlert>
+        }
+
+        <MudForm @ref="form" @bind-IsValid="@isFormValid">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudGrid>
+                    <!-- Title -->
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="newPost.Title" Label="Title" Variant="Variant.Outlined"
+                            Required="true" RequiredError="Title is required"
+                            Placeholder="Enter a compelling title for your post"
+                            HelperText="The main title that will appear in the post list" />
+                    </MudItem>
+
+                    <!-- Category -->
+                    <MudItem xs="12" sm="6">
+                        <MudSelect @bind-Value="newPost.Category" Label="Category" Variant="Variant.Outlined"
+                            Required="true" RequiredError="Category is required" AnchorOrigin="Origin.BottomCenter"
+                            HelperText="Select the category that best fits your post">
+                            <MudSelectItem Value="@("General")">General</MudSelectItem>
+                            <MudSelectItem Value="@("Education")">Education</MudSelectItem>
+                            <MudSelectItem Value="@("Finance")">Finance</MudSelectItem>
+                            <MudSelectItem Value="@("Legal")">Legal</MudSelectItem>
+                            <MudSelectItem Value="@("Medical")">Medical</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <!-- Author -->
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="newPost.Author" Label="Author" Variant="Variant.Outlined"
+                            Required="true" RequiredError="Author is required" Placeholder="Your name"
+                            HelperText="The name that will be displayed as the post author" />
+                    </MudItem>
+
+                    <!-- Heading -->
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="newPost.Heading" Label="Heading" Variant="Variant.Outlined"
+                            Required="true" RequiredError="Heading is required" Lines="2"
+                            Placeholder="Enter a brief heading"
+                            HelperText="A short, attention-grabbing heading for your post" />
+                    </MudItem>
+
+                    <!-- Description -->
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="newPost.Description" Label="Description" Variant="Variant.Outlined"
+                            Lines="3" Placeholder="Enter a brief description"
+                            HelperText="A short summary that will appear in the post list (optional)" />
+                    </MudItem>
+
+                    <!-- Content -->
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="newPost.Content" Label="Content" Variant="Variant.Outlined"
+                            Required="true" RequiredError="Content is required" Lines="15"
+                            Placeholder="Write your post content here..." HelperText="The main content of your post" />
+                    </MudItem>
+
+                    <!-- Action Buttons -->
+                    <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@CancelCreate"
+                            Disabled="@PostsState.Value.IsCreating">
+                            Cancel
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                            StartIcon="@Icons.Material.Filled.Save" OnClick="@SubmitPost"
+                            Disabled="@PostsState.Value.IsCreating">
+                            @(PostsState.Value.IsCreating ? "Creating..." : "Create Post")
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudForm>
+
+        <!-- Information Card -->
+        <MudPaper Class="pa-4 mt-4" Elevation="1">
+            <MudText Typo="Typo.h6" GutterBottom="true">
+                <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+                Post Guidelines
+            </MudText>
+            <MudText Typo="Typo.body2" Class="mb-2">
+                • <strong>Title:</strong> Keep it clear and descriptive (recommended: 50-70 characters)
+            </MudText>
+            <MudText Typo="Typo.body2" Class="mb-2">
+                • <strong>Category:</strong> Choose the most relevant category for better discoverability
+            </MudText>
+            <MudText Typo="Typo.body2" Class="mb-2">
+                • <strong>Heading:</strong> A compelling subtitle that complements your title
+            </MudText>
+            <MudText Typo="Typo.body2" Class="mb-2">
+                • <strong>Description:</strong> A brief summary to entice readers (optional but recommended)
+            </MudText>
+            <MudText Typo="Typo.body2">
+                • <strong>Content:</strong> The main body of your post - be clear, informative, and engaging
+            </MudText>
+        </MudPaper>
+    </div>
+</div>
+
+@code {
+    private MudForm? form;
+    private bool isFormValid;
+    private CreatePostRequest newPost = new();
+    private List<BreadcrumbItem> _breadcrumbItems = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _breadcrumbItems = new List<BreadcrumbItem>
+{
+new BreadcrumbItem("Home", href: "/"),
+new BreadcrumbItem("Posts", href: "/posts"),
+new BreadcrumbItem("Create Post", href: null, disabled: true)
+};
+
+        // Initialize with default values
+        newPost = new CreatePostRequest
+        {
+            CreatedBy = "system" // TODO: Get from authenticated user
+        };
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        // Check if post was successfully created
+        if (PostsState.Value.CreateErrorMessage == null && !PostsState.Value.IsCreating)
+        {
+            // Post might have been created, but we need to check if it was from this page
+            // This is a simple approach - in a more sophisticated implementation,
+            // you might want to track the creation state more explicitly
+        }
+    }
+
+    private async Task SubmitPost()
+    {
+        if (form != null)
+        {
+            await form.Validate();
+
+            if (!isFormValid)
+            {
+                Snackbar.Add("Please fix validation errors", MudBlazor.Severity.Error);
+                return;
+            }
+        }
+
+        // Dispatch the create action
+        Dispatcher.Dispatch(new CreatePostAction(newPost));
+
+        // Wait a bit to see if creation succeeded
+        await Task.Delay(1500);
+
+        if (PostsState.Value.CreateErrorMessage == null && !PostsState.Value.IsCreating)
+        {
+            Snackbar.Add("Post created successfully!", MudBlazor.Severity.Success);
+
+            // Navigate back to posts list after a short delay
+            await Task.Delay(500);
+            NavigationManager.NavigateTo("/posts");
+        }
+    }
+
+    private void CancelCreate()
+    {
+        NavigationManager.NavigateTo("/posts");
+    }
+
+    private void ClearCreateError()
+    {
+        // This would need a new action to clear the error
+        // For now, errors will clear on next action
+    }
+}
+
+<style>
+    .create-post-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .gap-2 {
+        gap: 8px;
+    }
+
+    @@media (max-width: 768px) {
+        .create-post-container {
+            padding: 0 8px;
+        }
+    }
+</style>

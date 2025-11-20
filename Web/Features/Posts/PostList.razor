@@ -14,8 +14,18 @@
 @inherits FluxorComponent
 
 <div class="div-page-content">
-    <span class="heading-meta">Posts</span>
-    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Latest Posts</MudText>
+    <div class="d-flex justify-space-between align-center mb-4">
+        <div>
+            <span class="heading-meta">Posts</span>
+            <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Latest Posts</MudText>
+        </div>
+        <MudButton Variant="Variant.Filled" 
+                  Color="Color.Primary" 
+                  StartIcon="@Icons.Material.Filled.Add"
+                  OnClick="@(() => NavigationManager.NavigateTo("/posts/create"))">
+            Create Post
+        </MudButton>
+    </div>
 
     <div class="posts-container">
         <!-- Loading State -->

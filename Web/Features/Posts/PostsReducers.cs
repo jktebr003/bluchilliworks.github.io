@@ -114,4 +114,35 @@ public static class PostsReducers
             UpdateErrorMessage = action.ErrorMessage
         };
     }
+
+    // Create post reducers
+    [ReducerMethod(typeof(CreatePostAction))]
+    public static PostsState ReduceCreatePostAction(PostsState state)
+    {
+        return state with
+        {
+            IsCreating = true,
+            CreateErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static PostsState ReduceCreatePostSuccessAction(PostsState state, CreatePostSuccessAction action)
+    {
+        return state with
+        {
+            IsCreating = false,
+            CreateErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static PostsState ReduceCreatePostFailedAction(PostsState state, CreatePostFailedAction action)
+    {
+        return state with
+        {
+            IsCreating = false,
+            CreateErrorMessage = action.ErrorMessage
+        };
+    }
 }
