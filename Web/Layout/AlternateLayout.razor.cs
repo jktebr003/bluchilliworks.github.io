@@ -108,6 +108,8 @@ public partial class AlternateLayout
 
         // Hide the overlay to indicate a busy state
         await ToggleOverlay(false);
+
+        Navigation?.NavigateTo("/", true); 
     }
 
     private async Task CheckNetworkStatus()
