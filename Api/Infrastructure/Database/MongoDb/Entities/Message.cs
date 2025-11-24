@@ -1,4 +1,5 @@
 ﻿using MongoDB.Entities;
+using Shared.Enums;
 
 namespace Api.Infrastructure.Database.MongoDb.Entities;
 
@@ -19,4 +20,22 @@ public class Message : BaseAuditableEntity
 
     [Field("sentdate")]
     public string? SentOn { get; set; }
+
+    [Field("status")]
+    public MessageStatus Status { get; set; } = MessageStatus.Pending;
+
+    [Field("attemptcount")]
+    public int AttemptCount { get; set; } = 0;
+
+    [Field("maxretries")]
+    public int MaxRetries { get; set; } = 3;
+
+    [Field("lastattempton")]
+    public string? LastAttemptedOn { get; set; }
+
+    [Field("lasterror")]
+    public string? LastErrorMessage { get; set; }
+
+    [Field("hangfirejobid")]
+    public string? HangfireJobId { get; set; }
 }

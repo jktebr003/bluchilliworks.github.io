@@ -12,6 +12,8 @@ using Api.Features.Posts;
 using Api.Features.Users;
 using Api.Features.UserSessions;
 using Api.Infrastructure.Database.MongoDb.Repositories;
+using Api.Jobs;
+using Api.Services;
 
 using Asp.Versioning;
 
@@ -175,6 +177,13 @@ try
     builder.Services.AddScoped<IPostRepository, PostRepository>();
     builder.Services.AddScoped<IPackageRepository, PackageRepository>();
     builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+    
+    // Register email service
+    builder.Services.AddScoped<IEmailService, EmailService>();
+    
+    // Register background jobs
+    builder.Services.AddScoped<SendMessageJob>();
+    builder.Services.AddScoped<RetryFailedMessagesJob>();
 
     Console.WriteLine("✅ Database repositories registered successfully");
 }
@@ -213,6 +222,12 @@ try
     {
         serverOptions.ServerName = "Hangfire.Mongo server 1";
     });
+    
+    // Register recurring jobs (runs every 5 minutes)
+    RecurringJob.AddOrUpdate<RetryFailedMessagesJob>(
+        "retry-failed-messages",
+        job => job.ExecuteAsync(),
+        "*/5 * * * *"); // Cron expression: every 5 minutes
 
     Console.WriteLine("✅ Hangfire server registered successfully");
 }

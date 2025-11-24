@@ -6,10 +6,13 @@ using Carter;
 
 using FluentValidation;
 
+using Hangfire;
+
 using Mapster;
 
 using MediatR;
 
+using Shared.Enums;
 using Shared.Models;
 
 namespace Api.Features.Messages;
@@ -41,12 +44,14 @@ public static class CreateMessage
     {
         private readonly IMessageRepository _messageRepository;
         private readonly IValidator<Command> _validator;
+        private readonly IBackgroundJobClient _backgroundJobClient;
 
-        public Handler(IMongoDbRepository mongoDbRepository, IMessageRepository messageRepository, IValidator<Command> validator)
+        public Handler(IMongoDbRepository mongoDbRepository, IMessageRepository messageRepository, IValidator<Command> validator, IBackgroundJobClient backgroundJobClient)
         {
             // _mongoDbRepository is not used, so we can remove it for efficiency
             _messageRepository = messageRepository;
             _validator = validator;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         public async Task<ApiResult<string>> Handle(Command request, CancellationToken cancellationToken)
@@ -68,10 +73,20 @@ public static class CreateMessage
                 SentOn = request.SentOn,
                 Subject = request.Subject,
                 CreatedOn = request.CreatedOn.ToString("o"),
-                CreatedBy = request.CreatedBy
+                CreatedBy = request.CreatedBy,
+                Status = MessageStatus.Pending,
+                AttemptCount = 0,
+                MaxRetries = 3
             };
 
             // Await directly, ConfigureAwait(false) is not needed in ASP.NET Core
+            await _messageRepository.SaveMessageAsync(record);
+
+            // Enqueue background job to send the message
+            var jobId = _backgroundJobClient.Enqueue<SendMessageJob>(job => job.ProcessMessageAsync(record.ID));
+            
+            // Update message with job ID
+            record.HangfireJobId = jobId;
             await _messageRepository.SaveMessageAsync(record);
 
             return new ApiResult<string>(record.ID, true);

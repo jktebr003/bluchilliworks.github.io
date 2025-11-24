@@ -17,25 +17,19 @@
                 <span class="header-title align-content-center">The Teachers Lounge</span>
             </div>
             @* <Connection /> *@
-            <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                           Class="menu-button"
-                           OnClick="ToggleDrawer" />
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Class="menu-button" OnClick="ToggleDrawer" />
         </div>
     </div>
 }
 else
 {
     <div class="mobile-header other">
-        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                       Color="Color.Inherit"
-                       OnClick='() => Navigation?.NavigateTo("/")'
-                       Class="back-button" />
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit"
+            OnClick='() => Navigation?.NavigateTo("/")' Class="back-button" />
         <h2 class="page-title">@GetPageTitle()</h2>
         @* <Connection /> *@
-        <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                       Color="Color.Inherit"
-                       Class="menu-button"
-                       OnClick="ToggleDrawer" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Class="menu-button"
+            OnClick="ToggleDrawer" />
     </div>
 }
 
@@ -58,12 +52,12 @@ else
                 <MudIcon Icon="@Icons.Material.Filled.Edit" />
                 <span> Register</span>
             </MudNavLink>
-            <MudNavLink Href="/posts" Match="NavLinkMatch.Prefix">
-                <MudIcon Icon="@Icons.Material.Filled.QuestionAnswer" />
-                <span> Posts</span>
-            </MudNavLink>
             @if (isAuthenticated)
             {
+                <MudNavLink Href="/posts" Match="NavLinkMatch.Prefix">
+                    <MudIcon Icon="@Icons.Material.Filled.QuestionAnswer" />
+                    <span> Posts</span>
+                </MudNavLink>
                 <MudNavLink Href="/users" Match="NavLinkMatch.Prefix">
                     <MudIcon Icon="@Icons.Material.Filled.Group" />
                     <span> Users</span>
@@ -74,14 +68,14 @@ else
                 </MudNavLink>
                 <MudNavLink OnClick="HandleLogout" Match="NavLinkMatch.Prefix">
                     <MudIcon Icon="@Icons.Material.Filled.Logout" />
-                    <span>Logout @UserFullName</span>
+                    <span> Logout @UserFullName</span>
                 </MudNavLink>
             }
             else
             {
                 <MudNavLink Href="/authentication/login" Match="NavLinkMatch.Prefix">
                     <MudIcon Icon="@Icons.Material.Filled.Login" />
-                    <span>Login</span>
+                    <span> Login</span>
                 </MudNavLink>
             }
         </MudNavMenu>
@@ -201,6 +195,6 @@ else
 
         // Update the UI state
         StateHasChanged();
-        await Task.Delay(1);  // allow the GUI to catch up
+        await Task.Delay(1); // allow the GUI to catch up
     }
 }
