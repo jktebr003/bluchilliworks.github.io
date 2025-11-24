@@ -1,16 +1,19 @@
 using Fluxor;
 using Shared.Models;
 using Web.Shared;
+using Web.Features.Authentication;
 
 namespace Web.Features.Users;
 
 public class UsersEffects
 {
     private readonly WebApiClient _apiClient;
+    private readonly IAuthenticationService _authService;
 
-    public UsersEffects(WebApiClient apiClient)
+    public UsersEffects(WebApiClient apiClient, IAuthenticationService authService)
     {
         _apiClient = apiClient;
+        _authService = authService;
     }
 
     [EffectMethod]
@@ -86,17 +89,36 @@ public class UsersEffects
     {
         try
         {
-            var result = await _apiClient.Put<UpdateUserRequest, ApiResult<UserResponse>>(
+            var result = await _apiClient.Put<UpdateUserRequest, ApiResult<string>>(
                 new WebApiClientInfo<UpdateUserRequest>
                 {
-                    Method = $"/users/{action.Request.Id}",
+                    Method = $"/users",
                     Request = action.Request
                 }
             );
 
-            if (result?.Success == true && result.Value != null)
+            if (result?.Success == true && !string.IsNullOrEmpty(result.Value))
             {
-                dispatcher.Dispatch(new UpdateUserProfileSuccessAction(result.Value));
+                // Fetch the updated user data
+                var userResult = await _apiClient.Get<ApiResult<UserResponse>>(
+                    new WebApiClientInfo<object>
+                    {
+                        Method = $"/users/{result.Value}",
+                        Request = string.Empty
+                    }
+                );
+
+                if (userResult?.Success == true && userResult.Value != null)
+                {
+                    // Update local storage with the updated user data
+                    await _authService.UpdateCurrentUserAsync(userResult.Value);
+                    
+                    dispatcher.Dispatch(new UpdateUserProfileSuccessAction(userResult.Value));
+                }
+                else
+                {
+                    dispatcher.Dispatch(new UpdateUserProfileFailedAction(userResult?.Message ?? "Failed to retrieve updated user profile"));
+                }
             }
             else
             {

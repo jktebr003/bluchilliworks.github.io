@@ -412,7 +412,9 @@
                 MobileNumber = authenticatedUser.MobileNumber,
                 Package = authenticatedUser.Package,
                 Username = authenticatedUser.Username,
-                UserRole = authenticatedUser.UserRole
+                UserRole = authenticatedUser.UserRole,
+                DecryptedPassword = authenticatedUser.DecryptedPassword,
+                EncryptedPassword = authenticatedUser.EncryptedPassword
             };
 
             // Parse date of birth
@@ -444,7 +446,7 @@
         }
     }
 
-    @* protected override void OnParametersSet()
+    protected override void OnParametersSet()
     {
         base.OnParametersSet();
 
@@ -486,7 +488,7 @@
         {
             Snackbar.Add(UsersState.Value.ErrorMessage, MudBlazor.Severity.Error);
         }
-    } *@
+    }
 
     private void AddJob()
     {
@@ -601,7 +603,9 @@
             Qualifications = qualifications,
             Certifications = certifications,
             Username = currentUser.Username,
-            UserType = currentUser.UserRole
+            UserType = currentUser.UserRole,
+            DecryptedPassword = currentUser.DecryptedPassword,
+            EncryptedPassword = currentUser.EncryptedPassword
         };
 
         Dispatcher.Dispatch(new UpdateUserProfileAction(updateRequest));

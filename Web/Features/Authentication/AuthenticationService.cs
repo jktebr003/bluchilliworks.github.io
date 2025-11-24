@@ -17,6 +17,7 @@ public interface IAuthenticationService
     Task LogoutAsync();
     Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress, string encryptedPassword = "", string plainTextPassword = "");
     Task<UserResponse?> GetCurrentUserAsync();
+    Task UpdateCurrentUserAsync(UserResponse user);
     Task<bool> IsUserInRoleAsync(string role);
     Task<bool> HasClaimAsync(string claimType, string claimValue);
 }
@@ -45,6 +46,13 @@ public class AuthenticationService : IAuthenticationService
 
         var username = user.Identity.Name;
         return await _localStorageHelper.GetCurrentUserAsync();
+    }
+
+    public async Task UpdateCurrentUserAsync(UserResponse user)
+    {
+        await _localStorageHelper.SetCurrentUserAsync(user);
+        // Notify authentication state provider to refresh the authentication state
+        await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserAuthenticationAsync(user);
     }
 
     public async Task<bool> HasClaimAsync(string claimType, string claimValue)
