@@ -1,7 +1,11 @@
 ﻿@using MudBlazor
 @using Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using Web.Features.Authentication
 
 @inject DeviceService deviceService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthenticationService AuthService
 
 <div class="navmenu-flex-container">
     <div>
@@ -31,26 +35,39 @@
                         <span class="bi bi-contact-nav-menu" aria-hidden="true"></span> Contact
                     </NavLink>
                 </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="authentication/register">
-                        <span class="bi bi-register-nav-menu" aria-hidden="true"></span> Register
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="posts">
-                        <span class="bi bi-posts-nav-menu" aria-hidden="true"></span> Posts
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="users">
-                        <span class="bi bi-users-nav-menu" aria-hidden="true"></span> Users
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="profile">
-                        <span class="bi bi-profile-nav-menu" aria-hidden="true"></span> Profile
-                    </NavLink>
-                </div>
+                
+                @if (!isAuthenticated)
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="authentication/register">
+                            <span class="bi bi-register-nav-menu" aria-hidden="true"></span> Register
+                        </NavLink>
+                    </div>
+                }
+                
+                @if (isAuthenticated)
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="posts">
+                            <span class="bi bi-posts-nav-menu" aria-hidden="true"></span> Posts
+                        </NavLink>
+                    </div>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="profile">
+                            <span class="bi bi-profile-nav-menu" aria-hidden="true"></span> Profile
+                        </NavLink>
+                    </div>
+                    
+                    @* Show Users menu only for Staff users *@
+                    @if (currentUser?.UserRole == global::Shared.Enums.UserType.Staff)
+                    {
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="users">
+                                <span class="bi bi-users-nav-menu" aria-hidden="true"></span> Users
+                            </NavLink>
+                        </div>
+                    }
+                }
             </nav>
         </div>
     </div>
@@ -75,14 +92,47 @@
 </div>
 
 @code {
-    [Inject] IDialogService DialogService { get; set; }
+    [Inject] IDialogService DialogService { get; set; } = default!;
 
     private bool collapseNavMenu = true;
+    private bool isAuthenticated = false;
+    private global::Shared.Models.UserResponse? currentUser = null;
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthenticationStatus();
+    }
+
+    private async Task CheckAuthenticationStatus()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        
+        if (isAuthenticated)
+        {
+            currentUser = await AuthService.GetCurrentUserAsync();
+        }
+        else
+        {
+            currentUser = null;
+        }
+        
+        StateHasChanged();
+    }
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
+    
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        isAuthenticated = false;
+        currentUser = null;
+        StateHasChanged();
+    }
 }
+
