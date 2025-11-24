@@ -173,20 +173,21 @@
                                                             Margin="Margin.Dense" />
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudDatePicker Value="@GetJobStartDate(job)"
-                                                             ValueChanged="@((DateTime? date) => SetJobStartDate(job, date))"
+                                                <MudDatePicker Date="@GetJobStartDate(job)"
+                                                             DateChanged="@((DateTime? date) => SetJobStartDate(job, date))"
                                                              Label="Start Date"
                                                              Variant="Variant.Outlined"
                                                              Margin="Margin.Dense"
                                                              Editable="true" />
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudDatePicker Value="@GetJobEndDate(job)"
-                                                             ValueChanged="@((DateTime? date) => SetJobEndDate(job, date))"
+                                                <MudDatePicker Date="@GetJobEndDate(job)"
+                                                             DateChanged="@((DateTime? date) => SetJobEndDate(job, date))"
                                                              Label="End Date"
                                                              Variant="Variant.Outlined"
                                                              Margin="Margin.Dense"
-                                                             Editable="true" />
+                                                             Editable="true"
+                                                             Clearable="true" />
                                             </MudItem>
                                             <MudItem xs="12">
                                                 <MudTextField @bind-Value="job.Responsibilities"
@@ -388,8 +389,8 @@
     private List<JobResponse> jobs = new();
     private List<QualificationResponse> qualifications = new();
     private List<CertificationResponse> certifications = new();
-    private Dictionary<string, DateTime?> jobStartDates = new();
-    private Dictionary<string, DateTime?> jobEndDates = new();
+    private Dictionary<JobResponse, DateTime?> jobStartDates = new();
+    private Dictionary<JobResponse, DateTime?> jobEndDates = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -429,13 +430,10 @@
             // Initialize job date dictionaries
             foreach (var job in jobs)
             {
-                if (!string.IsNullOrEmpty(job.ID))
-                {
-                    if (!string.IsNullOrEmpty(job.StartDate) && DateTime.TryParse(job.StartDate, out var startDate))
-                        jobStartDates[job.ID] = startDate;
-                    if (!string.IsNullOrEmpty(job.EndDate) && DateTime.TryParse(job.EndDate, out var endDate))
-                        jobEndDates[job.ID] = endDate;
-                }
+                if (!string.IsNullOrEmpty(job.StartDate) && DateTime.TryParse(job.StartDate, out var startDate))
+                    jobStartDates[job] = startDate;
+                if (!string.IsNullOrEmpty(job.EndDate) && DateTime.TryParse(job.EndDate, out var endDate))
+                    jobEndDates[job] = endDate;
             }
 
             // Load profile data if needed
@@ -446,7 +444,7 @@
         }
     }
 
-    protected override void OnParametersSet()
+    @* protected override void OnParametersSet()
     {
         base.OnParametersSet();
 
@@ -459,6 +457,17 @@
             jobs = currentUser.Jobs?.ToList() ?? new List<JobResponse>();
             qualifications = currentUser.Qualifications?.ToList() ?? new List<QualificationResponse>();
             certifications = currentUser.Certifications?.ToList() ?? new List<CertificationResponse>();
+
+            // Reinitialize job date dictionaries
+            jobStartDates.Clear();
+            jobEndDates.Clear();
+            foreach (var job in jobs)
+            {
+                if (!string.IsNullOrEmpty(job.StartDate) && DateTime.TryParse(job.StartDate, out var startDate))
+                    jobStartDates[job] = startDate;
+                if (!string.IsNullOrEmpty(job.EndDate) && DateTime.TryParse(job.EndDate, out var endDate))
+                    jobEndDates[job] = endDate;
+            }
 
             // Parse date of birth
             if (!string.IsNullOrEmpty(currentUser.DateOfBirth) &&
@@ -477,13 +486,12 @@
         {
             Snackbar.Add(UsersState.Value.ErrorMessage, MudBlazor.Severity.Error);
         }
-    }
+    } *@
 
     private void AddJob()
     {
         var newJob = new JobResponse
         {
-            ID = Guid.NewGuid().ToString(),
             Company = string.Empty,
             Position = string.Empty,
             StartDate = DateTime.Now.ToString("yyyy-MM-dd"),
@@ -491,46 +499,37 @@
             Responsibilities = string.Empty
         };
         jobs.Add(newJob);
-        jobStartDates[newJob.ID] = DateTime.Now;
-        jobEndDates[newJob.ID] = null;
+        jobStartDates[newJob] = DateTime.Now;
+        jobEndDates[newJob] = null;
     }
 
     private void RemoveJob(JobResponse job)
     {
         jobs.Remove(job);
-        if (!string.IsNullOrEmpty(job.ID))
-        {
-            jobStartDates.Remove(job.ID);
-            jobEndDates.Remove(job.ID);
-        }
+        jobStartDates.Remove(job);
+        jobEndDates.Remove(job);
     }
 
     private DateTime? GetJobStartDate(JobResponse job)
     {
-        return !string.IsNullOrEmpty(job.ID) && jobStartDates.ContainsKey(job.ID) ? jobStartDates[job.ID] : null;
+        return jobStartDates.TryGetValue(job, out var date) ? date : null;
     }
 
     private void SetJobStartDate(JobResponse job, DateTime? date)
     {
-        if (!string.IsNullOrEmpty(job.ID))
-        {
-            jobStartDates[job.ID] = date;
-            job.StartDate = date?.ToString("yyyy-MM-dd");
-        }
+        jobStartDates[job] = date;
+        job.StartDate = date?.ToString("yyyy-MM-dd");
     }
 
     private DateTime? GetJobEndDate(JobResponse job)
     {
-        return !string.IsNullOrEmpty(job.ID) && jobEndDates.ContainsKey(job.ID) ? jobEndDates[job.ID] : null;
+        return jobEndDates.TryGetValue(job, out var date) ? date : null;
     }
 
     private void SetJobEndDate(JobResponse job, DateTime? date)
     {
-        if (!string.IsNullOrEmpty(job.ID))
-        {
-            jobEndDates[job.ID] = date;
-            job.EndDate = date?.ToString("yyyy-MM-dd");
-        }
+        jobEndDates[job] = date;
+        job.EndDate = date?.ToString("yyyy-MM-dd");
     }
 
     private void AddQualification()
@@ -581,10 +580,10 @@
         // Update job dates from dictionaries
         foreach (var job in jobs)
         {
-            if (!string.IsNullOrEmpty(job.ID) && jobStartDates.ContainsKey(job.ID))
-                job.StartDate = jobStartDates[job.ID]?.ToString("yyyy-MM-dd");
-            if (!string.IsNullOrEmpty(job.ID) && jobEndDates.ContainsKey(job.ID))
-                job.EndDate = jobEndDates[job.ID]?.ToString("yyyy-MM-dd");
+            if (jobStartDates.ContainsKey(job))
+                job.StartDate = jobStartDates[job]?.ToString("yyyy-MM-dd");
+            if (jobEndDates.ContainsKey(job))
+                job.EndDate = jobEndDates[job]?.ToString("yyyy-MM-dd");
         }
 
         var updateRequest = new UpdateUserRequest
