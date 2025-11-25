@@ -5,10 +5,15 @@
 @using global::Shared.Enums
 @using Fluxor
 @using Fluxor.Blazor.Web.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@using Web.Features.Authentication
+@using Web.Features.Users
 
 @inject IState<PricingState> PricingState
 @inject IDispatcher Dispatcher
 @inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthenticationService AuthService
 
 @inherits FluxorComponent
 
@@ -76,12 +81,15 @@
                                 </MudChip>
                             </MudCardContent>
                             <MudCardActions>
-                                <MudButton Variant="Variant.Filled" 
-                                          Color="Color.Primary" 
-                                          FullWidth="true"
-                                          OnClick="@(() => SelectPackage(package))">
-                                    Select Package
-                                </MudButton>
+                                @if (isAuthenticated && currentUser?.Package == null)
+                                {
+                                    <MudButton Variant="Variant.Filled" 
+                                              Color="Color.Primary" 
+                                              FullWidth="true"
+                                              OnClick="@(() => SelectPackage(package))">
+                                        Select Package
+                                    </MudButton>
+                                }
                             </MudCardActions>
                         </MudCard>
                     </MudItem>
@@ -92,10 +100,31 @@
 </div>
 
 @code {
-    protected override void OnInitialized()
+    private bool isAuthenticated = false;
+    private UserResponse? currentUser = null;
+
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
+        await CheckAuthenticationStatus();
         Dispatcher.Dispatch(new LoadPackagesAction());
+    }
+
+    private async Task CheckAuthenticationStatus()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        
+        if (isAuthenticated)
+        {
+            currentUser = await AuthService.GetCurrentUserAsync();
+        }
+        else
+        {
+            currentUser = null;
+        }
+        
+        StateHasChanged();
     }
 
     private void OnPackageTypeChanged(PackageType value)
@@ -103,11 +132,54 @@
         Dispatcher.Dispatch(new FilterPackagesByTypeAction(value));
     }
 
-    private void SelectPackage(PackageResponse package)
+    private async Task SelectPackage(PackageResponse package)
     {
-        Dispatcher.Dispatch(new SelectPackageAction(package));
-        Snackbar.Add($"You selected: {package.Name}", MudBlazor.Severity.Success);
-        // TODO: Navigate to checkout or registration page
+        if (currentUser == null)
+        {
+            Snackbar.Add("User not found. Please log in again.", MudBlazor.Severity.Error);
+            return;
+        }
+
+        try
+        {
+            // Dispatch action to select package in state
+            Dispatcher.Dispatch(new SelectPackageAction(package));
+
+            // Update user profile with selected package
+            var updateRequest = new UpdateUserRequest
+            {
+                Id = currentUser.ID ?? string.Empty,
+                Name = currentUser.Name,
+                FirstName = currentUser.FirstName,
+                LastName = currentUser.LastName,
+                Username = currentUser.Username,
+                EmailAddress = currentUser.EmailAddress,
+                TelephoneNumber = currentUser.TelephoneNumber,
+                MobileNumber = currentUser.MobileNumber,
+                Gender = currentUser.Gender,
+                DateOfBirth = currentUser.DateOfBirth,
+                PackageId = package.ID,
+                Jobs = currentUser.Jobs,
+                Qualifications = currentUser.Qualifications,
+                UserType = currentUser.UserRole,
+                EncryptedPassword = currentUser.EncryptedPassword,
+                DecryptedPassword = currentUser.DecryptedPassword,
+                ModifiedOn = DateTime.UtcNow,
+                ModifiedBy = currentUser.Username ?? "system"
+            };
+
+            // Dispatch update user profile action - this will handle DB update and local storage
+            Dispatcher.Dispatch(new UpdateUserProfileAction(updateRequest));
+
+            // Update local current user reference
+            currentUser.Package = package;
+            
+            Snackbar.Add($"Successfully selected: {package.Name}", MudBlazor.Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error selecting package: {ex.Message}", MudBlazor.Severity.Error);
+        }
     }
 
     private string GetPackageTypeDisplayName(PackageType type)

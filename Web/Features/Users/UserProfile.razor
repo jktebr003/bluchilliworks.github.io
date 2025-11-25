@@ -116,7 +116,8 @@
                                         <strong>Price:</strong> @currentUser.Package.Price
                                     </MudText>
                                     <MudChip T="string" Color="Color.Primary" Size="Size.Small" Class="mt-2">
-                                        @currentUser.Package.Type.ToString()
+                                        @* @currentUser.Package.Type.ToString() *@
+                                        @GetPackageTypeDisplayName(currentUser.Package.Type)
                                     </MudChip>
                                 </MudCardContent>
                             </MudCard>
@@ -609,6 +610,16 @@
         };
 
         Dispatcher.Dispatch(new UpdateUserProfileAction(updateRequest));
+    }
+
+    private string GetPackageTypeDisplayName(PackageType type)
+    {
+        return type switch
+        {
+            PackageType.Monthly => "Monthly",
+            PackageType.TwoYearSubscription => "2-year Subscription",
+            _ => "Standard"
+        };
     }
 
     private void Cancel()
