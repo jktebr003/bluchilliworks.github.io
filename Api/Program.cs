@@ -222,12 +222,6 @@ try
     {
         serverOptions.ServerName = "Hangfire.Mongo server 1";
     });
-    
-    // Register recurring jobs (runs every 5 minutes)
-    RecurringJob.AddOrUpdate<RetryFailedMessagesJob>(
-        "retry-failed-messages",
-        job => job.ExecuteAsync(),
-        "*/5 * * * *"); // Cron expression: every 5 minutes
 
     Console.WriteLine("✅ Hangfire server registered successfully");
 }
@@ -306,6 +300,14 @@ app.UseCors();
 
 //app.UseAuthorization();
 app.UseHangfireDashboard();
+
+// Register recurring jobs after the app is built and Hangfire is initialized
+RecurringJob.AddOrUpdate<RetryFailedMessagesJob>(
+    "retry-failed-messages",
+    job => job.ExecuteAsync(),
+    "*/5 * * * *"); // Cron expression: every 5 minutes
+
+Console.WriteLine("✅ Hangfire recurring jobs registered");
 
 try
 {

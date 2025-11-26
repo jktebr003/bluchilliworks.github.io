@@ -1,6 +1,9 @@
 ﻿@page "/contact"
 @using System.ComponentModel.DataAnnotations
 @using MudBlazor
+@using Web.Shared
+@using SharedModels = global::Shared.Models
+@inject WebApiClient ApiClient
 
 <div>
     <div class="div-page-content">
@@ -45,12 +48,26 @@
                                         <ValidationMessage For="@(() => contactModel.Message)" />
                                     </div>
 
-                                    <button type="submit" class="btn btn-primary">Send</button>
+                                    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                        @if (isSubmitting)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                            <span>Sending...</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Send</span>
+                                        }
+                                    </button>
                                 </EditForm>
 
                                 @if (successMessage != null)
                                 {
                                     <div class="alert alert-success mt-3">@successMessage</div>
+                                }
+                                @if (errorMessage != null)
+                                {
+                                    <div class="alert alert-danger mt-3">@errorMessage</div>
                                 }
                             </MudCardContent>
                         </MudCard>
@@ -70,12 +87,53 @@
 @code {
     private ContactModel contactModel = new();
     private string? successMessage;
+    private string? errorMessage;
+    private bool isSubmitting;
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
-        // For demonstration, just show a success message.
-        successMessage = "Thank you for contacting us!";
-        contactModel = new(); // Reset form
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+            successMessage = null;
+
+            var request = new SharedModels.CreateMessageRequest
+            {
+                From = contactModel.Name,
+                EmailAddress = contactModel.Email,
+                Subject = contactModel.Subject,
+                Body = contactModel.Message,
+                SentOn = DateTime.UtcNow.ToString("o"),
+                CreatedBy = "web-contact-form"
+            };
+
+            var info = new WebApiClientInfo<SharedModels.CreateMessageRequest>
+            {
+                Method = "messages",
+                Request = request
+            };
+
+            var response = await ApiClient.Post<SharedModels.CreateMessageRequest, SharedModels.ApiResponse<string>>(info);
+
+            if (response.Success)
+            {
+                successMessage = "Thank you for contacting us! We'll get back to you soon.";
+                contactModel = new(); // Reset form
+            }
+            else
+            {
+                errorMessage = $"Failed to send message: {response.Message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred while sending your message: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 
     public class ContactModel
