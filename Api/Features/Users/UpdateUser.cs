@@ -23,8 +23,8 @@ public static class UpdateUser
         public string? EmailAddress { get; set; }
         public string? TelephoneNumber { get; set; }
         public string? MobileNumber { get; set; }
-        public string? EncryptedPassword { get; set; }
-        public string? DecryptedPassword { get; set; }
+        // public string? EncryptedPassword { get; set; }
+        // public string? DecryptedPassword { get; set; }
         public string? Gender { get; set; }
         public string? DateOfBirth { get; set; }
         public string? PackageId { get; set; }
@@ -43,7 +43,7 @@ public static class UpdateUser
         {
             RuleFor(c => c.EmailAddress).NotEmpty().WithMessage("Please ensure that you have entered your User {PropertyName}");
             RuleFor(c => c.Username).NotEmpty().WithMessage("Please ensure that you have entered your User {PropertyName}");
-            RuleFor(c => c.DecryptedPassword).NotEmpty().WithMessage("Please ensure that you have entered your User {PropertyName}");
+            // RuleFor(c => c.DecryptedPassword).NotEmpty().WithMessage("Please ensure that you have entered your User {PropertyName}");
         }
     }
 

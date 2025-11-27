@@ -162,8 +162,8 @@
                 Jobs = currentUser.Jobs,
                 Qualifications = currentUser.Qualifications,
                 UserType = currentUser.UserRole,
-                EncryptedPassword = currentUser.EncryptedPassword,
-                DecryptedPassword = currentUser.DecryptedPassword,
+                @* EncryptedPassword = currentUser.EncryptedPassword,
+                DecryptedPassword = currentUser.DecryptedPassword, *@
                 ModifiedOn = DateTime.UtcNow,
                 ModifiedBy = currentUser.Username ?? "system"
             };

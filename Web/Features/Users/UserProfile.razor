@@ -414,8 +414,8 @@
                 Package = authenticatedUser.Package,
                 Username = authenticatedUser.Username,
                 UserRole = authenticatedUser.UserRole,
-                DecryptedPassword = authenticatedUser.DecryptedPassword,
-                EncryptedPassword = authenticatedUser.EncryptedPassword
+                @* DecryptedPassword = authenticatedUser.DecryptedPassword,
+                EncryptedPassword = authenticatedUser.EncryptedPassword *@
             };
 
             // Parse date of birth
@@ -605,8 +605,8 @@
             Certifications = certifications,
             Username = currentUser.Username,
             UserType = currentUser.UserRole,
-            DecryptedPassword = currentUser.DecryptedPassword,
-            EncryptedPassword = currentUser.EncryptedPassword
+            @* DecryptedPassword = currentUser.DecryptedPassword,
+            EncryptedPassword = currentUser.EncryptedPassword *@
         };
 
         Dispatcher.Dispatch(new UpdateUserProfileAction(updateRequest));

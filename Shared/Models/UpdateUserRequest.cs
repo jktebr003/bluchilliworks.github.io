@@ -25,9 +25,9 @@ public class UpdateUserRequest
 
     public string? MobileNumber { get; set; }
 
-    public string? EncryptedPassword { get; set; } = null;
+    // public string? EncryptedPassword { get; set; } = null;
 
-    public string? DecryptedPassword { get; set; } = null;
+    // public string? DecryptedPassword { get; set; } = null;
 
     public string? Gender { get; set; } = null;
 
