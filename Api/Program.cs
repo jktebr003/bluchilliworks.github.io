@@ -201,7 +201,12 @@ try
     string connectionUri = $"{builder.Configuration.GetValue<string>("Database:ConnectionString")}";
     string databaseName = $"{builder.Configuration.GetValue<string>("Database:DatabaseName")}";
 
-    var mongoUrlBuilder = new MongoUrlBuilder($"{connectionUri}/{databaseName}");
+    // Build proper MongoDB connection string with database name
+    var mongoUrlBuilder = new MongoUrlBuilder(connectionUri)
+    {
+        DatabaseName = databaseName
+    };
+    
     var mongoClient = new MongoClient(mongoUrlBuilder.ToMongoUrl());
 
     // Add Hangfire services. Hangfire.AspNetCore nuget required
@@ -209,7 +214,7 @@ try
         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
         .UseSimpleAssemblyNameTypeSerializer()
         .UseRecommendedSerializerSettings()
-        .UseMongoStorage(mongoClient, mongoUrlBuilder.DatabaseName, new MongoStorageOptions
+        .UseMongoStorage(mongoClient, databaseName, new MongoStorageOptions
         {
             MigrationOptions = new MongoMigrationOptions
             {
@@ -220,6 +225,11 @@ try
             CheckConnection = true
         })
     );
+    
+    // Register IBackgroundJobClient explicitly
+    builder.Services.AddSingleton<IBackgroundJobClient>(sp => new BackgroundJobClient(
+        sp.GetRequiredService<JobStorage>()));
+    
     // Add the processing server as IHostedService
     builder.Services.AddHangfireServer(serverOptions =>
     {

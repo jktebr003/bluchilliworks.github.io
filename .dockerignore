@@ -1,0 +1,50 @@
+# Visual Studio and .NET
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+**/*.suo
+**/*.userprefs
+**/project.lock.json
+**/project.fragment.lock.json
+**/.vscode/
+
+# Logs
+**/logs/
+**/*.log
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+LICENSE
+**/*.md
+
+# CI/CD
+.github/
+**/.dockerignore
+**/Dockerfile
+
+# Test and coverage
+**/TestResults/
+**/*.trx
+**/coverage/
+
+# NuGet
+**/packages/
+**/*.nupkg
+**/*.snupkg
+
+# Node modules (if any)
+**/node_modules/
+**/npm-debug.log
+
+# Temporary files
+**/tmp/
+**/temp/
+**/.tmp/
+**/.DS_Store
+**/Thumbs.db

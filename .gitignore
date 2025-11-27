@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Docker & Environment Variables
+.env
+.env.local
+.env.*.local
+docker-compose.override.local.yml

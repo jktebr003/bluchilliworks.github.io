@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mongodb:
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: DevPassword123!
+    ports:
+      - "27017:27017"
+
+  api:
+    build:
+      context: .
+      dockerfile: Api/Dockerfile
+      target: build
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Database__ConnectionString=mongodb://admin:DevPassword123!@mongodb:27017
+      - Database__DatabaseName=ttl
+      - App__BaseUrl=http://localhost:5000
+      - Email__FromEmail=dev@bluchilliworks.local
+      - Email__FromName=BluChilli Works (Dev)
+      - Email__Recipients=test@example.com
+      - Email__Smtp__Host=smtp.ethereal.email
+      - Email__Smtp__Port=587
+      - Email__Smtp__Username=hertha.luettgen92@ethereal.email
+      - Email__Smtp__Password=vkxbECCP819UyWugEm
+    volumes:
+      - ./Api:/src/Api:ro
+      - ./Shared:/src/Shared:ro
+      - ./ServiceDefaults:/src/ServiceDefaults:ro
+      - ./Api/logs:/app/logs
+    ports:
+      - "5000:8080"
+    command: dotnet watch run --no-launch-profile
+
+  web:
+    build:
+      context: .
+      dockerfile: Web/Dockerfile
+      target: build
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - services__api__http__0=http://api:8080
+    volumes:
+      - ./Web:/src/Web:ro
+      - ./Shared:/src/Shared:ro
+    ports:
+      - "5001:8080"
+    command: dotnet watch run --no-launch-profile
