@@ -16,6 +16,11 @@ public class UserRepository : IUserRepository
              .Match(b => b.EmailAddress == emailAddress && !b.IsDeleted)
              .ExecuteAsync();
 
+    public Task<User?> GetUserByEmailAddressAsync(string? emailAddress)
+        => DB.Find<User>()
+             .Match(b => b.EmailAddress == emailAddress && !b.IsDeleted)
+             .ExecuteSingleAsync();
+
     public Task<List<User>> GetAllUsersAsync()
         => _mongoDbRepository.GetAll<User>();
 

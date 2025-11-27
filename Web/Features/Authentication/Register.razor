@@ -90,6 +90,28 @@
         Dispatcher.Dispatch(new RegisterAction(registerModel.FirstName, registerModel.LastName, registerModel.EmailAddress));
     }
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Subscribe to state changes to handle success
+        AuthState.StateChanged += OnAuthStateChanged;
+    }
+
+    private void OnAuthStateChanged(object? sender, EventArgs e)
+    {
+        if (!AuthState.Value.IsBusy && string.IsNullOrEmpty(AuthState.Value.ErrorMessage))
+        {
+            // Registration was successful - show message
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthState.StateChanged -= OnAuthStateChanged;
+    }
+
     public class RegisterModel
     {
         [Required(ErrorMessage = "First name is required")]

@@ -8,6 +8,7 @@ namespace Api.Features.Users;
 public interface IUserRepository
 {
     public Task<List<User>> FilterUsersByEmailAddressAsync(string emailAddress);
+    public Task<User?> GetUserByEmailAddressAsync(string? emailAddress);
     public Task<List<User>> GetAllUsersAsync();
     public Task<User> GetUserByIdAsync(string id);    
     public Task SaveUserAsync(User user);

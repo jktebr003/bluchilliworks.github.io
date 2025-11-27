@@ -24,8 +24,14 @@ public class UserResponse : BaseResponse
 
     public string? MobileNumber { get; set; }
 
+    public string? HashedPassword { get; set; } = null;
+
+    public bool EmailVerified { get; set; } = false;
+
+    [Obsolete("Use HashedPassword instead. This field will be removed in future versions.")]
     public string? EncryptedPassword { get; set; } = null;
 
+    [Obsolete("Use HashedPassword instead. This field will be removed in future versions.")]
     public string? DecryptedPassword { get; set; } = null;
 
     public string? Gender { get; set; } = null;

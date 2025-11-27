@@ -80,9 +80,9 @@ public static class GetUsers
                     CreatedBy = q.CreatedBy,
                     CreatedOn = q.CreatedOn,
                     DateOfBirth = q.DateOfBirth,
-                    DecryptedPassword = q.DecryptedPassword,
+                    HashedPassword = q.HashedPassword,
+                    EmailVerified = q.EmailVerified,
                     EmailAddress = q.EmailAddress,
-                    EncryptedPassword = q.EncryptedPassword,
                     FirstName = q.FirstName,
                     Gender = q.Gender,
                     Jobs = q.Jobs is { Count: > 0 }

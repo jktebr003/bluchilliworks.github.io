@@ -39,18 +39,49 @@ public class AuthenticationEffects
     {
         dispatcher.Dispatch(new SetBusyAction(true));
 
-        var plainTextPassword = SecurityExtension.CreateRandomPassword();
-        var encryptedPassword = await _cryptoService.EncryptAsync(plainTextPassword);
-
-        var result = await _authService.RegisterAsync(action.FirstName, action.LastName, action.EmailAddress, encryptedPassword.Value, plainTextPassword);
+        // No longer need to generate password - it's done during email verification
+        var result = await _authService.RegisterAsync(action.FirstName, action.LastName, action.EmailAddress);
         if (result.Succeeded)
         {
             dispatcher.Dispatch(new RegisterSuccessAction(result.Succeeded));
-            _navigationManager.NavigateTo("/authentication/login", true); // <-- Redirect to login after successful registration
+            _navigationManager.NavigateTo("/authentication/login", true); // <-- Redirect to login with message to check email
         }
         else
         {
             dispatcher.Dispatch(new RegisterFailedAction(result.ErrorMessage ?? "Registration failed"));
+        }
+    }
+
+    [EffectMethod]
+    public async Task HandleSetPasswordAction(SetPasswordAction action, IDispatcher dispatcher)
+    {
+        dispatcher.Dispatch(new SetBusyAction(true));
+
+        var result = await _authService.SetPasswordAsync(action.EmailAddress, action.VerificationToken, action.Password);
+        if (result.Succeeded)
+        {
+            dispatcher.Dispatch(new SetPasswordSuccessAction(result.Succeeded));
+            _navigationManager.NavigateTo("/authentication/login?verified=true", true); // <-- Redirect to login after password setup
+        }
+        else
+        {
+            dispatcher.Dispatch(new SetPasswordFailedAction(result.ErrorMessage ?? "Failed to set password"));
+        }
+    }
+
+    [EffectMethod]
+    public async Task HandleResendVerificationAction(ResendVerificationAction action, IDispatcher dispatcher)
+    {
+        dispatcher.Dispatch(new SetBusyAction(true));
+
+        var result = await _authService.ResendVerificationAsync(action.EmailAddress);
+        if (result.Succeeded)
+        {
+            dispatcher.Dispatch(new ResendVerificationSuccessAction(result.Succeeded));
+        }
+        else
+        {
+            dispatcher.Dispatch(new ResendVerificationFailedAction(result.ErrorMessage ?? "Failed to resend verification"));
         }
     }
 }

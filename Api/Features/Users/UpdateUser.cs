@@ -89,8 +89,7 @@ public static class UpdateUser
             record.EmailAddress = request.EmailAddress;
             record.TelephoneNumber = request.TelephoneNumber;
             record.MobileNumber = request.MobileNumber;
-            record.EncryptedPassword = request.EncryptedPassword;
-            record.DecryptedPassword = request.DecryptedPassword;
+            // Password updates should be done through SetPassword endpoint
             record.Gender = request.Gender;
             record.DateOfBirth = request.DateOfBirth;
             record.Avatar = request.Avatar;

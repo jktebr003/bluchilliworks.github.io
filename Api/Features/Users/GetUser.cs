@@ -45,9 +45,9 @@ public static class GetUser
                 CreatedBy = data.CreatedBy,
                 CreatedOn = data.CreatedOn,
                 DateOfBirth = data.DateOfBirth,
-                DecryptedPassword = data.DecryptedPassword,
+                HashedPassword = data.HashedPassword,
+                EmailVerified = data.EmailVerified,
                 EmailAddress = data.EmailAddress,
-                EncryptedPassword = data.EncryptedPassword,
                 FirstName = data.FirstName,
                 Gender = data.Gender,
                 Jobs = data.Jobs is { Count: > 0 }

@@ -26,11 +26,17 @@ public class User : BaseAuditableEntity
     [Field("mobile")]
     public string? MobileNumber { get; set; }
 
-    [Field("password")]
-    public string? EncryptedPassword { get; set; }
+    [Field("hashedpassword")]
+    public string? HashedPassword { get; set; }
 
-    [Field("plaintextpassword")]
-    public string? DecryptedPassword { get; set; }
+    [Field("emailverified")]
+    public bool EmailVerified { get; set; } = false;
+
+    [Field("emailverificationtoken")]
+    public string? EmailVerificationToken { get; set; }
+
+    [Field("emailverificationtokenexpiry")]
+    public string? EmailVerificationTokenExpiry { get; set; }
 
     [Field("gender")]
     public string? Gender { get; set; }

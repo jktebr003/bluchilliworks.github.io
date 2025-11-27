@@ -85,12 +85,19 @@ public static class CreateUserSession
 
         private static SecureString Authenticate(User user, string? password)
         {
-            // Use string.Equals with Ordinal comparison for security
-            if (string.IsNullOrEmpty(password) || !string.Equals(password, user.DecryptedPassword, StringComparison.Ordinal))
+            // Password verification should be done through VerifyLogin endpoint
+            // This endpoint should only be used after successful login verification
+            // For backward compatibility, check if password is provided and HashedPassword exists
+            if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(user.HashedPassword))
                 return string.Empty.CreateSecure();
 
-            var sessionKey = Guid.NewGuid().ToString() + Guid.NewGuid().ToString();
-            return sessionKey.CreateSecure();
+            // Password verification requires the hashing service and should not be done here
+            // Return empty if this method is called directly
+            // Proper flow: Use VerifyLogin endpoint first, then create session
+            return string.Empty.CreateSecure();
+            
+            // TODO: Consider removing password parameter entirely in future version
+            // Sessions should only be created after successful authentication via VerifyLogin
         }
     }
 }

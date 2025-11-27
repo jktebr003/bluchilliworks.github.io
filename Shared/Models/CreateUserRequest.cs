@@ -16,8 +16,6 @@ public class CreateUserRequest
     public string? LastName { get; set; } = null;
     public string? Username { get; set; } = null;
     public string? EmailAddress { get; set; } = null;
-    public string? EncryptedPassword { get; set; } = null;
-    public string? DecryptedPassword { get; set; } = null;
     public string? PackageId { get; set; }
     public int? UserType { get; set; }
     public int? Avatar { get; set; }

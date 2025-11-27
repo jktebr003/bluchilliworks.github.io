@@ -1,61 +1,45 @@
-﻿using Api.Filters;
-using Api.Infrastructure.Database.MongoDb.Entities;
+using Api.Filters;
 using Api.Infrastructure.Database.MongoDb.Repositories;
 using Api.Services;
 using Carter;
 using FluentValidation;
 using Mapster;
 using MediatR;
-using Shared.Enums;
 using Shared.Extensions;
 using Shared.Models;
 
 namespace Api.Features.Users;
 
-public static class CreateUser
+public static class ResendVerification
 {
     public class Command : IRequest<ApiResult<string>>
     {
-        public string? Name { get; set; }
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? Username { get; set; }
         public string? EmailAddress { get; set; }
-        public string? PackageId { get; set; }
-        public UserType UserType { get; set; }
-        public int? Avatar { get; set; } = 17;
-        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
-        public string CreatedBy { get; set; } = "system";
     }
 
     public class Validator : AbstractValidator<Command>
     {
         public Validator()
         {
-            RuleFor(c => c.EmailAddress).NotEmpty().WithMessage("Please ensure that you have entered your User {PropertyName}");
-            RuleFor(c => c.EmailAddress).EmailAddress().WithMessage("Please ensure that you have entered a valid email address");
-            RuleFor(c => c.Username).NotEmpty().WithMessage("Please ensure that you have entered your User {PropertyName}");
-            RuleFor(c => c.FirstName).NotEmpty().WithMessage("Please ensure that you have entered your First Name");
-            RuleFor(c => c.LastName).NotEmpty().WithMessage("Please ensure that you have entered your Last Name");
+            RuleFor(c => c.EmailAddress)
+                .NotEmpty().WithMessage("Email address is required")
+                .EmailAddress().WithMessage("Invalid email address format");
         }
     }
 
     internal sealed class Handler : IRequestHandler<Command, ApiResult<string>>
     {
-        private readonly IMongoDbRepository _mongoDbRepository;
         private readonly IUserRepository _userRepository;
         private readonly IValidator<Command> _validator;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
         public Handler(
-            IMongoDbRepository mongoDbRepository, 
             IUserRepository userRepository, 
             IValidator<Command> validator,
             IEmailService emailService,
             IConfiguration configuration)
         {
-            _mongoDbRepository = mongoDbRepository;
             _userRepository = userRepository;
             _validator = validator;
             _emailService = emailService;
@@ -67,40 +51,35 @@ public static class CreateUser
             var validationResult = _validator.Validate(request);
             if (!validationResult.IsValid)
             {
-                // Aggregate error messages for clarity and efficiency
                 var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                return new ApiResult<string>(string.Empty, false, "CreateUser.Validation", errors);
+                return new ApiResult<string>(string.Empty, false, "ResendVerification.Validation", errors);
             }
 
-            // Check if user already exists
-            var existingUser = await _userRepository.GetUserByEmailAddressAsync(request.EmailAddress);
-            if (existingUser != null)
+            // Find user by email
+            var user = await _userRepository.GetUserByEmailAddressAsync(request.EmailAddress);
+            if (user == null)
             {
-                return new ApiResult<string>(string.Empty, false, "CreateUser.UserExists", "A user with this email address already exists");
+                // Don't reveal if user exists or not for security
+                return new ApiResult<string>(string.Empty, true, "ResendVerification.Success", "If an account exists with this email, a verification email has been sent.");
             }
 
-            // Generate email verification token (6-digit code) with 24-hour expiry
+            // Check if already verified
+            if (user.EmailVerified)
+            {
+                return new ApiResult<string>(string.Empty, false, "ResendVerification.AlreadyVerified", "This email address has already been verified.");
+            }
+
+            // Generate new verification token with 24-hour expiry
             var verificationToken = SecurityExtension.CreateRandomVerificationCode(6);
             var tokenExpiry = DateTime.UtcNow.AddHours(24);
 
-            // Use object initializer directly
-            var record = new User
-            {
-                Avatar = request.Avatar,
-                EmailAddress = request.EmailAddress,
-                EmailVerified = false,
-                EmailVerificationToken = verificationToken,
-                EmailVerificationTokenExpiry = tokenExpiry.ToString("o"),
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Name = request.Name,
-                Username = request.Username,
-                UserType = (int)request.UserType,
-                CreatedOn = request.CreatedOn.ToString("o"),
-                CreatedBy = request.CreatedBy
-            };
+            // Update user with new token
+            user.EmailVerificationToken = verificationToken;
+            user.EmailVerificationTokenExpiry = tokenExpiry.ToString("o");
+            user.ModifiedOn = DateTime.UtcNow.ToString("o");
+            user.ModifiedBy = "system";
 
-            await _userRepository.SaveUserAsync(record);
+            await _userRepository.SaveUserAsync(user);
 
             // Send verification email
             var baseUrl = _configuration.GetValue<string>("App:BaseUrl") ?? "http://localhost:5000";
@@ -123,18 +102,18 @@ public static class CreateUser
 <body>
     <div class=""container"">
         <div class=""header"">
-            <h1>Welcome to BluChilliWorks!</h1>
+            <h1>Email Verification</h1>
         </div>
         <div class=""content"">
-            <p>Hello {request.FirstName},</p>
-            <p>Thank you for registering with BluChilliWorks. To complete your registration and set up your password, please use the verification code below:</p>
+            <p>Hello {user.FirstName},</p>
+            <p>You requested a new verification code for your BluChilliWorks account. Use the code below to verify your email and set up your password:</p>
             <div class=""code"">{verificationToken}</div>
             <p>Or click the button below to set up your password:</p>
             <p style=""text-align: center;"">
                 <a href=""{verificationLink}"" class=""button"">Set Up Your Password</a>
             </p>
             <p><strong>This verification code will expire in 24 hours.</strong></p>
-            <p>If you didn't create an account with BluChilliWorks, please ignore this email.</p>
+            <p>If you didn't request this code, please ignore this email.</p>
         </div>
         <div class=""footer"">
             <p>&copy; {DateTime.UtcNow.Year} BluChilliWorks. All rights reserved.</p>
@@ -147,32 +126,31 @@ public static class CreateUser
             {
                 await _emailService.SendEmailAsync(
                     request.EmailAddress,
-                    "Welcome to BluChilliWorks - Verify Your Email",
+                    "BluChilliWorks - Email Verification",
                     emailBody,
                     cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
-                // Log error but don't fail registration
                 Console.WriteLine($"Failed to send verification email: {ex.Message}");
+                return new ApiResult<string>(string.Empty, false, "ResendVerification.EmailFailed", "Failed to send verification email. Please try again later.");
             }
 
-            return new ApiResult<string>(record.ID, true, "CreateUser.Success", "Registration successful. Please check your email to verify your account and set up your password.");
+            return new ApiResult<string>(user.ID, true, "ResendVerification.Success", "Verification email has been sent. Please check your inbox.");
         }
     }
 }
 
-public class CreateUserEndpoint : ICarterModule
+public class ResendVerificationEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("users", async (CreateUserRequest request, ISender sender) =>
+        app.MapPost("users/resend-verification", async (ResendVerificationRequest request, ISender sender) =>
         {
-            // Inline command creation for reduced stack usage
-            var result = await sender.Send(request.Adapt<CreateUser.Command>());
+            var result = await sender.Send(request.Adapt<ResendVerification.Command>());
             return Results.Ok(result);
         })
         .WithTags("Users")
-        .AddEndpointFilter<AuthenticationFilter>();
+        .AllowAnonymous(); // Allow anonymous access for resending verification
     }
 }

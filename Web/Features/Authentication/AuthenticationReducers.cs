@@ -23,4 +23,24 @@ public static class AuthenticationReducers
     [ReducerMethod]
     public static AuthenticationState ReduceRegisterFailed(AuthenticationState state, RegisterFailedAction action) =>
         state with { IsBusy = false, ErrorMessage = action.ErrorMessage };
+
+    [ReducerMethod]
+    public static AuthenticationState ReduceSetPasswordSuccess(AuthenticationState state, SetPasswordSuccessAction action) =>
+        state with { IsBusy = false, ErrorMessage = null };
+
+    [ReducerMethod]
+    public static AuthenticationState ReduceSetPasswordFailed(AuthenticationState state, SetPasswordFailedAction action) =>
+        state with { IsBusy = false, ErrorMessage = action.ErrorMessage };
+
+    [ReducerMethod]
+    public static AuthenticationState ReduceResendVerificationSuccess(AuthenticationState state, ResendVerificationSuccessAction action) =>
+        state with { IsBusy = false, ErrorMessage = null };
+
+    [ReducerMethod]
+    public static AuthenticationState ReduceResendVerificationFailed(AuthenticationState state, ResendVerificationFailedAction action) =>
+        state with { IsBusy = false, ErrorMessage = action.ErrorMessage };
+
+    [ReducerMethod]
+    public static AuthenticationState ReduceAuthenticationFailed(AuthenticationState state, AuthenticationFailedAction action) =>
+        state with { IsBusy = false, ErrorMessage = action.ErrorMessage };
 }

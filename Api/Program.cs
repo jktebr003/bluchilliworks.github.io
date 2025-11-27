@@ -181,6 +181,9 @@ try
     // Register email service
     builder.Services.AddScoped<IEmailService, EmailService>();
     
+    // Register password hashing service
+    builder.Services.AddSingleton<IPasswordHashingService, PasswordHashingService>();
+    
     // Register background jobs
     builder.Services.AddScoped<SendMessageJob>();
     builder.Services.AddScoped<RetryFailedMessagesJob>();

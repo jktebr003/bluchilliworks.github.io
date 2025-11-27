@@ -15,7 +15,9 @@ public interface IAuthenticationService
 {
     Task<AuthResult> LoginAsync(string username, string password);
     Task LogoutAsync();
-    Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress, string encryptedPassword = "", string plainTextPassword = "");
+    Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress);
+    Task<AuthResult> SetPasswordAsync(string emailAddress, string verificationToken, string password);
+    Task<AuthResult> ResendVerificationAsync(string emailAddress);
     Task<UserResponse?> GetCurrentUserAsync();
     Task UpdateCurrentUserAsync(UserResponse user);
     Task<bool> IsUserInRoleAsync(string role);
@@ -67,24 +69,37 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<AuthResult> LoginAsync(string username, string password)
     {
-        var users = await _webApiClient.Get<ApiResult<List<UserResponse>>>(
-                new WebApiClientInfo<object>
+        try
+        {
+            var verifyLoginRequest = new VerifyLoginRequest
+            {
+                EmailAddress = username,
+                Password = password
+            };
+
+            var result = await _webApiClient.Post<VerifyLoginRequest, ApiResult<UserResponse>>(
+                new WebApiClientInfo<VerifyLoginRequest>
                 {
-                    Method = $"/users/emailAddress/{username}",
-                    Request = string.Empty
+                    Method = "/users/verify-login",
+                    Request = verifyLoginRequest
                 }
             );
-        if (users.Success && !users.Value.Any())
-            return AuthResult.Failure("Invalid username");
 
-        var user = users.Value.First();
-        if (string.IsNullOrEmpty(password) || !string.Equals(password, user.DecryptedPassword, StringComparison.Ordinal))
-            return AuthResult.Failure("Invalid password");
-
-        // Notify authentication state change
-        await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserAuthenticationAsync(user);
-
-        return AuthResult.Success();
+            if (result.Success && result.Value != null)
+            {
+                // Notify authentication state change
+                await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserAuthenticationAsync(result.Value);
+                return AuthResult.Success();
+            }
+            else
+            {
+                return AuthResult.Failure(result.Message ?? "Invalid username or password");
+            }
+        }
+        catch (Exception ex)
+        {
+            return AuthResult.Failure($"Login failed: {ex.Message}");
+        }
     }
 
     public async Task LogoutAsync()
@@ -92,11 +107,11 @@ public class AuthenticationService : IAuthenticationService
         await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserLogoutAsync();
     }
 
-    public async Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress, string encryptedPassword = "", string plainTextPassword = "")
+    public async Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress)
     {
         try
         {
-            // Create the user request
+            // Create the user request - no password needed at registration
             var createUserRequest = new CreateUserRequest
             {
                 FirstName = firstName,
@@ -107,8 +122,6 @@ public class AuthenticationService : IAuthenticationService
                 PackageId = "default-package-id", // You may need to adjust this based on your application logic
                 UserType = (int)UserType.Customer, // Adjust based on your enum
                 Avatar = 17,
-                EncryptedPassword = encryptedPassword,
-                DecryptedPassword = plainTextPassword,
                 CreatedOn = DateTime.UtcNow,
                 CreatedBy = "system"
             };
@@ -123,7 +136,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (result.Success)
             {
-                return AuthResult.Success();
+                return AuthResult.Success(result.Message ?? "Registration successful! Please check your email to verify your account.");
             }
             else
             {
@@ -135,14 +148,81 @@ public class AuthenticationService : IAuthenticationService
             return AuthResult.Failure($"Registration failed: {ex.Message}");
         }
     }
+
+    public async Task<AuthResult> SetPasswordAsync(string emailAddress, string verificationToken, string password)
+    {
+        try
+        {
+            var setPasswordRequest = new SetPasswordRequest
+            {
+                EmailAddress = emailAddress,
+                VerificationToken = verificationToken,
+                Password = password
+            };
+
+            var result = await _webApiClient.Post<SetPasswordRequest, ApiResult<string>>(
+                new WebApiClientInfo<SetPasswordRequest>
+                {
+                    Method = "/users/set-password",
+                    Request = setPasswordRequest
+                }
+            );
+
+            if (result.Success)
+            {
+                return AuthResult.Success(result.Message ?? "Password set successfully! You can now log in.");
+            }
+            else
+            {
+                return AuthResult.Failure(result.Message ?? "Failed to set password");
+            }
+        }
+        catch (Exception ex)
+        {
+            return AuthResult.Failure($"Failed to set password: {ex.Message}");
+        }
+    }
+
+    public async Task<AuthResult> ResendVerificationAsync(string emailAddress)
+    {
+        try
+        {
+            var resendRequest = new ResendVerificationRequest
+            {
+                EmailAddress = emailAddress
+            };
+
+            var result = await _webApiClient.Post<ResendVerificationRequest, ApiResult<string>>(
+                new WebApiClientInfo<ResendVerificationRequest>
+                {
+                    Method = "/users/resend-verification",
+                    Request = resendRequest
+                }
+            );
+
+            if (result.Success)
+            {
+                return AuthResult.Success(result.Message ?? "Verification email sent!");
+            }
+            else
+            {
+                return AuthResult.Failure(result.Message ?? "Failed to send verification email");
+            }
+        }
+        catch (Exception ex)
+        {
+            return AuthResult.Failure($"Failed to resend verification: {ex.Message}");
+        }
+    }
 }
 
 public class AuthResult
 {
     public bool Succeeded { get; set; }
     public string ErrorMessage { get; set; } = string.Empty;
+    public string? SuccessMessage { get; set; }
 
-    public static AuthResult Success() => new AuthResult { Succeeded = true };
+    public static AuthResult Success(string? message = null) => new AuthResult { Succeeded = true, SuccessMessage = message };
     public static AuthResult Failure(string errorMessage) => new AuthResult { Succeeded = false, ErrorMessage = errorMessage };
 }
 
