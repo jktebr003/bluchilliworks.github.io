@@ -7,6 +7,7 @@
 @using Fluxor.Blazor.Web.Components
 @using Web.Services
 @using Web.Features.Authentication
+@implements IDisposable
 
 @inject IState<UsersState> UsersState
 @inject IAuthenticationService AuthService
@@ -19,6 +20,26 @@
 <div class="div-page-content">
     <span class="heading-meta">Profile</span>
     <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">My Profile</MudText>
+
+    @if (showSuccessAlert)
+    {
+        <MudAlert Severity="MudBlazor.Severity.Success" 
+                  Class="mb-4" 
+                  CloseIcon="@Icons.Material.Filled.Close" 
+                  CloseIconClicked="@(() => showSuccessAlert = false)">
+            Profile updated successfully!
+        </MudAlert>
+    }
+
+    @if (showErrorAlert && !string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
+    {
+        <MudAlert Severity="MudBlazor.Severity.Error" 
+                  Class="mb-4" 
+                  CloseIcon="@Icons.Material.Filled.Close" 
+                  CloseIconClicked="@(() => showErrorAlert = false)">
+            @UsersState.Value.ErrorMessage
+        </MudAlert>
+    }
 
     @if (UsersState.Value.IsLoadingProfile)
     {
@@ -392,10 +413,18 @@
     private List<CertificationResponse> certifications = new();
     private Dictionary<JobResponse, DateTime?> jobStartDates = new();
     private Dictionary<JobResponse, DateTime?> jobEndDates = new();
+    
+    private bool showSuccessAlert = false;
+    private bool showErrorAlert = false;
+    private bool wasLoading = false;
+    private bool isUpdateOperation = false;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        // Subscribe to state changes
+        UsersState.StateChanged += OnStateChanged;
 
         // Get current user from authentication service
         var authenticatedUser = await AuthService.GetCurrentUserAsync();
@@ -444,50 +473,6 @@
             {
                 Dispatcher.Dispatch(new LoadUserProfileAction(currentUser.ID));
             }
-        }
-    }
-
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-
-        // Update current user from state if loaded
-        if (UsersState.Value.CurrentUser != null && currentUser != null)
-        {
-            currentUser = UsersState.Value.CurrentUser;
-            
-            // Update collections
-            jobs = currentUser.Jobs?.ToList() ?? new List<JobResponse>();
-            qualifications = currentUser.Qualifications?.ToList() ?? new List<QualificationResponse>();
-            certifications = currentUser.Certifications?.ToList() ?? new List<CertificationResponse>();
-
-            // Reinitialize job date dictionaries
-            jobStartDates.Clear();
-            jobEndDates.Clear();
-            foreach (var job in jobs)
-            {
-                if (!string.IsNullOrEmpty(job.StartDate) && DateTime.TryParse(job.StartDate, out var startDate))
-                    jobStartDates[job] = startDate;
-                if (!string.IsNullOrEmpty(job.EndDate) && DateTime.TryParse(job.EndDate, out var endDate))
-                    jobEndDates[job] = endDate;
-            }
-
-            // Parse date of birth
-            if (!string.IsNullOrEmpty(currentUser.DateOfBirth) &&
-                DateTime.TryParse(currentUser.DateOfBirth, out var dob))
-            {
-                dateOfBirth = dob;
-            }
-        }
-
-        // Show success message after update
-        if (UsersState.Value.CurrentUser != null && !UsersState.Value.IsLoadingProfile && string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
-        {
-            Snackbar.Add("Profile updated successfully!", MudBlazor.Severity.Success);
-        }
-        else if (!string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
-        {
-            Snackbar.Add(UsersState.Value.ErrorMessage, MudBlazor.Severity.Error);
         }
     }
 
@@ -569,6 +554,13 @@
 
     private async Task SaveProfile()
     {
+        // Hide any existing alerts when starting a new save
+        showSuccessAlert = false;
+        showErrorAlert = false;
+        
+        // Mark this as an update operation
+        isUpdateOperation = true;
+        
         await form.Validate();
 
         if (!isFormValid || currentUser == null)
@@ -625,5 +617,71 @@
     private void Cancel()
     {
         NavigationManager.NavigateTo("/");
+    }
+
+    private void OnStateChanged(object? sender, EventArgs e)
+    {
+        // Detect when loading completes (transition from loading to not loading)
+        bool justFinishedLoading = wasLoading && !UsersState.Value.IsLoadingProfile;
+        
+        if (justFinishedLoading)
+        {
+            wasLoading = false;
+            
+            // Update current user from state if loaded
+            if (UsersState.Value.CurrentUser != null && currentUser != null)
+            {
+                currentUser = UsersState.Value.CurrentUser;
+                
+                // Update collections
+                jobs = currentUser.Jobs?.ToList() ?? new List<JobResponse>();
+                qualifications = currentUser.Qualifications?.ToList() ?? new List<QualificationResponse>();
+                certifications = currentUser.Certifications?.ToList() ?? new List<CertificationResponse>();
+
+                // Reinitialize job date dictionaries
+                jobStartDates.Clear();
+                jobEndDates.Clear();
+                foreach (var job in jobs)
+                {
+                    if (!string.IsNullOrEmpty(job.StartDate) && DateTime.TryParse(job.StartDate, out var startDate))
+                        jobStartDates[job] = startDate;
+                    if (!string.IsNullOrEmpty(job.EndDate) && DateTime.TryParse(job.EndDate, out var endDate))
+                        jobEndDates[job] = endDate;
+                }
+
+                // Parse date of birth
+                if (!string.IsNullOrEmpty(currentUser.DateOfBirth) &&
+                    DateTime.TryParse(currentUser.DateOfBirth, out var dob))
+                {
+                    dateOfBirth = dob;
+                }
+            }
+
+            // Show alerts after update completes
+            if (!string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
+            {
+                showErrorAlert = true;
+                showSuccessAlert = false;
+            }
+            else if (UsersState.Value.CurrentUser != null && isUpdateOperation)
+            {
+                showSuccessAlert = true;
+                showErrorAlert = false;
+            }
+            
+            // Reset the update operation flag
+            isUpdateOperation = false;
+            
+            InvokeAsync(StateHasChanged);
+        }
+        else if (UsersState.Value.IsLoadingProfile && !wasLoading)
+        {
+            wasLoading = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        UsersState.StateChanged -= OnStateChanged;
     }
 }

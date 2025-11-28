@@ -70,10 +70,14 @@ public static class UpdateUser
                 return new ApiResult<string>(string.Empty, false, "UpdateUser.Validation", errors);
             }
 
-            var package = await _mongoDbRepository.Get<Package>(request.PackageId);
-            if (package == null)
+            Package? package = null;
+            if (request.PackageId != null)
             {
-                return new ApiResult<string>(string.Empty, false, "UpdateUser.PackageNotFound", "The specified package was not found");
+                package = await _mongoDbRepository.Get<Package>(request.PackageId);
+                if (package == null)
+                {
+                    return new ApiResult<string>(string.Empty, false, "UpdateUser.PackageNotFound", "The specified package was not found");
+                }
             }
 
             var record = await _userRepository.GetUserByIdAsync(request.Id);
@@ -94,15 +98,19 @@ public static class UpdateUser
             record.DateOfBirth = request.DateOfBirth;
             record.Avatar = request.Avatar;
             record.UserType = (int)request.UserType;
-            record.Package = new Package
+            
+            if (package != null)
             {
-                Name = package.Name,
-                Price = package.Price,
-                Code = package.Code,
-                Description = package.Description,
-                ID = package.ID,
-                Type = (int)package.Type
-            };
+                record.Package = new Package
+                {
+                    Name = package.Name,
+                    Price = package.Price,
+                    Code = package.Code,
+                    Description = package.Description,
+                    ID = package.ID,
+                    Type = (int)package.Type
+                };
+            }
 
             // Efficient conversion for Jobs
             if (request.Jobs is { })
