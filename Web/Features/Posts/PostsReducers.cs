@@ -57,6 +57,7 @@ public static class PostsReducers
         return state with
         {
             IsLoadingDetail = true,
+            IsUpdating = false,
             DetailErrorMessage = null
         };
     }

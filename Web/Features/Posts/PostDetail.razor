@@ -20,6 +20,7 @@
     {
         <MudAlert Severity="MudBlazor.Severity.Success"
                   Class="mb-4"
+                  ShowCloseIcon="true"
                   CloseIcon="@Icons.Material.Filled.Close"
                   CloseIconClicked="@(() => showSuccessAlert = false)">
             Post updated successfully!
@@ -30,6 +31,7 @@
     {
         <MudAlert Severity="MudBlazor.Severity.Error"
                   Class="mb-4"
+                  ShowCloseIcon="true"
                   CloseIcon="@Icons.Material.Filled.Close"
                   CloseIconClicked="@(() => showErrorAlert = false)">
             @PostsState.Value.DetailErrorMessage
@@ -219,10 +221,10 @@
                             <MudDivider Class="my-3" />
                             <MudText Typo="Typo.subtitle2" Class="field-label mb-2">Post Statistics</MudText>
                             <div class="post-stats">
-                                <div class="stat-item">
+                                @* <div class="stat-item">
                                     <MudIcon Icon="@Icons.Material.Filled.Comment" Size="Size.Small" />
                                     <MudText Typo="Typo.body2">@(PostsState.Value.CurrentPost.TotalComments ?? 0) Comments</MudText>
-                                </div>
+                                </div> *@
                                 <div class="stat-item">
                                     <MudIcon Icon="@Icons.Material.Filled.ThumbUp" Size="Size.Small" />
                                     <MudText Typo="Typo.body2">@(PostsState.Value.CurrentPost.TotalLikes ?? 0) Likes</MudText>

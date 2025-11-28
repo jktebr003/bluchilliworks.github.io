@@ -23,8 +23,9 @@
 
     @if (showSuccessAlert)
     {
-        <MudAlert Severity="MudBlazor.Severity.Success" 
+        <MudAlert Severity="MudBlazor.Severity.Success"
                   Class="mb-4" 
+                  ShowCloseIcon="true"
                   CloseIcon="@Icons.Material.Filled.Close" 
                   CloseIconClicked="@(() => showSuccessAlert = false)">
             Profile updated successfully!
@@ -34,7 +35,8 @@
     @if (showErrorAlert && !string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
     {
         <MudAlert Severity="MudBlazor.Severity.Error" 
-                  Class="mb-4" 
+                  Class="mb-4"
+                  ShowCloseIcon="true"
                   CloseIcon="@Icons.Material.Filled.Close" 
                   CloseIconClicked="@(() => showErrorAlert = false)">
             @UsersState.Value.ErrorMessage
