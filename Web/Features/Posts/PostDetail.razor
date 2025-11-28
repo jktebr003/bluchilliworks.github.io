@@ -13,9 +13,31 @@
 @inherits FluxorComponent
 
 <div class="div-page-content">
-    @* <MudBreadcrumbs Items="_breadcrumbItems" Class="mb-4"></MudBreadcrumbs> *@
     <span class="heading-meta">@(isEditMode ? "Edit Post" : "Post Details")</span>
     <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">@(isEditMode ? "Edit Post" : "Post Details")</MudText>
+
+    @if (showSuccessAlert)
+    {
+        <MudAlert Severity="MudBlazor.Severity.Success"
+                  Class="mb-4"
+                  CloseIcon="@Icons.Material.Filled.Close"
+                  CloseIconClicked="@(() => showSuccessAlert = false)">
+            Post updated successfully!
+        </MudAlert>
+    }
+
+    @if (showErrorAlert && !string.IsNullOrEmpty(PostsState.Value.DetailErrorMessage))
+    {
+        <MudAlert Severity="MudBlazor.Severity.Error"
+                  Class="mb-4"
+                  CloseIcon="@Icons.Material.Filled.Close"
+                  CloseIconClicked="@(() => showErrorAlert = false)">
+            @PostsState.Value.DetailErrorMessage
+        </MudAlert>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/posts"))">
+            Back to Posts
+        </MudButton>
+    }
 
     @if (PostsState.Value.IsLoadingDetail)
     {
@@ -24,16 +46,7 @@
             <MudText Typo="Typo.body1" Class="mt-3">Loading post...</MudText>
         </div>
     }
-    else if (PostsState.Value.DetailErrorMessage != null)
-    {
-        <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-4">
-            @PostsState.Value.DetailErrorMessage
-        </MudAlert>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/posts"))">
-            Back to Posts
-        </MudButton>
-    }
-    else if (currentPost == null)
+    else if (PostsState.Value.CurrentPost == null)
     {
         <MudAlert Severity="MudBlazor.Severity.Warning">
             Post not found.
@@ -80,13 +93,6 @@
                 </div>
             </div>
 
-            @if (PostsState.Value.UpdateErrorMessage != null)
-            {
-                <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-4" CloseIcon="@Icons.Material.Filled.Close" CloseIconClicked="@(() => ClearUpdateError())">
-                    @PostsState.Value.UpdateErrorMessage
-                </MudAlert>
-            }
-
             <MudForm @ref="form" @bind-IsValid="@isFormValid">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudGrid>
@@ -94,7 +100,7 @@
                         <MudItem xs="12">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="currentPost.Title"
+                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Title"
                                             Label="Title"
                                             Variant="Variant.Outlined"
                                             Required="true"
@@ -105,7 +111,7 @@
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Title</MudText>
-                                    <MudText Typo="Typo.h5">@currentPost.Title</MudText>
+                                    <MudText Typo="Typo.h5">@PostsState.Value.CurrentPost.Title</MudText>
                                 </div>
                             }
                         </MudItem>
@@ -114,7 +120,7 @@
                         <MudItem xs="12" sm="6">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="currentPost.Category"
+                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Category"
                                             Label="Category"
                                             Variant="Variant.Outlined"
                                             Required="true"
@@ -124,7 +130,7 @@
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Category</MudText>
-                                    <MudChip T="string" Color="Color.Primary">@currentPost.Category</MudChip>
+                                    <MudChip T="string" Color="Color.Primary">@PostsState.Value.CurrentPost.Category</MudChip>
                                 </div>
                             }
                         </MudItem>
@@ -133,7 +139,7 @@
                         <MudItem xs="12" sm="6">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="currentPost.Author"
+                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Author"
                                             Label="Author"
                                             Variant="Variant.Outlined"
                                             Required="true"
@@ -143,7 +149,7 @@
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Author</MudText>
-                                    <MudText Typo="Typo.body1">@currentPost.Author</MudText>
+                                    <MudText Typo="Typo.body1">@PostsState.Value.CurrentPost.Author</MudText>
                                 </div>
                             }
                         </MudItem>
@@ -152,7 +158,7 @@
                         <MudItem xs="12">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="currentPost.Heading"
+                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Heading"
                                             Label="Heading"
                                             Variant="Variant.Outlined"
                                             Required="true"
@@ -163,7 +169,7 @@
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Heading</MudText>
-                                    <MudText Typo="Typo.h6">@currentPost.Heading</MudText>
+                                    <MudText Typo="Typo.h6">@PostsState.Value.CurrentPost.Heading</MudText>
                                 </div>
                             }
                         </MudItem>
@@ -172,7 +178,7 @@
                         <MudItem xs="12">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="currentPost.Description"
+                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Description"
                                             Label="Description"
                                             Variant="Variant.Outlined"
                                             Lines="3" />
@@ -181,7 +187,7 @@
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Description</MudText>
-                                    <MudText Typo="Typo.body1">@currentPost.Description</MudText>
+                                    <MudText Typo="Typo.body1">@PostsState.Value.CurrentPost.Description</MudText>
                                 </div>
                             }
                         </MudItem>
@@ -190,7 +196,7 @@
                         <MudItem xs="12">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="currentPost.Content"
+                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Content"
                                             Label="Content"
                                             Variant="Variant.Outlined"
                                             Required="true"
@@ -202,7 +208,7 @@
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Content</MudText>
                                     <MudPaper Class="pa-3 content-display" Elevation="0">
-                                        <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@currentPost.Content</MudText>
+                                        <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@PostsState.Value.CurrentPost.Content</MudText>
                                     </MudPaper>
                                 </div>
                             }
@@ -215,28 +221,28 @@
                             <div class="post-stats">
                                 <div class="stat-item">
                                     <MudIcon Icon="@Icons.Material.Filled.Comment" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">@(currentPost.TotalComments ?? 0) Comments</MudText>
+                                    <MudText Typo="Typo.body2">@(PostsState.Value.CurrentPost.TotalComments ?? 0) Comments</MudText>
                                 </div>
                                 <div class="stat-item">
                                     <MudIcon Icon="@Icons.Material.Filled.ThumbUp" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">@(currentPost.TotalLikes ?? 0) Likes</MudText>
+                                    <MudText Typo="Typo.body2">@(PostsState.Value.CurrentPost.TotalLikes ?? 0) Likes</MudText>
                                 </div>
                                 <div class="stat-item">
                                     <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">@(currentPost.TotalViews ?? 0) Views</MudText>
+                                    <MudText Typo="Typo.body2">@(PostsState.Value.CurrentPost.TotalViews ?? 0) Views</MudText>
                                 </div>
-                                @if (!string.IsNullOrEmpty(currentPost.PostedOn))
+                                @if (!string.IsNullOrEmpty(PostsState.Value.CurrentPost.PostedOn))
                                 {
                                     <div class="stat-item">
                                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" />
-                                        <MudText Typo="Typo.body2">Posted: @FormatDate(currentPost.PostedOn)</MudText>
+                                        <MudText Typo="Typo.body2">Posted: @FormatDate(PostsState.Value.CurrentPost.PostedOn)</MudText>
                                     </div>
                                 }
-                                @if (!string.IsNullOrEmpty(currentPost.ModifiedOn))
+                                @if (!string.IsNullOrEmpty(PostsState.Value.CurrentPost.ModifiedOn))
                                 {
                                     <div class="stat-item">
                                         <MudIcon Icon="@Icons.Material.Filled.Update" Size="Size.Small" />
-                                        <MudText Typo="Typo.body2">Modified: @FormatDate(currentPost.ModifiedOn)</MudText>
+                                        <MudText Typo="Typo.body2">Modified: @FormatDate(PostsState.Value.CurrentPost.ModifiedOn)</MudText>
                                     </div>
                                 }
                             </div>
@@ -257,18 +263,16 @@
     private bool isEditMode = false;
     private PostResponse? currentPost;
     private PostResponse? originalPost;
-    private List<BreadcrumbItem> _breadcrumbItems = new();
+    private bool showSuccessAlert = false;
+    private bool showErrorAlert = false;
+    private bool wasLoading = false;
+    private bool isUpdateOperation = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        
-        _breadcrumbItems = new List<BreadcrumbItem>
-        {
-            new BreadcrumbItem("Home", href: "/"),
-            new BreadcrumbItem("Posts", href: "/posts"),
-            new BreadcrumbItem("Post Details", href: null, disabled: true)
-        };
+        await base.OnInitializedAsync();
+
+        PostsState.StateChanged += OnStateChanged;
 
         if (!string.IsNullOrEmpty(PostId))
         {
@@ -276,73 +280,73 @@
         }
     }
 
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-        
-        // Update current post when state changes
-        if (PostsState.Value.CurrentPost != null)
-        {
-            // Create a copy for editing
-            currentPost = new PostResponse
-            {
-                ID = PostsState.Value.CurrentPost.ID,
-                Title = PostsState.Value.CurrentPost.Title,
-                Heading = PostsState.Value.CurrentPost.Heading,
-                Description = PostsState.Value.CurrentPost.Description,
-                Content = PostsState.Value.CurrentPost.Content,
-                Author = PostsState.Value.CurrentPost.Author,
-                UserId = PostsState.Value.CurrentPost.UserId,
-                Category = PostsState.Value.CurrentPost.Category,
-                TotalViews = PostsState.Value.CurrentPost.TotalViews,
-                TotalLikes = PostsState.Value.CurrentPost.TotalLikes,
-                TotalComments = PostsState.Value.CurrentPost.TotalComments,
-                PostedOn = PostsState.Value.CurrentPost.PostedOn,
-                CreatedOn = PostsState.Value.CurrentPost.CreatedOn,
-                ModifiedOn = PostsState.Value.CurrentPost.ModifiedOn,
-                CreatedBy = PostsState.Value.CurrentPost.CreatedBy,
-                ModifiedBy = PostsState.Value.CurrentPost.ModifiedBy,
-                IsDeleted = PostsState.Value.CurrentPost.IsDeleted
-            };
+    // protected override void OnParametersSet()
+    // {
+    //     base.OnParametersSet();
 
-            // Keep original for cancel operation
-            if (originalPost == null)
-            {
-                originalPost = PostsState.Value.CurrentPost;
-            }
-        }
-    }
+    //     if (PostsState.Value.CurrentPost != null)
+    //     {
+    //         currentPost = new PostResponse
+    //         {
+    //             ID = PostsState.Value.CurrentPost.ID,
+    //             Title = PostsState.Value.CurrentPost.Title,
+    //             Heading = PostsState.Value.CurrentPost.Heading,
+    //             Description = PostsState.Value.CurrentPost.Description,
+    //             Content = PostsState.Value.CurrentPost.Content,
+    //             Author = PostsState.Value.CurrentPost.Author,
+    //             UserId = PostsState.Value.CurrentPost.UserId,
+    //             Category = PostsState.Value.CurrentPost.Category,
+    //             TotalViews = PostsState.Value.CurrentPost.TotalViews,
+    //             TotalLikes = PostsState.Value.CurrentPost.TotalLikes,
+    //             TotalComments = PostsState.Value.CurrentPost.TotalComments,
+    //             PostedOn = PostsState.Value.CurrentPost.PostedOn,
+    //             CreatedOn = PostsState.Value.CurrentPost.CreatedOn,
+    //             ModifiedOn = PostsState.Value.CurrentPost.ModifiedOn,
+    //             CreatedBy = PostsState.Value.CurrentPost.CreatedBy,
+    //             ModifiedBy = PostsState.Value.CurrentPost.ModifiedBy,
+    //             IsDeleted = PostsState.Value.CurrentPost.IsDeleted
+    //         };
+
+    //         if (originalPost == null)
+    //         {
+    //             originalPost = PostsState.Value.CurrentPost;
+    //         }
+    //     }
+    // }
 
     private void EnableEditMode()
     {
+        currentPost = PostsState.Value.CurrentPost;
         isEditMode = true;
-        // Store original values
-        originalPost = new PostResponse
-        {
-            ID = currentPost?.ID,
-            Title = currentPost?.Title,
-            Heading = currentPost?.Heading,
-            Description = currentPost?.Description,
-            Content = currentPost?.Content,
-            Author = currentPost?.Author,
-            UserId = currentPost?.UserId,
-            Category = currentPost?.Category,
-            TotalViews = currentPost?.TotalViews,
-            TotalLikes = currentPost?.TotalLikes,
-            TotalComments = currentPost?.TotalComments,
-            PostedOn = currentPost?.PostedOn,
-            CreatedOn = currentPost?.CreatedOn,
-            ModifiedOn = currentPost?.ModifiedOn,
-            CreatedBy = currentPost?.CreatedBy,
-            ModifiedBy = currentPost?.ModifiedBy,
-            IsDeleted = currentPost?.IsDeleted ?? false
-        };
+        isUpdateOperation = false;
+        originalPost = currentPost != null
+            ? new PostResponse
+            {
+                ID = currentPost.ID,
+                Title = currentPost.Title,
+                Heading = currentPost.Heading,
+                Description = currentPost.Description,
+                Content = currentPost.Content,
+                Author = currentPost.Author,
+                UserId = currentPost.UserId,
+                Category = currentPost.Category,
+                TotalViews = currentPost.TotalViews,
+                TotalLikes = currentPost.TotalLikes,
+                TotalComments = currentPost.TotalComments,
+                PostedOn = currentPost.PostedOn,
+                CreatedOn = currentPost.CreatedOn,
+                ModifiedOn = currentPost.ModifiedOn,
+                CreatedBy = currentPost.CreatedBy,
+                ModifiedBy = currentPost.ModifiedBy,
+                IsDeleted = currentPost.IsDeleted
+            }
+            : null;
     }
 
     private void CancelEdit()
     {
         isEditMode = false;
-        // Restore original values
+        isUpdateOperation = false;
         if (originalPost != null && currentPost != null)
         {
             currentPost.Title = originalPost.Title;
@@ -356,10 +360,14 @@
 
     private async Task SavePost()
     {
+        showSuccessAlert = false;
+        showErrorAlert = false;
+        isUpdateOperation = true;
+
         if (form != null)
         {
             await form.Validate();
-            
+
             if (!isFormValid)
             {
                 Snackbar.Add("Please fix validation errors", MudBlazor.Severity.Error);
@@ -385,25 +393,44 @@
             Category = currentPost.Category,
             TotalViews = currentPost.TotalViews,
             ModifiedOn = DateTime.UtcNow,
-            ModifiedBy = "system" // TODO: Get from authenticated user
+            ModifiedBy = "system"
         };
 
         Dispatcher.Dispatch(new UpdatePostAction(request));
-        
-        // Wait a bit to see if update succeeded
-        await Task.Delay(1000);
-        
-        if (PostsState.Value.UpdateErrorMessage == null)
-        {
-            isEditMode = false;
-            Snackbar.Add("Post updated successfully", MudBlazor.Severity.Success);
-        }
     }
 
-    private void ClearUpdateError()
+    private void OnStateChanged(object? sender, EventArgs e)
     {
-        // This would need a new action to clear the error
-        // For now, errors will clear on next action
+        bool justFinishedLoading = wasLoading && !PostsState.Value.IsLoadingDetail;
+
+        if (justFinishedLoading)
+        {
+            wasLoading = false;
+
+            if (PostsState.Value.CurrentPost != null && currentPost != null)
+            {
+                currentPost = PostsState.Value.CurrentPost;
+            }
+
+            if (!string.IsNullOrEmpty(PostsState.Value.DetailErrorMessage))
+            {
+                showErrorAlert = true;
+                showSuccessAlert = false;
+            }
+            else if (PostsState.Value.CurrentPost != null && isUpdateOperation)
+            {
+                showSuccessAlert = true;
+                showErrorAlert = false;
+            }
+
+            isUpdateOperation = false;
+
+            InvokeAsync(StateHasChanged);
+        }
+        else if (PostsState.Value.IsLoadingDetail && !wasLoading)
+        {
+            wasLoading = true;
+        }
     }
 
     private string FormatDate(string? dateString)
@@ -417,6 +444,11 @@
         }
 
         return dateString;
+    }
+
+    public void Dispose()
+    {
+        PostsState.StateChanged -= OnStateChanged;
     }
 }
 
