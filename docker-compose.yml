@@ -32,7 +32,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      - Database__ConnectionString=mongodb://admin:${MONGO_ROOT_PASSWORD:-Admin123!}@mongodb:27017
+      - Database__ConnectionString=mongodb+srv://ebrahimjakoet:jktebr003@cluster0.6dfqp1l.mongodb.net/?appName=Cluster0
       - Database__DatabaseName=ttl
       - App__BaseUrl=http://localhost:5000
       - SecretKeys__ApiKey=${API_KEY:-9B000A31-59B3-465F-B642-1094E5C12078}
@@ -67,12 +67,8 @@ services:
       dockerfile: Web/Dockerfile
     container_name: bluchilli-web
     restart: unless-stopped
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - services__api__http__0=http://api:8080
     ports:
-      - "5001:8080"
+      - "5001:80"
     depends_on:
       api:
         condition: service_healthy

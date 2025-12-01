@@ -25,17 +25,23 @@
                         <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
                     </NavLink>
                 </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="pricing">
-                        <span class="bi bi-pricing-nav-menu" aria-hidden="true"></span> Pricing
-                    </NavLink>
-                </div>
+
+                @* Show Pricing menu only for Customer users *@
+                @if (currentUser?.UserRole == global::Shared.Enums.UserType.Customer)
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="pricing">
+                            <span class="bi bi-pricing-nav-menu" aria-hidden="true"></span> Pricing
+                        </NavLink>
+                    </div>
+                }
+
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="contact">
                         <span class="bi bi-contact-nav-menu" aria-hidden="true"></span> Contact
                     </NavLink>
                 </div>
-                
+
                 @if (!isAuthenticated)
                 {
                     <div class="nav-item px-3">
@@ -44,7 +50,7 @@
                         </NavLink>
                     </div>
                 }
-                
+
                 @if (isAuthenticated)
                 {
                     <div class="nav-item px-3">
@@ -52,12 +58,17 @@
                             <span class="bi bi-posts-nav-menu" aria-hidden="true"></span> Posts
                         </NavLink>
                     </div>
-                    <div class="nav-item px-3">
-                        <NavLink class="nav-link" href="profile">
-                            <span class="bi bi-profile-nav-menu" aria-hidden="true"></span> Profile
-                        </NavLink>
-                    </div>
-                    
+
+                    @* Show Profile menu only for Customer users *@
+                    @if (currentUser?.UserRole == global::Shared.Enums.UserType.Customer)
+                    {
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="profile">
+                                <span class="bi bi-profile-nav-menu" aria-hidden="true"></span> Profile
+                            </NavLink>
+                        </div>
+                    }
+
                     @* Show Users menu only for Staff users *@
                     @if (currentUser?.UserRole == global::Shared.Enums.UserType.Staff)
                     {
@@ -80,7 +91,7 @@
             </MudText>
             <MudText Typo="Typo.caption" Class="navmenu-footer-text">
                 The Teachers Lounge
-            </MudText>            
+            </MudText>
             <MudText Typo="Typo.caption" Class="navmenu-footer-text">
                 &copy; @DateTime.Now.Year BluChilliWorks.
             </MudText>
@@ -109,7 +120,7 @@
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
-        
+
         if (isAuthenticated)
         {
             currentUser = await AuthService.GetCurrentUserAsync();
@@ -118,7 +129,7 @@
         {
             currentUser = null;
         }
-        
+
         StateHasChanged();
     }
 
@@ -126,7 +137,7 @@
     {
         collapseNavMenu = !collapseNavMenu;
     }
-    
+
     private async Task HandleLogout()
     {
         await AuthService.LogoutAsync();
@@ -135,4 +146,3 @@
         StateHasChanged();
     }
 }
-

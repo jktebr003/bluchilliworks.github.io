@@ -1,10 +1,10 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   mongodb:
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: DevPassword123!
+      MONGO_INITDB_ROOT_USERNAME: ebrahimjakoet
+      MONGO_INITDB_ROOT_PASSWORD: jktebr003
     ports:
       - "27017:27017"
 
@@ -15,7 +15,7 @@ services:
       target: build
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - Database__ConnectionString=mongodb://admin:DevPassword123!@mongodb:27017
+      - Database__ConnectionString=mongodb+srv://ebrahimjakoet:jktebr003@cluster0.6dfqp1l.mongodb.net/?appName=Cluster0
       - Database__DatabaseName=ttl
       - App__BaseUrl=http://localhost:5000
       - Email__FromEmail=dev@bluchilliworks.local
@@ -38,13 +38,6 @@ services:
     build:
       context: .
       dockerfile: Web/Dockerfile
-      target: build
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - services__api__http__0=http://api:8080
-    volumes:
-      - ./Web:/src/Web:ro
-      - ./Shared:/src/Shared:ro
+      target: runtime
     ports:
-      - "5001:8080"
-    command: dotnet watch run --no-launch-profile
+      - "5001:80"
