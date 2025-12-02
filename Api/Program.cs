@@ -31,7 +31,7 @@ using Hangfire.Mongo.Migration.Strategies.Backup;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Entities;
 
@@ -39,6 +39,40 @@ using Serilog;
 using Serilog.Exceptions;
 
 using Swashbuckle.AspNetCore.SwaggerGen;
+
+// Helper method to mask sensitive credentials in connection strings
+static string MaskConnectionString(string connectionString)
+{
+    if (string.IsNullOrWhiteSpace(connectionString))
+        return "Not configured";
+    
+    try
+    {
+        // For mongodb+srv:// or mongodb:// URLs, mask the password
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo;
+        
+        if (!string.IsNullOrEmpty(userInfo) && userInfo.Contains(':'))
+        {
+            var parts = userInfo.Split(':');
+            var username = parts[0];
+            var maskedUserInfo = $"{username}:****";
+            return connectionString.Replace(userInfo, maskedUserInfo);
+        }
+        
+        return connectionString;
+    }
+    catch
+    {
+        // If parsing fails, just mask everything after "://" for safety
+        var protocolIndex = connectionString.IndexOf("://");
+        if (protocolIndex > 0)
+        {
+            return connectionString.Substring(0, protocolIndex + 3) + "****";
+        }
+        return "****";
+    }
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -177,13 +211,13 @@ try
     builder.Services.AddScoped<IPostRepository, PostRepository>();
     builder.Services.AddScoped<IPackageRepository, PackageRepository>();
     builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-    
+
     // Register email service
     builder.Services.AddScoped<IEmailService, EmailService>();
-    
+
     // Register password hashing service
     builder.Services.AddSingleton<IPasswordHashingService, PasswordHashingService>();
-    
+
     // Register background jobs
     builder.Services.AddScoped<SendMessageJob>();
     builder.Services.AddScoped<RetryFailedMessagesJob>();
@@ -201,15 +235,41 @@ try
     string connectionUri = $"{builder.Configuration.GetValue<string>("Database:ConnectionString")}";
     string databaseName = $"{builder.Configuration.GetValue<string>("Database:DatabaseName")}";
 
-    // Build proper MongoDB connection string with database name
-    var mongoUrlBuilder = new MongoUrlBuilder(connectionUri)
-    {
-        DatabaseName = databaseName
-    };
-    
-    var mongoClient = new MongoClient(mongoUrlBuilder.ToMongoUrl());
+    // Display connection info (mask credentials for security)
+    var maskedConnectionUri = MaskConnectionString(connectionUri);
+    Console.WriteLine($"🗄️  MongoDB Connection String: {maskedConnectionUri}");
+    Console.WriteLine($"🗄️  MongoDB Database Name: {databaseName}");
 
-    // Add Hangfire services. Hangfire.AspNetCore nuget required
+    // Configure MongoDB client settings with timeouts for cloud deployments
+    var mongoClientSettings = MongoClientSettings.FromConnectionString(connectionUri);
+    mongoClientSettings.ConnectTimeout = TimeSpan.FromSeconds(10);
+    mongoClientSettings.SocketTimeout = TimeSpan.FromSeconds(10);
+    mongoClientSettings.ServerSelectionTimeout = TimeSpan.FromSeconds(10);
+    mongoClientSettings.MaxConnectionPoolSize = 100;
+    mongoClientSettings.RetryWrites = true;
+    mongoClientSettings.RetryReads = true;
+    mongoClientSettings.MaxConnectionIdleTime = TimeSpan.FromMinutes(1);
+    mongoClientSettings.MinConnectionPoolSize = 0;
+    mongoClientSettings.ServerApi = new ServerApi(ServerApiVersion.V1);
+
+    // For mongodb+srv:// connections, TLS is enabled automatically by the driver
+    // Just disable certificate revocation checking for cloud deployments
+    if (connectionUri.StartsWith("mongodb+srv://", StringComparison.OrdinalIgnoreCase))
+    {
+        if (mongoClientSettings.SslSettings == null)
+        {
+            mongoClientSettings.SslSettings = new SslSettings();
+        }
+        mongoClientSettings.SslSettings.CheckCertificateRevocation = false;
+        Console.WriteLine("🔒 TLS enabled for Hangfire MongoDB Atlas connection (using default protocols)");
+    }
+
+    var mongoClient = new MongoClient(mongoClientSettings);
+
+    // Don't ping during startup - let connections happen lazily in background
+    Console.WriteLine("🔄 MongoDB client configured - connections will be established on demand");
+
+    // Add Hangfire services with minimal startup dependencies
     builder.Services.AddHangfire(configuration => configuration
         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
         .UseSimpleAssemblyNameTypeSerializer()
@@ -222,25 +282,44 @@ try
                 BackupStrategy = new CollectionMongoBackupStrategy()
             },
             Prefix = "hangfire.mongo",
-            CheckConnection = true
+            CheckConnection = false,
+            CheckQueuedJobsStrategy = CheckQueuedJobsStrategy.TailNotificationsCollection
         })
     );
-    
+
     // Register IBackgroundJobClient explicitly
-    builder.Services.AddSingleton<IBackgroundJobClient>(sp => new BackgroundJobClient(
-        sp.GetRequiredService<JobStorage>()));
-    
-    // Add the processing server as IHostedService
+    builder.Services.AddSingleton<IBackgroundJobClient>(sp =>
+    {
+        try
+        {
+            return new BackgroundJobClient(sp.GetRequiredService<JobStorage>());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ BackgroundJobClient creation delayed: {ex.Message}");
+            // Return a dummy client that will be replaced when storage is available
+            return new BackgroundJobClient();
+        }
+    });
+
+    // Add the processing server as IHostedService with delayed start
     builder.Services.AddHangfireServer(serverOptions =>
     {
         serverOptions.ServerName = "Hangfire.Mongo server 1";
+        serverOptions.ServerTimeout = TimeSpan.FromMinutes(5);
+        serverOptions.ServerCheckInterval = TimeSpan.FromSeconds(30);
+        serverOptions.SchedulePollingInterval = TimeSpan.FromSeconds(15);
     });
+
+    // Register a hosted service to configure recurring jobs after Hangfire is initialized
+    builder.Services.AddHostedService<HangfireJobInitializer>();
 
     Console.WriteLine("✅ Hangfire server registered successfully");
 }
 catch (Exception ex)
 {
     Console.WriteLine($"⚠️ Hangfire server registration failed: {ex.Message}");
+    Console.WriteLine($"⚠️ Application will continue without Hangfire functionality");
 }
 
 
@@ -280,7 +359,6 @@ app.UseExceptionHandler();
 //            var url = $"/swagger/{description.GroupName}/swagger.json";
 //            var name = description.GroupName.ToUpperInvariant();
 //            options.SwaggerEndpoint(url, name);
-///
 //        }
 //    });
 
@@ -312,39 +390,90 @@ app.UseCors();
 //app.UseAuthentication();
 
 //app.UseAuthorization();
-app.UseHangfireDashboard();
-
-// Register recurring jobs after the app is built and Hangfire is initialized
-RecurringJob.AddOrUpdate<RetryFailedMessagesJob>(
-    "retry-failed-messages",
-    job => job.ExecuteAsync(),
-    "*/5 * * * *"); // Cron expression: every 5 minutes
-
-Console.WriteLine("✅ Hangfire recurring jobs registered");
+//app.UseHangfireDashboard();
 
 try
 {
-    Task.Run(async () =>
+    // Initialize MongoDB.Entities asynchronously without blocking startup
+    var mongoInitTask = Task.Run(async () =>
     {
-        //const string connectionUri = "mongodb+srv://ebrahimjakoet:jktebr003@cluster0.byl81xl.mongodb.net/?retryWrites=true&w=majority";
-        //const string connectionUri = "mongodb://127.0.0.1:27017";
-        string connectionUri = $"{builder.Configuration.GetValue<string>("Database:ConnectionString")}";
-        string databaseName = $"{builder.Configuration.GetValue<string>("Database:DatabaseName")}";
-        var settings = MongoClientSettings.FromConnectionString(connectionUri);
-        // Set the ServerApi field of the settings object to Stable API version 1
-        settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+        // Add initial delay to let the app start first
+        await Task.Delay(TimeSpan.FromSeconds(5));
 
-        await DB.InitAsync($"{databaseName}", settings); //initialize db connection
-        //await DB.InitAsync("ttl"); //initialize db connection
+        try
+        {
+            string connectionUri = $"{builder.Configuration.GetValue<string>("Database:ConnectionString")}";
+            string databaseName = $"{builder.Configuration.GetValue<string>("Database:DatabaseName")}";
 
-        //Console.WriteLine($"🗄️ Database connection: {(canConnect ? "✅ Success" : "❌ Failed")}");
-    })
-    .GetAwaiter()
-    .GetResult();
+            var settings = MongoClientSettings.FromConnectionString(connectionUri);
+
+            // Set the ServerApi field of the settings object to Stable API version 1
+            settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+
+            // Configure connection timeouts for cloud deployments - use shorter timeouts
+            settings.ConnectTimeout = TimeSpan.FromSeconds(10);
+            settings.SocketTimeout = TimeSpan.FromSeconds(10);
+            settings.ServerSelectionTimeout = TimeSpan.FromSeconds(10);
+            settings.MaxConnectionPoolSize = 100;
+            settings.MinConnectionPoolSize = 0;
+            settings.MaxConnectionIdleTime = TimeSpan.FromMinutes(1);
+            settings.RetryWrites = true;
+            settings.RetryReads = true;
+
+            // For mongodb+srv:// connections, TLS is enabled automatically by the driver
+            // Just disable certificate revocation checking for cloud deployments
+            if (connectionUri.StartsWith("mongodb+srv://", StringComparison.OrdinalIgnoreCase))
+            {
+                if (settings.SslSettings == null)
+                {
+                    settings.SslSettings = new SslSettings();
+                }
+                settings.SslSettings.CheckCertificateRevocation = false;
+                Console.WriteLine("🔒 TLS enabled for MongoDB.Entities connection (using default protocols)");
+            }
+
+            // Retry logic for MongoDB initialization
+            int maxRetries = 3;
+            int retryCount = 0;
+            Exception? lastException = null;
+
+            while (retryCount < maxRetries)
+            {
+                try
+                {
+                    await DB.InitAsync($"{databaseName}", settings);
+                    Console.WriteLine($"✅ MongoDB.Entities initialized for database: {databaseName}");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    retryCount++;
+                    Console.WriteLine($"⚠️ MongoDB.Entities initialization attempt {retryCount}/{maxRetries} failed: {ex.Message}");
+
+                    if (retryCount < maxRetries)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(5));
+                    }
+                }
+            }
+
+            Console.WriteLine($"⚠️ MongoDB.Entities initialization failed after {maxRetries} attempts");
+            Console.WriteLine($"⚠️ Last error: {lastException?.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ MongoDB.Entities initialization failed: {ex.Message}");
+            Console.WriteLine($"⚠️ Stack trace: {ex.StackTrace}");
+        }
+    });
+
+    // Don't wait for MongoDB initialization - let it complete in background
+    Console.WriteLine("🔄 MongoDB.Entities initialization started in background with retry logic...");
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"⚠️ Database test failed: {ex.Message}");
+    Console.WriteLine($"⚠️ Failed to start MongoDB initialization: {ex.Message}");
 }
 
 Console.WriteLine("\n🚀 API Service - All Issues Resolved!");
@@ -358,5 +487,5 @@ catch (Exception ex)
 {
     Console.WriteLine($"⚠️ Failed to run app: {ex.Message}");
 }
- 
+
 

@@ -3,8 +3,17 @@
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet('aspire', 'docker-dev', 'docker-prod', 'docker-stop', 'docker-clean', 'status', 'help')]
-    [string]$Command = 'help'
+    [ValidateSet('aspire', 'docker-dev', 'docker-prod', 'docker-stop', 'docker-clean', 'docker-push', 'docker-push-api', 'docker-push-web', 'status', 'help')]
+    [string]$Command = 'help',
+    
+    [Parameter(Mandatory=$false)]
+    [string]$Username,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$Version,
+    
+    [Parameter(Mandatory=$false)]
+    [switch]$SkipBuild
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,18 +27,27 @@ function Show-Help {
     Write-Host "Usage: .\orchestrate.ps1 [command]" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Commands:" -ForegroundColor Green
-    Write-Host "  aspire        - Start with .NET Aspire (development)" -ForegroundColor White
-    Write-Host "  docker-dev    - Start with Docker Compose (development mode)" -ForegroundColor White
-    Write-Host "  docker-prod   - Start with Docker Compose (production mode)" -ForegroundColor White
-    Write-Host "  docker-stop   - Stop Docker Compose services" -ForegroundColor White
-    Write-Host "  docker-clean  - Stop services and remove volumes (clean slate)" -ForegroundColor White
-    Write-Host "  status        - Show status of Docker services" -ForegroundColor White
-    Write-Host "  help          - Show this help message" -ForegroundColor White
+    Write-Host "  aspire           - Start with .NET Aspire (development)" -ForegroundColor White
+    Write-Host "  docker-dev       - Start with Docker Compose (development mode)" -ForegroundColor White
+    Write-Host "  docker-prod      - Start with Docker Compose (production mode)" -ForegroundColor White
+    Write-Host "  docker-stop      - Stop Docker Compose services" -ForegroundColor White
+    Write-Host "  docker-clean     - Stop services and remove volumes (clean slate)" -ForegroundColor White
+    Write-Host "  docker-push      - Build and push both API and Web to Docker Hub" -ForegroundColor White
+    Write-Host "  docker-push-api  - Build and push API image only to Docker Hub" -ForegroundColor White
+    Write-Host "  docker-push-web  - Build and push Web image only to Docker Hub" -ForegroundColor White
+    Write-Host "  status           - Show status of Docker services" -ForegroundColor White
+    Write-Host "  help             - Show this help message" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Docker Push Options:" -ForegroundColor Green
+    Write-Host "  -Username <name>     - Docker Hub username (required)" -ForegroundColor White
+    Write-Host "  -Version <version>   - Image version tag (default: latest)" -ForegroundColor White
+    Write-Host "  -SkipBuild           - Push existing images without rebuilding" -ForegroundColor White
     Write-Host ""
     Write-Host "Examples:" -ForegroundColor Green
     Write-Host "  .\orchestrate.ps1 aspire" -ForegroundColor Gray
     Write-Host "  .\orchestrate.ps1 docker-dev" -ForegroundColor Gray
-    Write-Host "  .\orchestrate.ps1 docker-stop" -ForegroundColor Gray
+    Write-Host "  .\orchestrate.ps1 docker-push -Username yourusername -Version 1.0.0" -ForegroundColor Gray
+    Write-Host "  .\orchestrate.ps1 docker-push-api -Username yourusername" -ForegroundColor Gray
     Write-Host ""
 }
 
@@ -104,6 +122,82 @@ function Clean-Docker {
     }
 }
 
+function Push-DockerImages {
+    param(
+        [string]$DockerUsername,
+        [string]$ImageVersion,
+        [bool]$SkipImageBuild,
+        [bool]$ApiOnly = $false,
+        [bool]$WebOnly = $false
+    )
+    
+    Write-Host ""
+    Write-Host "Docker Hub Push" -ForegroundColor Cyan
+    Write-Host "===============" -ForegroundColor Cyan
+    Write-Host ""
+    
+    # Prompt for username if not provided
+    if ([string]::IsNullOrWhiteSpace($DockerUsername)) {
+        $DockerUsername = Read-Host "Enter your Docker Hub username"
+        
+        if ([string]::IsNullOrWhiteSpace($DockerUsername)) {
+            Write-Host "Error: Docker Hub username is required" -ForegroundColor Red
+            exit 1
+        }
+    }
+    
+    # Prompt for version if not provided, default to 'latest'
+    if ([string]::IsNullOrWhiteSpace($ImageVersion)) {
+        $versionInput = Read-Host "Enter version tag (press Enter for 'latest')"
+        
+        if ([string]::IsNullOrWhiteSpace($versionInput)) {
+            $ImageVersion = "latest"
+        } else {
+            $ImageVersion = $versionInput
+        }
+    }
+    
+    Write-Host ""
+    Write-Host "Configuration:" -ForegroundColor Green
+    Write-Host "  Username: $DockerUsername" -ForegroundColor White
+    Write-Host "  Version: $ImageVersion" -ForegroundColor White
+    Write-Host "  Skip Build: $SkipImageBuild" -ForegroundColor White
+    Write-Host ""
+    
+    Set-Location $RootPath
+    
+    # Check if build-and-push.ps1 exists
+    if (-not (Test-Path ".\build-and-push.ps1")) {
+        Write-Host "Error: build-and-push.ps1 not found" -ForegroundColor Red
+        exit 1
+    }
+    
+    # Build arguments hashtable for splatting
+    $pushArgs = @{
+        Username = $DockerUsername
+        Version = $ImageVersion
+    }
+    
+    if ($SkipImageBuild) {
+        $pushArgs['SkipBuild'] = $true
+    }
+    
+    if ($ApiOnly) {
+        $pushArgs['ApiOnly'] = $true
+        Write-Host "Pushing API image only..." -ForegroundColor Yellow
+    }
+    elseif ($WebOnly) {
+        $pushArgs['WebOnly'] = $true
+        Write-Host "Pushing Web image only..." -ForegroundColor Yellow
+    }
+    else {
+        Write-Host "Pushing both API and Web images..." -ForegroundColor Yellow
+    }
+    
+    Write-Host ""
+    & ".\build-and-push.ps1" @pushArgs
+}
+
 function Show-Status {
     Write-Host ""
     Write-Host "Docker Services Status" -ForegroundColor Cyan
@@ -122,12 +216,15 @@ function Show-Status {
 
 # Main execution
 switch ($Command) {
-    'aspire'        { Start-Aspire }
-    'docker-dev'    { Start-DockerDev }
-    'docker-prod'   { Start-DockerProd }
-    'docker-stop'   { Stop-Docker }
-    'docker-clean'  { Clean-Docker }
-    'status'        { Show-Status }
-    'help'          { Show-Help }
-    default         { Show-Help }
+    'aspire'          { Start-Aspire }
+    'docker-dev'      { Start-DockerDev }
+    'docker-prod'     { Start-DockerProd }
+    'docker-stop'     { Stop-Docker }
+    'docker-clean'    { Clean-Docker }
+    'docker-push'     { Push-DockerImages -DockerUsername $Username -ImageVersion $Version -SkipImageBuild $SkipBuild.IsPresent }
+    'docker-push-api' { Push-DockerImages -DockerUsername $Username -ImageVersion $Version -SkipImageBuild $SkipBuild.IsPresent -ApiOnly $true }
+    'docker-push-web' { Push-DockerImages -DockerUsername $Username -ImageVersion $Version -SkipImageBuild $SkipBuild.IsPresent -WebOnly $true }
+    'status'          { Show-Status }
+    'help'            { Show-Help }
+    default           { Show-Help }
 }

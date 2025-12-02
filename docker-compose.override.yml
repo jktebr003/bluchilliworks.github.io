@@ -3,8 +3,8 @@
 services:
   mongodb:
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ebrahimjakoet
-      MONGO_INITDB_ROOT_PASSWORD: jktebr003
+      MONGO_INITDB_ROOT_USERNAME: bluchillworks
+      MONGO_INITDB_ROOT_PASSWORD: mmZBoRILdptwojfC
     ports:
       - "27017:27017"
 
@@ -15,7 +15,7 @@ services:
       target: build
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - Database__ConnectionString=mongodb+srv://ebrahimjakoet:jktebr003@cluster0.6dfqp1l.mongodb.net/?appName=Cluster0
+      - Database__ConnectionString=mongodb+srv://bluchillworks:mmZBoRILdptwojfC@cluster0.6dfqp1l.mongodb.net/?appName=Cluster0
       - Database__DatabaseName=ttl
       - App__BaseUrl=http://localhost:5000
       - Email__FromEmail=dev@bluchilliworks.local
