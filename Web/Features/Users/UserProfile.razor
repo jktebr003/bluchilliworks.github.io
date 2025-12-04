@@ -43,6 +43,38 @@
         </MudAlert>
     }
 
+    <!-- Header Section with Edit/Save/Cancel Buttons -->
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudSpacer />
+        <div>
+            @if (!isEditMode)
+            {
+                <MudButton Variant="Variant.Filled" 
+                          Color="Color.Primary" 
+                          StartIcon="@Icons.Material.Filled.Edit"
+                          OnClick="@EnableEditMode">
+                    Edit Profile
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Text" 
+                          Color="Color.Default" 
+                          OnClick="@CancelEdit"
+                          Class="mr-2">
+                    Cancel
+                </MudButton>
+                <MudButton Variant="Variant.Filled" 
+                          Color="Color.Primary" 
+                          StartIcon="@Icons.Material.Filled.Save"
+                          OnClick="@SaveProfile"
+                          Disabled="@(!isFormValid || UsersState.Value.IsLoadingProfile)">
+                    @(UsersState.Value.IsLoadingProfile ? "Saving..." : "Save Changes")
+                </MudButton>
+            }
+        </div>
+    </div>
+
     @if (UsersState.Value.IsLoadingProfile)
     {
         <div class="text-center py-5">
@@ -69,54 +101,124 @@
                         </MudText>
                         <MudGrid>
                             <MudItem xs="12" sm="6">
-                                <MudTextField @bind-Value="currentUser.FirstName"
-                                            Label="First Name"
-                                            Variant="Variant.Outlined"
-                                            Required="true"
-                                            RequiredError="First name is required" />
+                                @if (isEditMode)
+                                {
+                                    <MudTextField @bind-Value="currentUser.FirstName"
+                                                Label="First Name"
+                                                Variant="Variant.Outlined"
+                                                Required="true"
+                                                RequiredError="First name is required" />
+                                }
+                                else
+                                {
+                                    <div class="detail-field">
+                                        <MudText Typo="Typo.subtitle2" Class="field-label">First Name</MudText>
+                                        <MudText Typo="Typo.body1">@currentUser.FirstName</MudText>
+                                    </div>
+                                }
                             </MudItem>
                             <MudItem xs="12" sm="6">
-                                <MudTextField @bind-Value="currentUser.LastName"
-                                            Label="Last Name"
-                                            Variant="Variant.Outlined"
-                                            Required="true"
-                                            RequiredError="Last name is required" />
+                                @if (isEditMode)
+                                {
+                                    <MudTextField @bind-Value="currentUser.LastName"
+                                                Label="Last Name"
+                                                Variant="Variant.Outlined"
+                                                Required="true"
+                                                RequiredError="Last name is required" />
+                                }
+                                else
+                                {
+                                    <div class="detail-field">
+                                        <MudText Typo="Typo.subtitle2" Class="field-label">Last Name</MudText>
+                                        <MudText Typo="Typo.body1">@currentUser.LastName</MudText>
+                                    </div>
+                                }
                             </MudItem>
                             <MudItem xs="12" sm="6">
-                                <MudTextField @bind-Value="currentUser.EmailAddress"
-                                            Label="Email Address"
-                                            Variant="Variant.Outlined"
-                                            InputType="InputType.Email"
-                                            Required="true"
-                                            RequiredError="Email is required" />
+                                @if (isEditMode)
+                                {
+                                    <MudTextField @bind-Value="currentUser.EmailAddress"
+                                                Label="Email Address"
+                                                Variant="Variant.Outlined"
+                                                InputType="InputType.Email"
+                                                Required="true"
+                                                RequiredError="Email is required" />
+                                }
+                                else
+                                {
+                                    <div class="detail-field">
+                                        <MudText Typo="Typo.subtitle2" Class="field-label">Email Address</MudText>
+                                        <MudText Typo="Typo.body1">@currentUser.EmailAddress</MudText>
+                                    </div>
+                                }
                             </MudItem>
                             <MudItem xs="12" sm="6">
-                                <MudSelect @bind-Value="currentUser.Gender"
-                                         Label="Gender"
-                                         Variant="Variant.Outlined"
-                                         AnchorOrigin="Origin.BottomCenter">
-                                    <MudSelectItem Value="@("Male")">Male</MudSelectItem>
-                                    <MudSelectItem Value="@("Female")">Female</MudSelectItem>
-                                    <MudSelectItem Value="@("Other")">Other</MudSelectItem>
-                                    <MudSelectItem Value="@("Prefer not to say")">Prefer not to say</MudSelectItem>
-                                </MudSelect>
-                            </MudItem>
-                            <MudItem xs="12" sm="6">
-                                <MudDatePicker @bind-Date="dateOfBirth"
-                                             Label="Date of Birth"
+                                @if (isEditMode)
+                                {
+                                    <MudSelect @bind-Value="currentUser.Gender"
+                                             Label="Gender"
                                              Variant="Variant.Outlined"
-                                             Editable="true"
-                                             MaxDate="DateTime.Today" />
+                                             AnchorOrigin="Origin.BottomCenter">
+                                        <MudSelectItem Value="@("Male")">Male</MudSelectItem>
+                                        <MudSelectItem Value="@("Female")">Female</MudSelectItem>
+                                        <MudSelectItem Value="@("Other")">Other</MudSelectItem>
+                                        <MudSelectItem Value="@("Prefer not to say")">Prefer not to say</MudSelectItem>
+                                    </MudSelect>
+                                }
+                                else
+                                {
+                                    <div class="detail-field">
+                                        <MudText Typo="Typo.subtitle2" Class="field-label">Gender</MudText>
+                                        <MudText Typo="Typo.body1">@(currentUser.Gender ?? "Not specified")</MudText>
+                                    </div>
+                                }
                             </MudItem>
                             <MudItem xs="12" sm="6">
-                                <MudTextField @bind-Value="currentUser.TelephoneNumber"
-                                            Label="Telephone Number"
-                                            Variant="Variant.Outlined" />
+                                @if (isEditMode)
+                                {
+                                    <MudDatePicker @bind-Date="dateOfBirth"
+                                                 Label="Date of Birth"
+                                                 Variant="Variant.Outlined"
+                                                 Editable="true"
+                                                 MaxDate="DateTime.Today" />
+                                }
+                                else
+                                {
+                                    <div class="detail-field">
+                                        <MudText Typo="Typo.subtitle2" Class="field-label">Date of Birth</MudText>
+                                        <MudText Typo="Typo.body1">@(dateOfBirth?.ToString("MMMM dd, yyyy") ?? "Not specified")</MudText>
+                                    </div>
+                                }
                             </MudItem>
                             <MudItem xs="12" sm="6">
-                                <MudTextField @bind-Value="currentUser.MobileNumber"
-                                            Label="Mobile Number"
-                                            Variant="Variant.Outlined" />
+                                @if (isEditMode)
+                                {
+                                    <MudTextField @bind-Value="currentUser.TelephoneNumber"
+                                                Label="Telephone Number"
+                                                Variant="Variant.Outlined" />
+                                }
+                                else
+                                {
+                                    <div class="detail-field">
+                                        <MudText Typo="Typo.subtitle2" Class="field-label">Telephone Number</MudText>
+                                        <MudText Typo="Typo.body1">@(currentUser.TelephoneNumber ?? "Not specified")</MudText>
+                                    </div>
+                                }
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                @if (isEditMode)
+                                {
+                                    <MudTextField @bind-Value="currentUser.MobileNumber"
+                                                Label="Mobile Number"
+                                                Variant="Variant.Outlined" />
+                                }
+                                else
+                                {
+                                    <div class="detail-field">
+                                        <MudText Typo="Typo.subtitle2" Class="field-label">Mobile Number</MudText>
+                                        <MudText Typo="Typo.body1">@(currentUser.MobileNumber ?? "Not specified")</MudText>
+                                    </div>
+                                }
                             </MudItem>
                         </MudGrid>
                     </MudPaper>
@@ -162,13 +264,16 @@
                                 <MudIcon Icon="@Icons.Material.Filled.Work" Class="mr-2" />
                                 Work Experience
                             </MudText>
-                            <MudButton Variant="Variant.Filled"
-                                     Color="Color.Primary"
-                                     Size="Size.Small"
-                                     OnClick="AddJob"
-                                     StartIcon="@Icons.Material.Filled.Add">
-                                Add Job
-                            </MudButton>
+                            @if (isEditMode)
+                            {
+                                <MudButton Variant="Variant.Filled"
+                                         Color="Color.Primary"
+                                         Size="Size.Small"
+                                         OnClick="AddJob"
+                                         StartIcon="@Icons.Material.Filled.Add">
+                                    Add Job
+                                </MudButton>
+                            }
                         </div>
                         @if (jobs.Any())
                         {
@@ -178,47 +283,100 @@
                                     <MudCardContent>
                                         <div class="d-flex justify-space-between align-center mb-3">
                                             <MudText Typo="Typo.subtitle1" Color="Color.Primary">Job @(index + 1)</MudText>
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                         Color="Color.Error"
-                                                         Size="Size.Small"
-                                                         OnClick="@(() => RemoveJob(job))" />
+                                            @if (isEditMode)
+                                            {
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                             Color="Color.Error"
+                                                             Size="Size.Small"
+                                                             OnClick="@(() => RemoveJob(job))" />
+                                            }
                                         </div>
                                         <MudGrid>
                                             <MudItem xs="12" sm="6">
-                                                <MudTextField @bind-Value="job.Company"
-                                                            Label="Company"
-                                                            Variant="Variant.Outlined"
-                                                            Margin="Margin.Dense" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudTextField @bind-Value="job.Company"
+                                                                Label="Company"
+                                                                Variant="Variant.Outlined"
+                                                                Margin="Margin.Dense" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Company</MudText>
+                                                        <MudText Typo="Typo.body2">@(job.Company ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudTextField @bind-Value="job.Position"
-                                                            Label="Position"
-                                                            Variant="Variant.Outlined"
-                                                            Margin="Margin.Dense" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudTextField @bind-Value="job.Position"
+                                                                Label="Position"
+                                                                Variant="Variant.Outlined"
+                                                                Margin="Margin.Dense" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Position</MudText>
+                                                        <MudText Typo="Typo.body2">@(job.Position ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudDatePicker Date="@GetJobStartDate(job)"
-                                                             DateChanged="@((DateTime? date) => SetJobStartDate(job, date))"
-                                                             Label="Start Date"
-                                                             Variant="Variant.Outlined"
-                                                             Margin="Margin.Dense"
-                                                             Editable="true" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudDatePicker Date="@GetJobStartDate(job)"
+                                                                 DateChanged="@((DateTime? date) => SetJobStartDate(job, date))"
+                                                                 Label="Start Date"
+                                                                 Variant="Variant.Outlined"
+                                                                 Margin="Margin.Dense"
+                                                                 Editable="true" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Start Date</MudText>
+                                                        <MudText Typo="Typo.body2">@(GetJobStartDate(job)?.ToString("MMMM yyyy") ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudDatePicker Date="@GetJobEndDate(job)"
-                                                             DateChanged="@((DateTime? date) => SetJobEndDate(job, date))"
-                                                             Label="End Date"
-                                                             Variant="Variant.Outlined"
-                                                             Margin="Margin.Dense"
-                                                             Editable="true"
-                                                             Clearable="true" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudDatePicker Date="@GetJobEndDate(job)"
+                                                                 DateChanged="@((DateTime? date) => SetJobEndDate(job, date))"
+                                                                 Label="End Date"
+                                                                 Variant="Variant.Outlined"
+                                                                 Margin="Margin.Dense"
+                                                                 Editable="true"
+                                                                 Clearable="true" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">End Date</MudText>
+                                                        <MudText Typo="Typo.body2">@(GetJobEndDate(job)?.ToString("MMMM yyyy") ?? "Present")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                             <MudItem xs="12">
-                                                <MudTextField @bind-Value="job.Responsibilities"
-                                                            Label="Responsibilities"
-                                                            Variant="Variant.Outlined"
-                                                            Lines="3"
-                                                            Margin="Margin.Dense" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudTextField @bind-Value="job.Responsibilities"
+                                                                Label="Responsibilities"
+                                                                Variant="Variant.Outlined"
+                                                                Lines="3"
+                                                                Margin="Margin.Dense" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Responsibilities</MudText>
+                                                        <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@(job.Responsibilities ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                         </MudGrid>
                                     </MudCardContent>
@@ -240,13 +398,16 @@
                                 <MudIcon Icon="@Icons.Material.Filled.School" Class="mr-2" />
                                 Education (Qualifications)
                             </MudText>
-                            <MudButton Variant="Variant.Filled"
-                                     Color="Color.Primary"
-                                     Size="Size.Small"
-                                     OnClick="AddQualification"
-                                     StartIcon="@Icons.Material.Filled.Add">
-                                Add Qualification
-                            </MudButton>
+                            @if (isEditMode)
+                            {
+                                <MudButton Variant="Variant.Filled"
+                                         Color="Color.Primary"
+                                         Size="Size.Small"
+                                         OnClick="AddQualification"
+                                         StartIcon="@Icons.Material.Filled.Add">
+                                    Add Qualification
+                                </MudButton>
+                            }
                         </div>
                         @if (qualifications.Any())
                         {
@@ -256,31 +417,64 @@
                                     <MudCardContent>
                                         <div class="d-flex justify-space-between align-center mb-3">
                                             <MudText Typo="Typo.subtitle1" Color="Color.Primary">Qualification @(index + 1)</MudText>
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                         Color="Color.Error"
-                                                         Size="Size.Small"
-                                                         OnClick="@(() => RemoveQualification(qual))" />
+                                            @if (isEditMode)
+                                            {
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                             Color="Color.Error"
+                                                             Size="Size.Small"
+                                                             OnClick="@(() => RemoveQualification(qual))" />
+                                            }
                                         </div>
                                         <MudGrid>
                                             <MudItem xs="12" sm="6">
-                                                <MudTextField @bind-Value="qual.Institution"
-                                                            Label="Institution"
-                                                            Variant="Variant.Outlined"
-                                                            Margin="Margin.Dense" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudTextField @bind-Value="qual.Institution"
+                                                                Label="Institution"
+                                                                Variant="Variant.Outlined"
+                                                                Margin="Margin.Dense" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Institution</MudText>
+                                                        <MudText Typo="Typo.body2">@(qual.Institution ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudTextField @bind-Value="qual.Title"
-                                                            Label="Title"
-                                                            Variant="Variant.Outlined"
-                                                            Margin="Margin.Dense" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudTextField @bind-Value="qual.Title"
+                                                                Label="Title"
+                                                                Variant="Variant.Outlined"
+                                                                Margin="Margin.Dense" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Title</MudText>
+                                                        <MudText Typo="Typo.body2">@(qual.Title ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudNumericField @bind-Value="qual.Year"
-                                                               Label="Year"
-                                                               Variant="Variant.Outlined"
-                                                               Margin="Margin.Dense"
-                                                               Min="1900"
-                                                               Max="@DateTime.Now.Year" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudNumericField @bind-Value="qual.Year"
+                                                                   Label="Year"
+                                                                   Variant="Variant.Outlined"
+                                                                   Margin="Margin.Dense"
+                                                                   Min="1900"
+                                                                   Max="@DateTime.Now.Year" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Year</MudText>
+                                                        <MudText Typo="Typo.body2">@(qual.Year?.ToString() ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                         </MudGrid>
                                     </MudCardContent>
@@ -302,13 +496,16 @@
                                 <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Class="mr-2" />
                                 Certifications
                             </MudText>
-                            <MudButton Variant="Variant.Filled"
-                                     Color="Color.Primary"
-                                     Size="Size.Small"
-                                     OnClick="AddCertification"
-                                     StartIcon="@Icons.Material.Filled.Add">
-                                Add Certification
-                            </MudButton>
+                            @if (isEditMode)
+                            {
+                                <MudButton Variant="Variant.Filled"
+                                         Color="Color.Primary"
+                                         Size="Size.Small"
+                                         OnClick="AddCertification"
+                                         StartIcon="@Icons.Material.Filled.Add">
+                                    Add Certification
+                                </MudButton>
+                            }
                         </div>
                         @if (certifications.Any())
                         {
@@ -318,31 +515,64 @@
                                     <MudCardContent>
                                         <div class="d-flex justify-space-between align-center mb-3">
                                             <MudText Typo="Typo.subtitle1" Color="Color.Primary">Certification @(index + 1)</MudText>
-                                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                         Color="Color.Error"
-                                                         Size="Size.Small"
-                                                         OnClick="@(() => RemoveCertification(cert))" />
+                                            @if (isEditMode)
+                                            {
+                                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                             Color="Color.Error"
+                                                             Size="Size.Small"
+                                                             OnClick="@(() => RemoveCertification(cert))" />
+                                            }
                                         </div>
                                         <MudGrid>
                                             <MudItem xs="12" sm="6">
-                                                <MudTextField @bind-Value="cert.Institution"
-                                                            Label="Institution"
-                                                            Variant="Variant.Outlined"
-                                                            Margin="Margin.Dense" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudTextField @bind-Value="cert.Institution"
+                                                                Label="Institution"
+                                                                Variant="Variant.Outlined"
+                                                                Margin="Margin.Dense" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Institution</MudText>
+                                                        <MudText Typo="Typo.body2">@(cert.Institution ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudTextField @bind-Value="cert.Title"
-                                                            Label="Title"
-                                                            Variant="Variant.Outlined"
-                                                            Margin="Margin.Dense" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudTextField @bind-Value="cert.Title"
+                                                                Label="Title"
+                                                                Variant="Variant.Outlined"
+                                                                Margin="Margin.Dense" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Title</MudText>
+                                                        <MudText Typo="Typo.body2">@(cert.Title ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                             <MudItem xs="12" sm="6">
-                                                <MudNumericField @bind-Value="cert.Year"
-                                                               Label="Year"
-                                                               Variant="Variant.Outlined"
-                                                               Margin="Margin.Dense"
-                                                               Min="1900"
-                                                               Max="@DateTime.Now.Year" />
+                                                @if (isEditMode)
+                                                {
+                                                    <MudNumericField @bind-Value="cert.Year"
+                                                                   Label="Year"
+                                                                   Variant="Variant.Outlined"
+                                                                   Margin="Margin.Dense"
+                                                                   Min="1900"
+                                                                   Max="@DateTime.Now.Year" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="detail-field">
+                                                        <MudText Typo="Typo.subtitle2" Class="field-label">Year</MudText>
+                                                        <MudText Typo="Typo.body2">@(cert.Year?.ToString() ?? "Not specified")</MudText>
+                                                    </div>
+                                                }
                                             </MudItem>
                                         </MudGrid>
                                     </MudCardContent>
@@ -363,41 +593,28 @@
                             <MudIcon Icon="@Icons.Material.Filled.Stars" Class="mr-2" />
                             Skills & Abilities
                         </MudText>
-                        <MudTextField @bind-Value="skillsText"
-                                    Label="Skills & Abilities"
-                                    Variant="Variant.Outlined"
-                                    Lines="6"
-                                    Placeholder="Enter your skills and abilities (e.g., Programming, Project Management, Communication, etc.)" />
-                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
-                            Enter skills separated by commas or line breaks
-                        </MudText>
+                        @if (isEditMode)
+                        {
+                            <MudTextField @bind-Value="skillsText"
+                                        Label="Skills & Abilities"
+                                        Variant="Variant.Outlined"
+                                        Lines="6"
+                                        Placeholder="Enter your skills and abilities (e.g., Programming, Project Management, Communication, etc.)" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                                Enter skills separated by commas or line breaks
+                            </MudText>
+                        }
+                        else
+                        {
+                            <div class="detail-field">
+                                <MudPaper Class="pa-3 content-display" Elevation="0">
+                                    <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@(skillsText ?? "No skills specified")</MudText>
+                                </MudPaper>
+                            </div>
+                        }
                     </MudPaper>
                 </MudItem>
 
-                <!-- Action Buttons -->
-                <MudItem xs="12">
-                    <div class="d-flex justify-end gap-2">
-                        <MudButton Variant="Variant.Outlined"
-                                 Color="Color.Default"
-                                 OnClick="Cancel">
-                            Cancel
-                        </MudButton>
-                        <MudButton Variant="Variant.Filled"
-                                 Color="Color.Primary"
-                                 OnClick="SaveProfile"
-                                 Disabled="@(!isFormValid || UsersState.Value.IsLoadingProfile)">
-                            @if (UsersState.Value.IsLoadingProfile)
-                            {
-                                <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
-                                <span>Saving...</span>
-                            }
-                            else
-                            {
-                                <span>Save Profile</span>
-                            }
-                        </MudButton>
-                    </div>
-                </MudItem>
             </MudGrid>
         </MudForm>
     }
@@ -406,15 +623,25 @@
 @code {
     private MudForm form = null!;
     private bool isFormValid;
+    private bool isEditMode = false;
     private UserResponse? currentUser;
+    private UserResponse? originalUser;
     private DateTime? dateOfBirth;
+    private DateTime? originalDateOfBirth;
     private string? skillsText;
+    private string? originalSkillsText;
 
     private List<JobResponse> jobs = new();
     private List<QualificationResponse> qualifications = new();
     private List<CertificationResponse> certifications = new();
     private Dictionary<JobResponse, DateTime?> jobStartDates = new();
     private Dictionary<JobResponse, DateTime?> jobEndDates = new();
+    
+    private List<JobResponse> originalJobs = new();
+    private List<QualificationResponse> originalQualifications = new();
+    private List<CertificationResponse> originalCertifications = new();
+    private Dictionary<JobResponse, DateTime?> originalJobStartDates = new();
+    private Dictionary<JobResponse, DateTime?> originalJobEndDates = new();
     
     private bool showSuccessAlert = false;
     private bool showErrorAlert = false;
@@ -476,6 +703,105 @@
                 Dispatcher.Dispatch(new LoadUserProfileAction(currentUser.ID));
             }
         }
+    }
+
+    private void EnableEditMode()
+    {
+        isEditMode = true;
+        isUpdateOperation = false;
+        
+        // Create deep copies of current state
+        if (currentUser != null)
+        {
+            originalUser = new UserResponse
+            {
+                ID = currentUser.ID,
+                FirstName = currentUser.FirstName,
+                LastName = currentUser.LastName,
+                EmailAddress = currentUser.EmailAddress,
+                Gender = currentUser.Gender,
+                DateOfBirth = currentUser.DateOfBirth,
+                TelephoneNumber = currentUser.TelephoneNumber,
+                MobileNumber = currentUser.MobileNumber,
+                Package = currentUser.Package,
+                Username = currentUser.Username,
+                UserRole = currentUser.UserRole
+            };
+        }
+        
+        originalDateOfBirth = dateOfBirth;
+        originalSkillsText = skillsText;
+        originalJobs = jobs.Select(j => new JobResponse
+        {
+            ID = j.ID,
+            Company = j.Company,
+            Position = j.Position,
+            StartDate = j.StartDate,
+            EndDate = j.EndDate,
+            Responsibilities = j.Responsibilities
+        }).ToList();
+        originalQualifications = qualifications.Select(q => new QualificationResponse
+        {
+            ID = q.ID,
+            Institution = q.Institution,
+            Title = q.Title,
+            Year = q.Year
+        }).ToList();
+        originalCertifications = certifications.Select(c => new CertificationResponse
+        {
+            ID = c.ID,
+            Institution = c.Institution,
+            Title = c.Title,
+            Year = c.Year
+        }).ToList();
+        originalJobStartDates = new Dictionary<JobResponse, DateTime?>(jobStartDates);
+        originalJobEndDates = new Dictionary<JobResponse, DateTime?>(jobEndDates);
+    }
+
+    private void CancelEdit()
+    {
+        isEditMode = false;
+        isUpdateOperation = false;
+        
+        // Restore original values
+        if (originalUser != null && currentUser != null)
+        {
+            currentUser.FirstName = originalUser.FirstName;
+            currentUser.LastName = originalUser.LastName;
+            currentUser.EmailAddress = originalUser.EmailAddress;
+            currentUser.Gender = originalUser.Gender;
+            currentUser.DateOfBirth = originalUser.DateOfBirth;
+            currentUser.TelephoneNumber = originalUser.TelephoneNumber;
+            currentUser.MobileNumber = originalUser.MobileNumber;
+        }
+        
+        dateOfBirth = originalDateOfBirth;
+        skillsText = originalSkillsText;
+        jobs = originalJobs.Select(j => new JobResponse
+        {
+            ID = j.ID,
+            Company = j.Company,
+            Position = j.Position,
+            StartDate = j.StartDate,
+            EndDate = j.EndDate,
+            Responsibilities = j.Responsibilities
+        }).ToList();
+        qualifications = originalQualifications.Select(q => new QualificationResponse
+        {
+            ID = q.ID,
+            Institution = q.Institution,
+            Title = q.Title,
+            Year = q.Year
+        }).ToList();
+        certifications = originalCertifications.Select(c => new CertificationResponse
+        {
+            ID = c.ID,
+            Institution = c.Institution,
+            Title = c.Title,
+            Year = c.Year
+        }).ToList();
+        jobStartDates = new Dictionary<JobResponse, DateTime?>(originalJobStartDates);
+        jobEndDates = new Dictionary<JobResponse, DateTime?>(originalJobEndDates);
     }
 
     private void AddJob()
@@ -563,11 +889,20 @@
         // Mark this as an update operation
         isUpdateOperation = true;
         
-        await form.Validate();
-
-        if (!isFormValid || currentUser == null)
+        if (form != null)
         {
-            Snackbar.Add("Please fill in all required fields", MudBlazor.Severity.Warning);
+            await form.Validate();
+
+            if (!isFormValid)
+            {
+                Snackbar.Add("Please fill in all required fields", MudBlazor.Severity.Warning);
+                return;
+            }
+        }
+
+        if (currentUser == null)
+        {
+            Snackbar.Add("Invalid user data", MudBlazor.Severity.Error);
             return;
         }
 
@@ -614,11 +949,6 @@
             PackageType.TwoYearSubscription => "2-year Subscription",
             _ => "Standard"
         };
-    }
-
-    private void Cancel()
-    {
-        NavigationManager.NavigateTo("/");
     }
 
     private void OnStateChanged(object? sender, EventArgs e)
@@ -669,6 +999,7 @@
             {
                 showSuccessAlert = true;
                 showErrorAlert = false;
+                isEditMode = false; // Exit edit mode on successful save
             }
             
             // Reset the update operation flag
@@ -687,3 +1018,27 @@
         UsersState.StateChanged -= OnStateChanged;
     }
 }
+
+<style>
+    .detail-field {
+        margin-bottom: 16px;
+    }
+
+    .field-label {
+        font-weight: 600;
+        color: var(--mud-palette-text-secondary);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .content-display {
+        background-color: var(--mud-palette-background-grey);
+        border: 1px solid var(--mud-palette-lines-default);
+    }
+
+    @@media (max-width: 768px) {
+        .detail-field {
+            margin-bottom: 12px;
+        }
+    }
+</style>
