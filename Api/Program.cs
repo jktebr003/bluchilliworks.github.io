@@ -12,6 +12,7 @@ using Api.Features.Posts;
 using Api.Features.Users;
 using Api.Features.UserSessions;
 using Api.Infrastructure.Database.MongoDb.Repositories;
+using Api.Infrastructure.Telemetry;
 using Api.Jobs;
 using Api.Services;
 
@@ -342,6 +343,9 @@ var app = builder.Build();
 app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
+// Add HTTP request telemetry middleware early in the pipeline
+app.UseMiddleware<HttpRequestTelemetryMiddleware>();
+
 app.UseExceptionHandler();
 
 #region Original Swagger code
