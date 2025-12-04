@@ -10,6 +10,7 @@
 @using Web.Features.Users
 
 @inject IState<PricingState> PricingState
+@inject IState<UsersState> UsersState
 @inject IDispatcher Dispatcher
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthStateProvider
@@ -81,7 +82,7 @@
                                 </MudChip>
                             </MudCardContent>
                             <MudCardActions>
-                                @if (isAuthenticated && currentUser?.Package == null)
+                                @if (isAuthenticated && UsersState.Value.CurrentUser?.Package == null)
                                 {
                                     <MudButton Variant="Variant.Filled" 
                                               Color="Color.Primary" 
@@ -101,29 +102,28 @@
 
 @code {
     private bool isAuthenticated = false;
-    private UserResponse? currentUser = null;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         await CheckAuthenticationStatus();
         Dispatcher.Dispatch(new LoadPackagesAction());
+        
+        // Load current user profile if authenticated
+        if (isAuthenticated)
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            if (user?.ID != null)
+            {
+                Dispatcher.Dispatch(new LoadUserProfileAction(user.ID));
+            }
+        }
     }
 
     private async Task CheckAuthenticationStatus()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
-        
-        if (isAuthenticated)
-        {
-            currentUser = await AuthService.GetCurrentUserAsync();
-        }
-        else
-        {
-            currentUser = null;
-        }
-        
         StateHasChanged();
     }
 
@@ -134,6 +134,8 @@
 
     private async Task SelectPackage(PackageResponse package)
     {
+        var currentUser = UsersState.Value.CurrentUser;
+        
         if (currentUser == null)
         {
             Snackbar.Add("User not found. Please log in again.", MudBlazor.Severity.Error);
@@ -170,9 +172,6 @@
 
             // Dispatch update user profile action - this will handle DB update and local storage
             Dispatcher.Dispatch(new UpdateUserProfileAction(updateRequest));
-
-            // Update local current user reference
-            currentUser.Package = package;
             
             Snackbar.Add($"Successfully selected: {package.Name}", MudBlazor.Severity.Success);
         }

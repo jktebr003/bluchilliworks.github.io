@@ -25,6 +25,10 @@
                             <div class="mb-2">
                                 <MudText Typo="Typo.caption">* indicates a required field</MudText>
                             </div>
+                            @if (!string.IsNullOrEmpty(AuthState.Value.ErrorMessage))
+                            {
+                                <MudAlert Severity="Severity.Error" Class="mb-3">@AuthState.Value.ErrorMessage</MudAlert>
+                            }
                             <EditForm Model="loginModel" OnValidSubmit="OnLogin">
                                 <DataAnnotationsValidator />
                                 <ValidationSummary />
