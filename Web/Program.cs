@@ -43,6 +43,7 @@ builder.Services.AddMudServicesWithExtensions();
 
 builder.Services.AddSingleton<DeviceService>();
 builder.Services.AddSingleton<GeoLocationService>();
+builder.Services.AddSingleton<BusyDialogService>();
 
 // HTTP Client
 builder.Services.AddHttpClient<WebApiClient>(client =>

@@ -1,0 +1,45 @@
+@using Web.Services
+@implements IDisposable
+@inject BusyDialogService BusyDialogService
+
+<MudDialog @bind-Visible="isVisible" Options="dialogOptions">
+    <DialogContent>
+        <div class="d-flex flex-column align-center justify-center pa-4">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+            <MudText Typo="Typo.body1" Class="mt-4">@currentMessage</MudText>
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private bool isVisible;
+    private string currentMessage = "Loading...";
+    
+    private DialogOptions dialogOptions = new()
+    {
+        BackdropClick = false,
+        NoHeader = true,
+        CloseButton = false,
+        MaxWidth = MaxWidth.Small,
+        FullWidth = false
+    };
+
+    protected override void OnInitialized()
+    {
+        isVisible = BusyDialogService.IsBusy;
+        currentMessage = BusyDialogService.Message;
+        BusyDialogService.OnChange += OnBusyDialogStateChanged;
+    }
+
+    private async void OnBusyDialogStateChanged()
+    {
+        isVisible = BusyDialogService.IsBusy;
+        currentMessage = BusyDialogService.Message;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        BusyDialogService.OnChange -= OnBusyDialogStateChanged;
+    }
+}
