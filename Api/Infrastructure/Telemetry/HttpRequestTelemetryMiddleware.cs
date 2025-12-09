@@ -38,8 +38,9 @@ public class HttpRequestTelemetryMiddleware
         var methodEmoticon = GetMethodEmoticon(requestMethod);
         Console.WriteLine($"{methodEmoticon} [{requestId}] {requestMethod} {requestPath} - Request started");
 
-        // Capture and log request body for POST requests
-        if (requestMethod.Equals("POST", StringComparison.OrdinalIgnoreCase))
+        // Capture and log request body for POST and PUT requests
+        if (requestMethod.Equals("POST", StringComparison.OrdinalIgnoreCase) ||
+            requestMethod.Equals("PUT", StringComparison.OrdinalIgnoreCase))
         {
             await LogRequestBodyAsync(context, requestId);
         }
