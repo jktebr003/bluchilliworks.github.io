@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 
 namespace Api.Infrastructure.Telemetry;
 
@@ -10,12 +11,22 @@ public class HttpRequestTelemetryMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<HttpRequestTelemetryMiddleware> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HttpRequestTelemetryMiddleware"/> class.
+    /// </summary>
+    /// <param name="next">The next middleware in the pipeline.</param>
+    /// <param name="logger">The logger instance.</param>
     public HttpRequestTelemetryMiddleware(RequestDelegate next, ILogger<HttpRequestTelemetryMiddleware> logger)
     {
         _next = next;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Invokes the middleware to log HTTP request telemetry.
+    /// </summary>
+    /// <param name="context">The HTTP context.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -26,6 +37,12 @@ public class HttpRequestTelemetryMiddleware
         // Log incoming request with appropriate emoticon
         var methodEmoticon = GetMethodEmoticon(requestMethod);
         Console.WriteLine($"{methodEmoticon} [{requestId}] {requestMethod} {requestPath} - Request started");
+
+        // Capture and log request body for POST requests
+        if (requestMethod.Equals("POST", StringComparison.OrdinalIgnoreCase))
+        {
+            await LogRequestBodyAsync(context, requestId);
+        }
 
         try
         {
@@ -56,6 +73,43 @@ public class HttpRequestTelemetryMiddleware
 
             // Re-throw to let the error handling middleware process it
             throw;
+        }
+    }
+
+    private async Task LogRequestBodyAsync(HttpContext context, string requestId)
+    {
+        try
+        {
+            // Enable buffering so the request body can be read multiple times
+            context.Request.EnableBuffering();
+
+            // Read the request body
+            using var reader = new StreamReader(
+                context.Request.Body,
+                encoding: Encoding.UTF8,
+                detectEncodingFromByteOrderMarks: false,
+                bufferSize: 1024,
+                leaveOpen: true);
+
+            var body = await reader.ReadToEndAsync();
+
+            // Reset the request body stream position so it can be read again by downstream middleware
+            context.Request.Body.Position = 0;
+
+            // Log the request body
+            if (!string.IsNullOrWhiteSpace(body))
+            {
+                Console.WriteLine($"📝 [{requestId}] Request Body: {body}");
+            }
+            else
+            {
+                Console.WriteLine($"📝 [{requestId}] Request Body: (empty)");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log any errors reading the body, but don't fail the request
+            Console.WriteLine($"⚠️ [{requestId}] Failed to read request body: {ex.Message}");
         }
     }
 
