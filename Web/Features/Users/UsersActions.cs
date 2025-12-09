@@ -1,4 +1,5 @@
 using Shared.Models;
+using Shared.Enums;
 
 namespace Web.Features.Users;
 
@@ -14,3 +15,14 @@ public record LoadUserProfileFailedAction(string ErrorMessage);
 public record UpdateUserProfileAction(UpdateUserRequest Request);
 public record UpdateUserProfileSuccessAction(UserResponse User);
 public record UpdateUserProfileFailedAction(string ErrorMessage);
+
+// User details actions (for Staff)
+public record LoadUserDetailsAction(string UserId, string? RequestingUserId);
+public record LoadUserDetailsSuccessAction(UserDetailsResponse User);
+public record LoadUserDetailsFailedAction(string ErrorMessage);
+public record ChangeUserPasswordAction(string UserId, string NewPassword, string? RequestingUserId);
+public record ChangeUserPasswordSuccessAction(string Message);
+public record ChangeUserPasswordFailedAction(string ErrorMessage);
+public record ChangeUserRoleAction(string UserId, UserType NewRole, string? RequestingUserId);
+public record ChangeUserRoleSuccessAction(string Message);
+public record ChangeUserRoleFailedAction(string ErrorMessage);

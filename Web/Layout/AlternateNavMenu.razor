@@ -58,27 +58,27 @@
                             <span class="bi bi-posts-nav-menu" aria-hidden="true"></span> Posts
                         </NavLink>
                     </div>
-
-                    @* Show Profile menu only for Customer users *@
-                    @if (currentUser?.UserRole == global::Shared.Enums.UserType.Customer)
-                    {
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="profile">
-                                <span class="bi bi-profile-nav-menu" aria-hidden="true"></span> Profile
-                            </NavLink>
-                        </div>
-                    }
-
-                    @* Show Users menu only for Staff users *@
-                    @if (currentUser?.UserRole == global::Shared.Enums.UserType.Staff)
-                    {
-                        <div class="nav-item px-3">
-                            <NavLink class="nav-link" href="users">
-                                <span class="bi bi-users-nav-menu" aria-hidden="true"></span> Users
-                            </NavLink>
-                        </div>
-                    }
                 }
+
+                @* Show Profile menu only for Customer users *@
+                @if (currentUser?.UserRole == global::Shared.Enums.UserType.Customer)
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="profile">
+                            <span class="bi bi-profile-nav-menu" aria-hidden="true"></span> Profile
+                        </NavLink>
+                    </div>
+                }
+
+                @* Show Users menu only for Staff users *@
+                @if (currentUser?.UserRole == global::Shared.Enums.UserType.Staff)
+                {
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="users">
+                            <span class="bi bi-users-nav-menu" aria-hidden="true"></span> Users
+                        </NavLink>
+                    </div>
+                }                
             </nav>
         </div>
     </div>

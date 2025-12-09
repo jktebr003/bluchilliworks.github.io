@@ -1,0 +1,327 @@
+@page "/users/{UserId}/details"
+
+@using MudBlazor
+@using global::Shared.Models
+@using global::Shared.Enums
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@using Web.Features.Authentication
+@implements IDisposable
+
+@inject IState<UsersState> UsersState
+@inject IState<Web.Features.Authentication.AuthenticationState> AuthState
+@inject IAuthenticationService AuthService
+@inject IDispatcher Dispatcher
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+@inherits FluxorComponent
+
+<div class="div-page-content">
+    <span class="heading-meta">User Management</span>
+    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">User Details</MudText>
+
+    @if (showSuccessAlert)
+    {
+        <MudAlert Severity="MudBlazor.Severity.Success"
+                  Class="mb-4" 
+                  ShowCloseIcon="true"
+                  CloseIcon="@Icons.Material.Filled.Close" 
+                  CloseIconClicked="@(() => showSuccessAlert = false)">
+            @successMessage
+        </MudAlert>
+    }
+
+    @if (showErrorAlert && !string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
+    {
+        <MudAlert Severity="MudBlazor.Severity.Error" 
+                  Class="mb-4"
+                  ShowCloseIcon="true"
+                  CloseIcon="@Icons.Material.Filled.Close" 
+                  CloseIconClicked="@(() => showErrorAlert = false)">
+            @UsersState.Value.ErrorMessage
+        </MudAlert>
+    }
+
+    @if (UsersState.Value.IsLoadingDetails)
+    {
+        <div class="text-center py-5">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            <MudText Typo="Typo.body1" Class="mt-3">Loading user details...</MudText>
+        </div>
+    }
+    else if (UsersState.Value.UserDetails == null)
+    {
+        <MudAlert Severity="MudBlazor.Severity.Warning">
+            User details not found.
+        </MudAlert>
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Primary" 
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   OnClick="@(() => NavigationManager.NavigateTo("/users"))"
+                   Class="mt-3">
+            Back to Users
+        </MudButton>
+    }
+    else
+    {
+        var user = UsersState.Value.UserDetails;
+
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <div class="d-flex justify-space-between align-center mb-3">
+                <MudText Typo="Typo.h6">User Information</MudText>
+                <MudButton Variant="Variant.Text" 
+                           Color="Color.Primary" 
+                           StartIcon="@Icons.Material.Filled.ArrowBack"
+                           OnClick="@(() => NavigationManager.NavigateTo("/users"))">
+                    Back to Users
+                </MudButton>
+            </div>
+
+            <MudDivider Class="mb-3" />
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Name</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@(user.Name ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Username</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@(user.Username ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Email Address</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@(user.EmailAddress ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Email Verified</MudText>
+                    <MudChip T="string" 
+                             Color="@(user.EmailVerified ? Color.Success : Color.Warning)" 
+                             Size="Size.Small">
+                        @(user.EmailVerified ? "Verified" : "Not Verified")
+                    </MudChip>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Email Verification Token</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3" Style="word-break: break-all;">
+                        @(user.EmailVerificationToken ?? "N/A")
+                    </MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Email Verification Token Expiry</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@(user.EmailVerificationTokenExpiry ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">User Deleted</MudText>
+                    <MudChip T="string" 
+                             Color="@(user.IsDeleted ? Color.Error : Color.Success)" 
+                             Size="Size.Small">
+                        @(user.IsDeleted ? "Yes" : "No")
+                    </MudChip>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">User Role</MudText>
+                    <MudChip T="string" 
+                             Color="@GetUserRoleColor(user.UserRole)" 
+                             Size="Size.Small">
+                        @GetUserRoleDisplayName(user.UserRole)
+                    </MudChip>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Hashed Password</MudText>
+                    <MudText Typo="Typo.body2" Class="mb-3" Style="word-break: break-all; font-family: monospace; font-size: 0.75rem;">
+                        @(user.HashedPassword ?? "N/A")
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <!-- Actions Section -->
+        <MudPaper Class="pa-4 mb-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">User Management Actions</MudText>
+            <MudDivider Class="mb-3" />
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Outlined="true">
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Change Password</MudText>
+                        <MudButton Variant="Variant.Filled" 
+                                   Color="Color.Primary" 
+                                   StartIcon="@Icons.Material.Filled.Password"
+                                   OnClick="OpenChangePasswordDialog"
+                                   FullWidth="true">
+                            Change Password
+                        </MudButton>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Outlined="true">
+                        <MudText Typo="Typo.subtitle1" Class="mb-2">Change User Role</MudText>
+                        <MudButton Variant="Variant.Filled" 
+                                   Color="Color.Secondary" 
+                                   StartIcon="@Icons.Material.Filled.PersonAdd"
+                                   OnClick="OpenChangeRoleDialog"
+                                   FullWidth="true">
+                            Change Role
+                        </MudButton>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <!-- Audit Information -->
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">Audit Information</MudText>
+            <MudDivider Class="mb-3" />
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Created On</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@(user.CreatedOn ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Created By</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@(user.CreatedBy ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Modified On</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@(user.ModifiedOn ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Modified By</MudText>
+                    <MudText Typo="Typo.body1" Class="mb-3">@(user.ModifiedBy ?? "N/A")</MudText>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    private bool showSuccessAlert = false;
+    private bool showErrorAlert = false;
+    private string successMessage = string.Empty;
+    private string? currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // Subscribe to state changes
+        UsersState.StateChanged += OnStateChanged;
+
+        // Get current user
+        var currentUser = await AuthService.GetCurrentUserAsync();
+        currentUserId = currentUser?.ID;
+
+        // Verify user is staff
+        if (!await IsStaffUser())
+        {
+            Snackbar.Add("You must be a staff member to view user details", MudBlazor.Severity.Error);
+            NavigationManager.NavigateTo("/users");
+            return;
+        }
+
+        // Load user details
+        Dispatcher.Dispatch(new LoadUserDetailsAction(UserId, currentUserId));
+    }
+
+    private void OnStateChanged(object? sender, EventArgs e)
+    {
+        if (!string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
+        {
+            showErrorAlert = true;
+            showSuccessAlert = false;
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<bool> IsStaffUser()
+    {
+        var currentUser = await AuthService.GetCurrentUserAsync();
+        return currentUser?.UserRole == UserType.Staff;
+    }
+
+    private async Task OpenChangePasswordDialog()
+    {
+        var parameters = new DialogParameters<ChangePasswordDialog>
+        {
+            { x => x.UserId, UserId },
+            { x => x.Username, UsersState.Value.UserDetails?.Username ?? "User" }
+        };
+
+        var options = new DialogOptions 
+        { 
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<ChangePasswordDialog>("Change User Password", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is string newPassword)
+        {
+            Dispatcher.Dispatch(new ChangeUserPasswordAction(UserId, newPassword, currentUserId));
+            showSuccessAlert = true;
+            successMessage = "Password changed successfully!";
+            showErrorAlert = false;
+        }
+    }
+
+    private async Task OpenChangeRoleDialog()
+    {
+        var parameters = new DialogParameters<ChangeRoleDialog>
+        {
+            { x => x.UserId, UserId },
+            { x => x.Username, UsersState.Value.UserDetails?.Username ?? "User" },
+            { x => x.CurrentRole, UsersState.Value.UserDetails?.UserRole ?? UserType.None }
+        };
+
+        var options = new DialogOptions 
+        { 
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<ChangeRoleDialog>("Change User Role", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled && result.Data is UserType newRole)
+        {
+            Dispatcher.Dispatch(new ChangeUserRoleAction(UserId, newRole, currentUserId));
+            showSuccessAlert = true;
+            successMessage = "User role changed successfully!";
+            showErrorAlert = false;
+        }
+    }
+
+    private string GetUserRoleDisplayName(UserType role)
+    {
+        return role switch
+        {
+            UserType.Customer => "Customer",
+            UserType.Staff => "Staff",
+            _ => "Unknown"
+        };
+    }
+
+    private Color GetUserRoleColor(UserType role)
+    {
+        return role switch
+        {
+            UserType.Customer => Color.Primary,
+            UserType.Staff => Color.Secondary,
+            _ => Color.Default
+        };
+    }
+
+    public void Dispose()
+    {
+        UsersState.StateChanged -= OnStateChanged;
+    }
+}

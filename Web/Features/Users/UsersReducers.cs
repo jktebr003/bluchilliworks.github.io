@@ -103,4 +103,96 @@ public static class UsersReducers
             ErrorMessage = action.ErrorMessage
         };
     }
+
+    // User Details Reducers (for Staff)
+    [ReducerMethod(typeof(LoadUserDetailsAction))]
+    public static UsersState ReduceLoadUserDetailsAction(UsersState state)
+    {
+        return state with
+        {
+            IsLoadingDetails = true,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceLoadUserDetailsSuccessAction(UsersState state, LoadUserDetailsSuccessAction action)
+    {
+        return state with
+        {
+            IsLoadingDetails = false,
+            UserDetails = action.User,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceLoadUserDetailsFailedAction(UsersState state, LoadUserDetailsFailedAction action)
+    {
+        return state with
+        {
+            IsLoadingDetails = false,
+            ErrorMessage = action.ErrorMessage
+        };
+    }
+
+    [ReducerMethod(typeof(ChangeUserPasswordAction))]
+    public static UsersState ReduceChangeUserPasswordAction(UsersState state)
+    {
+        return state with
+        {
+            IsLoadingDetails = true,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceChangeUserPasswordSuccessAction(UsersState state, ChangeUserPasswordSuccessAction action)
+    {
+        return state with
+        {
+            IsLoadingDetails = false,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceChangeUserPasswordFailedAction(UsersState state, ChangeUserPasswordFailedAction action)
+    {
+        return state with
+        {
+            IsLoadingDetails = false,
+            ErrorMessage = action.ErrorMessage
+        };
+    }
+
+    [ReducerMethod(typeof(ChangeUserRoleAction))]
+    public static UsersState ReduceChangeUserRoleAction(UsersState state)
+    {
+        return state with
+        {
+            IsLoadingDetails = true,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceChangeUserRoleSuccessAction(UsersState state, ChangeUserRoleSuccessAction action)
+    {
+        return state with
+        {
+            IsLoadingDetails = false,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceChangeUserRoleFailedAction(UsersState state, ChangeUserRoleFailedAction action)
+    {
+        return state with
+        {
+            IsLoadingDetails = false,
+            ErrorMessage = action.ErrorMessage
+        };
+    }
 }

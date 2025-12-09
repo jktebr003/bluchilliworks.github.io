@@ -151,4 +151,120 @@ public class UsersEffects
             dispatcher.Dispatch(new UpdateUserProfileFailedAction($"Error updating user profile: {ex.Message}"));
         }
     }
+
+    [EffectMethod]
+    public async Task HandleLoadUserDetails(LoadUserDetailsAction action, IDispatcher dispatcher)
+    {
+        try
+        {
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new LoadUserDetailsFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
+            var result = await _apiClient.Get<ApiResult<UserDetailsResponse>>(
+                new WebApiClientInfo<object>
+                {
+                    Method = $"/users/{action.UserId}/details",
+                    Request = $"?requestingUserId={action.RequestingUserId}"
+                }
+            );
+
+            if (result?.Success == true && result.Value != null)
+            {
+                dispatcher.Dispatch(new LoadUserDetailsSuccessAction(result.Value));
+            }
+            else
+            {
+                dispatcher.Dispatch(new LoadUserDetailsFailedAction(result?.Message ?? "Failed to load user details"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new LoadUserDetailsFailedAction($"Error loading user details: {ex.Message}"));
+        }
+    }
+
+    [EffectMethod]
+    public async Task HandleChangeUserPassword(ChangeUserPasswordAction action, IDispatcher dispatcher)
+    {
+        try
+        {
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new ChangeUserPasswordFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
+            var request = new ChangeUserPasswordRequest
+            {
+                NewPassword = action.NewPassword,
+                RequestingUserId = action.RequestingUserId
+            };
+
+            var result = await _apiClient.Put<ChangeUserPasswordRequest, ApiResult<string>>(
+                new WebApiClientInfo<ChangeUserPasswordRequest>
+                {
+                    Method = $"/users/{action.UserId}/password",
+                    Request = request
+                }
+            );
+
+            if (result?.Success == true)
+            {
+                dispatcher.Dispatch(new ChangeUserPasswordSuccessAction(result.Value ?? "Password changed successfully"));
+            }
+            else
+            {
+                dispatcher.Dispatch(new ChangeUserPasswordFailedAction(result?.Message ?? "Failed to change password"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new ChangeUserPasswordFailedAction($"Error changing password: {ex.Message}"));
+        }
+    }
+
+    [EffectMethod]
+    public async Task HandleChangeUserRole(ChangeUserRoleAction action, IDispatcher dispatcher)
+    {
+        try
+        {
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new ChangeUserRoleFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
+            var request = new ChangeUserRoleRequest
+            {
+                NewRole = action.NewRole,
+                RequestingUserId = action.RequestingUserId
+            };
+
+            var result = await _apiClient.Put<ChangeUserRoleRequest, ApiResult<string>>(
+                new WebApiClientInfo<ChangeUserRoleRequest>
+                {
+                    Method = $"/users/{action.UserId}/role",
+                    Request = request
+                }
+            );
+
+            if (result?.Success == true)
+            {
+                dispatcher.Dispatch(new ChangeUserRoleSuccessAction(result.Value ?? "Role changed successfully"));
+                // Reload user details to show updated role
+                dispatcher.Dispatch(new LoadUserDetailsAction(action.UserId, action.RequestingUserId));
+            }
+            else
+            {
+                dispatcher.Dispatch(new ChangeUserRoleFailedAction(result?.Message ?? "Failed to change role"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new ChangeUserRoleFailedAction($"Error changing role: {ex.Message}"));
+        }
+    }
 }

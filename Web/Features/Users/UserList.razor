@@ -11,6 +11,7 @@
 @inject IDispatcher Dispatcher
 @inject ISnackbar Snackbar
 @inject DeviceService DeviceService
+@inject NavigationManager NavigationManager
 
 @inherits FluxorComponent
 
@@ -200,8 +201,7 @@
 
     private void ViewUserDetails(UserResponse user)
     {
-        Snackbar.Add($"Viewing details for: {user.Name ?? user.Username}", MudBlazor.Severity.Info);
-        // TODO: Navigate to user details page or open dialog
+        NavigationManager.NavigateTo($"/users/{user.ID}/details");
     }
 
     private string GetInitials(string name)
