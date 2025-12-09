@@ -18,6 +18,13 @@ public class PostsEffects
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new LoadPostsFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
             var result = await _apiClient.Get<PagedApiResult<List<PostResponse>>>(
                 new WebApiClientInfo<object> 
                 { 
@@ -58,6 +65,13 @@ public class PostsEffects
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new LoadPostDetailFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
             var result = await _apiClient.Get<ApiResult<PostResponse>>(
                 new WebApiClientInfo<object> 
                 { 
@@ -86,6 +100,13 @@ public class PostsEffects
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new UpdatePostFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
             var result = await _apiClient.Put<UpdatePostRequest, ApiResult<string>>(
                 new WebApiClientInfo<UpdatePostRequest>
                 {
@@ -115,6 +136,13 @@ public class PostsEffects
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new CreatePostFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
             var result = await _apiClient.Post<CreatePostRequest, ApiResult<string>>(
                 new WebApiClientInfo<CreatePostRequest>
                 {

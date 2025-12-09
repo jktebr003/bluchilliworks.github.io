@@ -21,6 +21,13 @@ public class UsersEffects
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new LoadUsersFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
             var result = await _apiClient.Get<PagedApiResult<List<UserResponse>>>(
                 new WebApiClientInfo<object> 
                 { 
@@ -61,6 +68,13 @@ public class UsersEffects
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new LoadUserProfileFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
             var result = await _apiClient.Get<ApiResult<UserResponse>>(
                 new WebApiClientInfo<object>
                 {
@@ -89,6 +103,13 @@ public class UsersEffects
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new UpdateUserProfileFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
             var result = await _apiClient.Put<UpdateUserRequest, ApiResult<string>>(
                 new WebApiClientInfo<UpdateUserRequest>
                 {

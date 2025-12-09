@@ -18,6 +18,13 @@ public class PricingEffects
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new LoadPackagesFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
             var result = await _apiClient.Get<PagedApiResult<List<PackageResponse>>>(
                 new WebApiClientInfo<object> { Method = "packages", Request = string.Empty }
             );

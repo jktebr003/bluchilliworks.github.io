@@ -114,8 +114,16 @@ public partial class AlternateLayout
 
     private async Task CheckNetworkStatus()
     {
-        if (JSRuntime is not null)
+        if (WebApiClient is not null)
+        {
+            // Use the new API health check method
+            _networkOnline = await WebApiClient.HasNetworkConnectivityAsync();
+        }
+        else if (JSRuntime is not null)
+        {
+            // Fallback to JavaScript check
             _networkOnline = await JSRuntime.InvokeAsync<bool>("Connection.IsOnline");
+        }
         StateHasChanged();
     }
 

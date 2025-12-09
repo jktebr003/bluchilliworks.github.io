@@ -71,6 +71,12 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _webApiClient.IsApiHealthyAsync())
+            {
+                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
+            }
+
             var verifyLoginRequest = new VerifyLoginRequest
             {
                 EmailAddress = username,
@@ -111,6 +117,12 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _webApiClient.IsApiHealthyAsync())
+            {
+                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
+            }
+
             // Create the user request - no password needed at registration
             var createUserRequest = new CreateUserRequest
             {
@@ -153,6 +165,12 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _webApiClient.IsApiHealthyAsync())
+            {
+                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
+            }
+
             var setPasswordRequest = new SetPasswordRequest
             {
                 EmailAddress = emailAddress,
@@ -187,6 +205,12 @@ public class AuthenticationService : IAuthenticationService
     {
         try
         {
+            // Check API connectivity before making the call
+            if (!await _webApiClient.IsApiHealthyAsync())
+            {
+                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
+            }
+
             var resendRequest = new ResendVerificationRequest
             {
                 EmailAddress = emailAddress

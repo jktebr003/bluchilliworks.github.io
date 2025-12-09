@@ -18,6 +18,59 @@ public class WebApiClient : IDisposable
         => _httpClient = httpClient;
 
     /// <summary>
+    /// Checks if the API is reachable and healthy.
+    /// </summary>
+    /// <param name="timeoutSeconds">Timeout in seconds for the health check. Default is 5 seconds.</param>
+    /// <returns>True if the API is healthy and reachable, false otherwise.</returns>
+    public async Task<bool> IsApiHealthyAsync(int timeoutSeconds = 5)
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+            using var request = new HttpRequestMessage(HttpMethod.Get, "health");
+            using var response = await _httpClient.SendAsync(request, cts.Token);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception)
+        {
+            // Any exception means the API is not reachable
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Checks if there is network connectivity by attempting to reach the API base address.
+    /// </summary>
+    /// <param name="timeoutSeconds">Timeout in seconds for the connectivity check. Default is 3 seconds.</param>
+    /// <returns>True if network is available and API endpoint is reachable, false otherwise.</returns>
+    public async Task<bool> HasNetworkConnectivityAsync(int timeoutSeconds = 3)
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+            using var request = new HttpRequestMessage(HttpMethod.Head, string.Empty);
+            using var response = await _httpClient.SendAsync(request, cts.Token);
+            // Any response (even 404) means network connectivity exists
+            return true;
+        }
+        catch (TaskCanceledException)
+        {
+            // Timeout - no connectivity or very slow network
+            return false;
+        }
+        catch (HttpRequestException)
+        {
+            // Network error - no connectivity
+            return false;
+        }
+        catch (Exception)
+        {
+            // Any other exception - assume no connectivity
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Gets using the specified method.
     /// </summary>
     public async Task<TResponse> Get<TResponse>(WebApiClientInfo<object> info)
