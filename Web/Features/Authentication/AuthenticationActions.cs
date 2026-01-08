@@ -19,4 +19,12 @@ public record ResendVerificationAction(string EmailAddress);
 public record ResendVerificationSuccessAction(bool IsSuccess);
 public record ResendVerificationFailedAction(string ErrorMessage);
 
+public record ForgotPasswordAction(string EmailAddress);
+public record ForgotPasswordSuccessAction(bool IsSuccess);
+public record ForgotPasswordFailedAction(string ErrorMessage);
+
+public record ResetPasswordAction(string EmailAddress, string ResetToken, string NewPassword);
+public record ResetPasswordSuccessAction(bool IsSuccess);
+public record ResetPasswordFailedAction(string ErrorMessage);
+
 public record AuthenticationFailedAction(string ErrorMessage);

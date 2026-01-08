@@ -30,8 +30,7 @@
                 <MudChipSet T="PackageType" 
                            SelectedValue="PricingState.Value.SelectedPackageType" 
                            SelectedValueChanged="@((PackageType value) => OnPackageTypeChanged(value))"
-                           SelectionMode="SelectionMode.SingleSelection"
-                           Filter="true"
+                           SelectionMode="SelectionMode.SingleSelection" 
                            CheckMark="true">
                     <MudChip T="PackageType" Value="@PackageType.None" Class="pricing-chip" Default="true">All Packages</MudChip>
                     <MudChip T="PackageType" Value="@PackageType.Monthly" Class="pricing-chip">Monthly</MudChip>

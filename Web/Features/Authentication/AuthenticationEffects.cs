@@ -84,4 +84,37 @@ public class AuthenticationEffects
             dispatcher.Dispatch(new ResendVerificationFailedAction(result.ErrorMessage ?? "Failed to resend verification"));
         }
     }
+
+    [EffectMethod]
+    public async Task HandleForgotPasswordAction(ForgotPasswordAction action, IDispatcher dispatcher)
+    {
+        dispatcher.Dispatch(new SetBusyAction(true));
+
+        var result = await _authService.ForgotPasswordAsync(action.EmailAddress);
+        if (result.Succeeded)
+        {
+            dispatcher.Dispatch(new ForgotPasswordSuccessAction(result.Succeeded));
+        }
+        else
+        {
+            dispatcher.Dispatch(new ForgotPasswordFailedAction(result.ErrorMessage ?? "Failed to send reset email"));
+        }
+    }
+
+    [EffectMethod]
+    public async Task HandleResetPasswordAction(ResetPasswordAction action, IDispatcher dispatcher)
+    {
+        dispatcher.Dispatch(new SetBusyAction(true));
+
+        var result = await _authService.ResetPasswordAsync(action.EmailAddress, action.ResetToken, action.NewPassword);
+        if (result.Succeeded)
+        {
+            dispatcher.Dispatch(new ResetPasswordSuccessAction(result.Succeeded));
+            _navigationManager.NavigateTo("/authentication/login?reset=success", true);
+        }
+        else
+        {
+            dispatcher.Dispatch(new ResetPasswordFailedAction(result.ErrorMessage ?? "Failed to reset password"));
+        }
+    }
 }

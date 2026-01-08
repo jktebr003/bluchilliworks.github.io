@@ -38,6 +38,12 @@ public class User : BaseAuditableEntity
     [Field("emailverificationtokenexpiry")]
     public string? EmailVerificationTokenExpiry { get; set; }
 
+    [Field("passwordresettoken")]
+    public string? PasswordResetToken { get; set; }
+
+    [Field("passwordresettokenexpiry")]
+    public string? PasswordResetTokenExpiry { get; set; }
+
     [Field("gender")]
     public string? Gender { get; set; }
 

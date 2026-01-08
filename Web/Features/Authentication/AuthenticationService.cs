@@ -18,6 +18,8 @@ public interface IAuthenticationService
     Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress);
     Task<AuthResult> SetPasswordAsync(string emailAddress, string verificationToken, string password);
     Task<AuthResult> ResendVerificationAsync(string emailAddress);
+    Task<AuthResult> ForgotPasswordAsync(string emailAddress);
+    Task<AuthResult> ResetPasswordAsync(string emailAddress, string resetToken, string newPassword);
     Task<UserResponse?> GetCurrentUserAsync();
     Task UpdateCurrentUserAsync(UserResponse user);
     Task<bool> IsUserInRoleAsync(string role);
@@ -236,6 +238,84 @@ public class AuthenticationService : IAuthenticationService
         catch (Exception ex)
         {
             return AuthResult.Failure($"Failed to resend verification: {ex.Message}");
+        }
+    }
+
+    public async Task<AuthResult> ForgotPasswordAsync(string emailAddress)
+    {
+        try
+        {
+            // Check API connectivity before making the call
+            if (!await _webApiClient.IsApiHealthyAsync())
+            {
+                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
+            }
+
+            var forgotPasswordRequest = new ForgotPasswordRequest
+            {
+                EmailAddress = emailAddress
+            };
+
+            var result = await _webApiClient.Post<ForgotPasswordRequest, ApiResult<string>>(
+                new WebApiClientInfo<ForgotPasswordRequest>
+                {
+                    Method = "/users/forgot-password",
+                    Request = forgotPasswordRequest
+                }
+            );
+
+            if (result.Success)
+            {
+                return AuthResult.Success(result.Message ?? "If an account with that email exists, you will receive a password reset link.");
+            }
+            else
+            {
+                return AuthResult.Failure(result.Message ?? "Failed to send password reset email");
+            }
+        }
+        catch (Exception ex)
+        {
+            return AuthResult.Failure($"Failed to send password reset email: {ex.Message}");
+        }
+    }
+
+    public async Task<AuthResult> ResetPasswordAsync(string emailAddress, string resetToken, string newPassword)
+    {
+        try
+        {
+            // Check API connectivity before making the call
+            if (!await _webApiClient.IsApiHealthyAsync())
+            {
+                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
+            }
+
+            var resetPasswordRequest = new ResetPasswordRequest
+            {
+                EmailAddress = emailAddress,
+                ResetToken = resetToken,
+                NewPassword = newPassword
+            };
+
+            var result = await _webApiClient.Post<ResetPasswordRequest, ApiResult<string>>(
+                new WebApiClientInfo<ResetPasswordRequest>
+                {
+                    Method = "/users/reset-password",
+                    Request = resetPasswordRequest
+                }
+            );
+
+            if (result.Success)
+            {
+                return AuthResult.Success(result.Message ?? "Your password has been reset successfully. You can now log in with your new password.");
+            }
+            else
+            {
+                return AuthResult.Failure(result.Message ?? "Failed to reset password");
+            }
+        }
+        catch (Exception ex)
+        {
+            return AuthResult.Failure($"Failed to reset password: {ex.Message}");
         }
     }
 }
