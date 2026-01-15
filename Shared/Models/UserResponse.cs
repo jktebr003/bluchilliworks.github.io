@@ -48,5 +48,9 @@ public class UserResponse : BaseResponse
 
     //public AvatarType Avatar { get; set; }
 
+    public string? Skills { get; set; }
+
+    public string? Hobbies { get; set; }
+
     public UserType UserRole { get; set; }
 }

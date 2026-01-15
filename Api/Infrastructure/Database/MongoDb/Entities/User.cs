@@ -80,4 +80,10 @@ public class User : BaseAuditableEntity
 
     [Field("usertype")]
     public int? UserType { get; set; }
+
+    [Field("skills")]
+    public string? Skills { get; set; }
+
+    [Field("hobbies")]
+    public string? Hobbies { get; set; }
 }

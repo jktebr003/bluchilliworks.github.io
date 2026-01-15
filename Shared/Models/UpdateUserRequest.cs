@@ -40,6 +40,10 @@ public class UpdateUserRequest
     public IEnumerable<QualificationResponse>? Qualifications { get; set; } = null;
 
     public IEnumerable<CertificationResponse>? Certifications { get; set; } = null;
+
+    public string? Skills { get; set; }
+
+    public string? Hobbies { get; set; }
     public UserType UserType { get; set; }
 
     public int? Avatar { get; set; } = 17;

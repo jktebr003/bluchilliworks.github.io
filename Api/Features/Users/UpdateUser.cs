@@ -31,6 +31,8 @@ public static class UpdateUser
         public IEnumerable<JobResponse>? Jobs { get; set; }
         public IEnumerable<QualificationResponse>? Qualifications { get; set; }
         public IEnumerable<CertificationResponse>? Certifications { get; set; }
+        public string? Skills { get; set; }
+        public string? Hobbies { get; set; }
         public UserType UserType { get; set; }
         public int? Avatar { get; set; } = 17;
         public DateTime ModifiedOn { get; set; } = DateTimeExtension.GetSouthAfricanTime();
@@ -197,6 +199,10 @@ public static class UpdateUser
             {
                 record.Certifications = null;
             }
+
+            // Update Skills and Hobbies
+            record.Skills = request.Skills;
+            record.Hobbies = request.Hobbies;
 
             record.ModifiedBy = request.ModifiedBy;
             record.ModifiedOn = request.ModifiedOn.ToString("o");

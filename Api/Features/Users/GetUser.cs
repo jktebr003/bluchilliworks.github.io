@@ -83,6 +83,8 @@ public static class GetUser
                     : null,
                 TelephoneNumber = data.TelephoneNumber,
                 Username = data.Username,
+                Skills = data.Skills,
+                Hobbies = data.Hobbies,
                 UserRole = data.UserType is not null ? (UserType)data.UserType : UserType.None
             };
 

@@ -615,6 +615,35 @@
                     </MudPaper>
                 </MudItem>
 
+                <!-- Hobbies & Interests Section -->
+                <MudItem xs="12">
+                    <MudPaper Class="pa-4 mb-4" Elevation="2">
+                        <MudText Typo="Typo.h6" Class="mb-4">
+                            <MudIcon Icon="@Icons.Material.Filled.FavoriteBorder" Class="mr-2" />
+                            Hobbies & Interests
+                        </MudText>
+                        @if (isEditMode)
+                        {
+                            <MudTextField @bind-Value="hobbiesText"
+                                        Label="Hobbies & Interests"
+                                        Variant="Variant.Outlined"
+                                        Lines="6"
+                                        Placeholder="Enter your hobbies and interests (e.g., Reading, Hiking, Photography, Gaming, etc.)" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                                Enter hobbies separated by commas or line breaks
+                            </MudText>
+                        }
+                        else
+                        {
+                            <div class="detail-field">
+                                <MudPaper Class="pa-3 content-display" Elevation="0">
+                                    <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@(hobbiesText ?? "No hobbies specified")</MudText>
+                                </MudPaper>
+                            </div>
+                        }
+                    </MudPaper>
+                </MudItem>
+
             </MudGrid>
         </MudForm>
     }
@@ -630,6 +659,8 @@
     private DateTime? originalDateOfBirth;
     private string? skillsText;
     private string? originalSkillsText;
+    private string? hobbiesText;
+    private string? originalHobbiesText;
 
     private List<JobResponse> jobs = new();
     private List<QualificationResponse> qualifications = new();
@@ -672,6 +703,8 @@
                 Package = authenticatedUser.Package,
                 Username = authenticatedUser.Username,
                 UserRole = authenticatedUser.UserRole,
+                Skills = authenticatedUser.Skills,
+                Hobbies = authenticatedUser.Hobbies,
                 @* DecryptedPassword = authenticatedUser.DecryptedPassword,
                 EncryptedPassword = authenticatedUser.EncryptedPassword *@
             };
@@ -682,6 +715,10 @@
             {
                 dateOfBirth = dob;
             }
+
+            // Load Skills and Hobbies
+            skillsText = currentUser.Skills;
+            hobbiesText = currentUser.Hobbies;
 
             // Load existing data
             jobs = authenticatedUser.Jobs?.ToList() ?? new List<JobResponse>();
@@ -731,6 +768,7 @@
         
         originalDateOfBirth = dateOfBirth;
         originalSkillsText = skillsText;
+        originalHobbiesText = hobbiesText;
         originalJobs = jobs.Select(j => new JobResponse
         {
             ID = j.ID,
@@ -777,6 +815,7 @@
         
         dateOfBirth = originalDateOfBirth;
         skillsText = originalSkillsText;
+        hobbiesText = originalHobbiesText;
         jobs = originalJobs.Select(j => new JobResponse
         {
             ID = j.ID,
@@ -932,6 +971,8 @@
             Jobs = jobs,
             Qualifications = qualifications,
             Certifications = certifications,
+            Skills = skillsText,
+            Hobbies = hobbiesText,
             Username = currentUser.Username,
             UserType = currentUser.UserRole,
             @* DecryptedPassword = currentUser.DecryptedPassword,
@@ -987,6 +1028,10 @@
                 {
                     dateOfBirth = dob;
                 }
+
+                // Update Skills and Hobbies
+                skillsText = currentUser.Skills;
+                hobbiesText = currentUser.Hobbies;
             }
 
             // Show alerts after update completes
