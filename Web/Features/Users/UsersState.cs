@@ -1,5 +1,6 @@
 using Fluxor;
 using Shared.Models;
+using Shared.Enums;
 
 namespace Web.Features.Users;
 
@@ -16,6 +17,16 @@ public record UsersState
     public int PageSize { get; init; } = 10;
     public int TotalItems { get; init; }
     public int TotalPages { get; init; }
+    
+    // Search filter properties
+    public string? SearchQuery { get; init; }
+    public UserType? RoleFilter { get; init; }
+    public string? GenderFilter { get; init; }
+    public string? PackageFilter { get; init; }
+    public bool? EmailVerifiedFilter { get; init; }
+    public DateTime? DateOfBirthFrom { get; init; }
+    public DateTime? DateOfBirthTo { get; init; }
+    public bool IsSearchActive { get; init; }
 }
 
 public class UsersFeatureState : Feature<UsersState>

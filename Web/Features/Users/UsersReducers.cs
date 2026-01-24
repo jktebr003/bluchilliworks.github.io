@@ -195,4 +195,81 @@ public static class UsersReducers
             ErrorMessage = action.ErrorMessage
         };
     }
+
+    // Search Reducers
+    [ReducerMethod]
+    public static UsersState ReduceUpdateSearchFiltersAction(UsersState state, UpdateSearchFiltersAction action)
+    {
+        return state with
+        {
+            SearchQuery = action.SearchQuery,
+            RoleFilter = action.RoleFilter,
+            GenderFilter = action.GenderFilter,
+            PackageFilter = action.PackageFilter,
+            EmailVerifiedFilter = action.EmailVerifiedFilter,
+            DateOfBirthFrom = action.DateOfBirthFrom,
+            DateOfBirthTo = action.DateOfBirthTo,
+            IsSearchActive = !string.IsNullOrWhiteSpace(action.SearchQuery) ||
+                           action.RoleFilter.HasValue ||
+                           !string.IsNullOrWhiteSpace(action.GenderFilter) ||
+                           !string.IsNullOrWhiteSpace(action.PackageFilter) ||
+                           action.EmailVerifiedFilter.HasValue ||
+                           action.DateOfBirthFrom.HasValue ||
+                           action.DateOfBirthTo.HasValue,
+            CurrentPage = 1 // Reset to first page when filters change
+        };
+    }
+
+    [ReducerMethod(typeof(SearchUsersAction))]
+    public static UsersState ReduceSearchUsersAction(UsersState state)
+    {
+        return state with
+        {
+            IsLoading = true,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceSearchUsersSuccessAction(UsersState state, SearchUsersSuccessAction action)
+    {
+        return state with
+        {
+            IsLoading = false,
+            Users = action.Users,
+            TotalItems = action.TotalItems,
+            TotalPages = action.TotalPages,
+            CurrentPage = action.PageNumber,
+            PageSize = action.PageSize,
+            ErrorMessage = null
+        };
+    }
+
+    [ReducerMethod]
+    public static UsersState ReduceSearchUsersFailedAction(UsersState state, SearchUsersFailedAction action)
+    {
+        return state with
+        {
+            IsLoading = false,
+            ErrorMessage = action.ErrorMessage,
+            Users = new List<UserResponse>()
+        };
+    }
+
+    [ReducerMethod(typeof(ClearSearchFiltersAction))]
+    public static UsersState ReduceClearSearchFiltersAction(UsersState state)
+    {
+        return state with
+        {
+            SearchQuery = null,
+            RoleFilter = null,
+            GenderFilter = null,
+            PackageFilter = null,
+            EmailVerifiedFilter = null,
+            DateOfBirthFrom = null,
+            DateOfBirthTo = null,
+            IsSearchActive = false,
+            CurrentPage = 1
+        };
+    }
 }

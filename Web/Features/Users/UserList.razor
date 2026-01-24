@@ -19,6 +19,9 @@
     <span class="heading-meta">Users</span>
     <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">User Directory</MudText>
 
+    <!-- Search Component -->
+    <UserSearch />
+
     <div class="ttl-users">
         <!-- Loading State -->
         @if (UsersState.Value.IsLoading)
@@ -196,7 +199,15 @@
 
     private void OnPageChanged(int page)
     {
-        Dispatcher.Dispatch(new ChangePageAction(page));
+        // If search is active, trigger search with new page, otherwise load users normally
+        if (UsersState.Value.IsSearchActive)
+        {
+            Dispatcher.Dispatch(new SearchUsersAction(page, UsersState.Value.PageSize));
+        }
+        else
+        {
+            Dispatcher.Dispatch(new ChangePageAction(page));
+        }
     }
 
     private void ViewUserDetails(UserResponse user)

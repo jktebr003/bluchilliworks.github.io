@@ -8,6 +8,21 @@ public record LoadUsersSuccessAction(List<UserResponse> Users, int TotalItems, i
 public record LoadUsersFailedAction(string ErrorMessage);
 public record ChangePageAction(int PageNumber);
 
+// Search actions
+public record UpdateSearchFiltersAction(
+    string? SearchQuery = null,
+    UserType? RoleFilter = null,
+    string? GenderFilter = null,
+    string? PackageFilter = null,
+    bool? EmailVerifiedFilter = null,
+    DateTime? DateOfBirthFrom = null,
+    DateTime? DateOfBirthTo = null
+);
+public record SearchUsersAction(int PageNumber = 1, int PageSize = 10);
+public record SearchUsersSuccessAction(List<UserResponse> Users, int TotalItems, int TotalPages, int PageNumber, int PageSize);
+public record SearchUsersFailedAction(string ErrorMessage);
+public record ClearSearchFiltersAction;
+
 // Profile actions
 public record LoadUserProfileAction(string UserId);
 public record LoadUserProfileSuccessAction(UserResponse User);

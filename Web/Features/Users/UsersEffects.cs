@@ -9,11 +9,13 @@ public class UsersEffects
 {
     private readonly WebApiClient _apiClient;
     private readonly IAuthenticationService _authService;
+    private readonly IState<UsersState> _usersState;
 
-    public UsersEffects(WebApiClient apiClient, IAuthenticationService authService)
+    public UsersEffects(WebApiClient apiClient, IAuthenticationService authService, IState<UsersState> usersState)
     {
         _apiClient = apiClient;
         _authService = authService;
+        _usersState = usersState;
     }
 
     [EffectMethod]
@@ -266,5 +268,99 @@ public class UsersEffects
         {
             dispatcher.Dispatch(new ChangeUserRoleFailedAction($"Error changing role: {ex.Message}"));
         }
+    }
+
+    [EffectMethod]
+    public async Task HandleSearchUsers(SearchUsersAction action, IDispatcher dispatcher)
+    {
+        try
+        {
+            // Check API connectivity before making the call
+            if (!await _apiClient.IsApiHealthyAsync())
+            {
+                dispatcher.Dispatch(new SearchUsersFailedAction("Unable to connect to the API. Please check your network connection."));
+                return;
+            }
+
+            // Get current state to access search filters
+            var state = await GetCurrentStateAsync();
+            
+            // Build query string with search filters
+            var queryParams = new List<string>
+            {
+                $"pageSize={action.PageSize}",
+                $"pageNumber={action.PageNumber}"
+            };
+
+            if (!string.IsNullOrWhiteSpace(state.SearchQuery))
+            {
+                queryParams.Add($"search={Uri.EscapeDataString(state.SearchQuery)}");
+            }
+
+            if (state.RoleFilter.HasValue)
+            {
+                queryParams.Add($"role={state.RoleFilter.Value}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(state.GenderFilter))
+            {
+                queryParams.Add($"gender={Uri.EscapeDataString(state.GenderFilter)}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(state.PackageFilter))
+            {
+                queryParams.Add($"package={Uri.EscapeDataString(state.PackageFilter)}");
+            }
+
+            if (state.EmailVerifiedFilter.HasValue)
+            {
+                queryParams.Add($"emailVerified={state.EmailVerifiedFilter.Value}");
+            }
+
+            if (state.DateOfBirthFrom.HasValue)
+            {
+                queryParams.Add($"dobFrom={state.DateOfBirthFrom.Value:yyyy-MM-dd}");
+            }
+
+            if (state.DateOfBirthTo.HasValue)
+            {
+                queryParams.Add($"dobTo={state.DateOfBirthTo.Value:yyyy-MM-dd}");
+            }
+
+            var queryString = string.Join("&", queryParams);
+
+            var result = await _apiClient.Get<PagedApiResult<List<UserResponse>>>(
+                new WebApiClientInfo<object> 
+                { 
+                    Method = $"/users/search", 
+                    Request = $"?{queryString}"
+                }
+            );
+
+            if (result?.Success == true && result.Value != null)
+            {
+                dispatcher.Dispatch(new SearchUsersSuccessAction(
+                    result.Value,
+                    result.TotalItems,
+                    result.TotalPages,
+                    action.PageNumber,
+                    action.PageSize
+                ));
+            }
+            else
+            {
+                dispatcher.Dispatch(new SearchUsersFailedAction(result?.Message ?? "Failed to search users"));
+            }
+        }
+        catch (Exception ex)
+        {
+            dispatcher.Dispatch(new SearchUsersFailedAction($"Error searching users: {ex.Message}"));
+        }
+    }
+
+    private async Task<UsersState> GetCurrentStateAsync()
+    {
+        // Return the current state from the injected IState
+        return _usersState.Value;
     }
 }

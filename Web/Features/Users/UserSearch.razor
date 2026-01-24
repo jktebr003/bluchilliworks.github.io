@@ -1,0 +1,203 @@
+@using MudBlazor
+@using global::Shared.Enums
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+
+@inject IState<UsersState> UsersState
+@inject IDispatcher Dispatcher
+
+@inherits FluxorComponent
+
+<MudPaper Class="pa-4 mb-4" Elevation="2">
+    <MudText Typo="Typo.h6" Class="mb-3">
+        <MudIcon Icon="@Icons.Material.Filled.Search" Class="mr-2" />
+        Search Users
+    </MudText>
+
+    <MudGrid>
+        <!-- Search Query -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudTextField @bind-Value="searchQuery"
+                         Label="Search"
+                         Placeholder="Name, username, email, or mobile"
+                         Variant="Variant.Outlined"
+                         Adornment="Adornment.Start"
+                         AdornmentIcon="@Icons.Material.Filled.Search"
+                         Clearable="true"
+                         OnClearButtonClick="ClearSearchQuery" />
+        </MudItem>
+
+        <!-- Role Filter -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudSelect T="UserType?"
+                      @bind-Value="roleFilter"
+                      Label="Role"
+                      Variant="Variant.Outlined"
+                      Clearable="true"
+                      AdornmentIcon="@Icons.Material.Filled.Person"
+                      Adornment="Adornment.Start">
+                <MudSelectItem T="UserType?" Value="@null">All Roles</MudSelectItem>
+                <MudSelectItem T="UserType?" Value="@UserType.Customer">Customer</MudSelectItem>
+                <MudSelectItem T="UserType?" Value="@UserType.Staff">Staff</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+
+        <!-- Gender Filter -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudSelect T="string"
+                      @bind-Value="genderFilter"
+                      Label="Gender"
+                      Variant="Variant.Outlined"
+                      Clearable="true"
+                      AdornmentIcon="@Icons.Material.Filled.Wc"
+                      Adornment="Adornment.Start">
+                <MudSelectItem T="string" Value="@("")">All Genders</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Male")">Male</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Female")">Female</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Other")">Other</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+
+        <!-- Email Verified Filter -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudSelect T="bool?"
+                      @bind-Value="emailVerifiedFilter"
+                      Label="Email Status"
+                      Variant="Variant.Outlined"
+                      Clearable="true"
+                      AdornmentIcon="@Icons.Material.Filled.Email"
+                      Adornment="Adornment.Start">
+                <MudSelectItem T="bool?" Value="@null">All</MudSelectItem>
+                <MudSelectItem T="bool?" Value="@true">Verified</MudSelectItem>
+                <MudSelectItem T="bool?" Value="@false">Not Verified</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+
+        <!-- Package Filter -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudTextField @bind-Value="packageFilter"
+                         Label="Package"
+                         Placeholder="Package name"
+                         Variant="Variant.Outlined"
+                         Adornment="Adornment.Start"
+                         AdornmentIcon="@Icons.Material.Filled.CardMembership"
+                         Clearable="true" />
+        </MudItem>
+
+        @* <!-- Date of Birth From -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudDatePicker @bind-Date="dateOfBirthFrom"
+                          Label="Date of Birth From"
+                          Variant="Variant.Outlined"
+                          Editable="true"
+                          Clearable="true"
+                          MaxDate="DateTime.Today"
+                          AdornmentIcon="@Icons.Material.Filled.CalendarToday"
+                          Adornment="Adornment.Start" />
+        </MudItem> *@
+
+        @* <!-- Date of Birth To -->
+        <MudItem xs="12" sm="6" md="4">
+            <MudDatePicker @bind-Date="dateOfBirthTo"
+                          Label="Date of Birth To"
+                          Variant="Variant.Outlined"
+                          Editable="true"
+                          Clearable="true"
+                          MaxDate="DateTime.Today"
+                          MinDate="dateOfBirthFrom"
+                          AdornmentIcon="@Icons.Material.Filled.CalendarToday"
+                          Adornment="Adornment.Start" />
+        </MudItem> *@
+
+        <!-- Action Buttons -->
+        <MudItem xs="12" Class="d-flex justify-end gap-2">
+            <MudButton Variant="Variant.Filled"
+                      Color="Color.Primary"
+                      StartIcon="@Icons.Material.Filled.Search"
+                      OnClick="ApplySearch"
+                      Disabled="UsersState.Value.IsLoading">
+                Search
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+                      Color="Color.Secondary"
+                      StartIcon="@Icons.Material.Filled.Clear"
+                      OnClick="ClearFilters"
+                      Disabled="UsersState.Value.IsLoading || !UsersState.Value.IsSearchActive">
+                Clear Filters
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (UsersState.Value.IsSearchActive)
+    {
+        <MudChip T="string" 
+                 Color="Color.Info" 
+                 Size="Size.Small" 
+                 Class="mt-3"
+                 Icon="@Icons.Material.Filled.FilterAlt">
+            Active Search Filters
+        </MudChip>
+    }
+</MudPaper>
+
+@code {
+    private string? searchQuery;
+    private UserType? roleFilter;
+    private string? genderFilter = "";
+    private bool? emailVerifiedFilter;
+    private string? packageFilter;
+    private DateTime? dateOfBirthFrom;
+    private DateTime? dateOfBirthTo;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Initialize with current state values
+        searchQuery = UsersState.Value.SearchQuery;
+        roleFilter = UsersState.Value.RoleFilter;
+        genderFilter = UsersState.Value.GenderFilter ?? "";
+        emailVerifiedFilter = UsersState.Value.EmailVerifiedFilter;
+        packageFilter = UsersState.Value.PackageFilter;
+        dateOfBirthFrom = UsersState.Value.DateOfBirthFrom;
+        dateOfBirthTo = UsersState.Value.DateOfBirthTo;
+    }
+
+    private void ApplySearch()
+    {
+        // Update filters in state
+        Dispatcher.Dispatch(new UpdateSearchFiltersAction(
+            SearchQuery: searchQuery,
+            RoleFilter: roleFilter,
+            GenderFilter: string.IsNullOrWhiteSpace(genderFilter) ? null : genderFilter,
+            PackageFilter: packageFilter,
+            EmailVerifiedFilter: emailVerifiedFilter,
+            DateOfBirthFrom: dateOfBirthFrom,
+            DateOfBirthTo: dateOfBirthTo
+        ));
+
+        // Trigger search
+        Dispatcher.Dispatch(new SearchUsersAction());
+    }
+
+    private void ClearFilters()
+    {
+        // Reset local values
+        searchQuery = null;
+        roleFilter = null;
+        genderFilter = "";
+        emailVerifiedFilter = null;
+        packageFilter = null;
+        dateOfBirthFrom = null;
+        dateOfBirthTo = null;
+
+        // Clear filters in state and reload all users
+        Dispatcher.Dispatch(new ClearSearchFiltersAction());
+        Dispatcher.Dispatch(new LoadUsersAction());
+    }
+
+    private void ClearSearchQuery()
+    {
+        searchQuery = null;
+    }
+}
