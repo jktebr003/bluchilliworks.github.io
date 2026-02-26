@@ -1,0 +1,136 @@
+How to Push Windows Container Images to Docker Hub
+==================================================
+
+1. Tag the Image for Docker Hub
+------------------------------
+Replace `yourusername` with your Docker Hub username:
+
+    docker tag bluchilliworks-api:windows-latest yourusername/bluchilliworks-api:windows-latest
+
+2. Login to Docker Hub
+----------------------
+
+    docker login
+
+Enter your Docker Hub credentials when prompted.
+
+3. Push the Image
+-----------------
+
+    docker push yourusername/bluchilliworks-api:windows-latest
+
+4. Troubleshooting Common Issues
+-------------------------------
+- **Layer Size Limits:** Windows images are large. Docker Hub may reject layers >10GB. Try to keep your image as small as possible.
+- **Timeouts/Network Issues:** Use a stable, fast internet connection. If you get timeouts, try pushing again.
+- **Docker Hub Limits:** Free accounts have rate and storage limits. Check your account status.
+- **Windows Version Compatibility:** The host and Docker Hub must support the same Windows base image version (e.g., ltsc2022). Mismatches can cause push/pull errors.
+- **Docker Desktop Mode:** Ensure Docker Desktop is set to “Windows containers” mode.
+
+5. If Problems Persist
+---------------------
+- Try pushing from a different network.
+- Use `docker save` to export the image, then upload it to another registry or transfer it manually if needed.
+- Check Docker Hub status for outages.
+
+6. Example Commands Used
+------------------------
+
+    docker build -f Api/Dockerfile.windows -t bluchilliworks-api:windows-latest .
+    docker tag bluchilliworks-api:windows-latest yourusername/bluchilliworks-api:windows-latest
+    docker login
+    docker push yourusername/bluchilliworks-api:windows-latest
+
+If you encounter a specific error message during push, review the troubleshooting section or seek further help.
+
+
+
+Chat Details and Previous Responses
+===================================
+
+**Q: How can the API project be setup to be deployed to a Windows container?**
+
+To deploy the API project to a Windows container, you need to update the Dockerfile to use Windows base images and ensure all dependencies are compatible with Windows. Here’s how you can adapt the setup:
+
+1. Create a Windows-based Dockerfile (Api/Dockerfile.windows):
+
+    FROM mcr.microsoft.com/dotnet/sdk:9.0-windowsservercore-ltsc2022 AS build
+    WORKDIR /src
+    COPY ["BluChilliWorks.sln", "./"]
+    COPY ["Api/Api.csproj", "Api/"]
+    COPY ["Shared/Shared.csproj", "Shared/"]
+    COPY ["ServiceDefaults/ServiceDefaults.csproj", "ServiceDefaults/"]
+    RUN dotnet restore "Api/Api.csproj"
+    COPY Api/ Api/
+    COPY Shared/ Shared/
+    COPY ServiceDefaults/ ServiceDefaults/
+    WORKDIR /src/Api
+    RUN dotnet build "Api.csproj" -c Release -o /app/build
+    RUN dotnet publish "Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+    FROM mcr.microsoft.com/dotnet/aspnet:9.0-windowsservercore-ltsc2022 AS runtime
+    WORKDIR /app
+    COPY --from=build /app/publish .
+    EXPOSE 8080
+    ENV ASPNETCORE_URLS=http://+:8080
+    ENV ASPNETCORE_ENVIRONMENT=Production
+    ENTRYPOINT ["dotnet", "Api.dll"]
+
+2. Build the Windows image:
+    docker build -f Api/Dockerfile.windows -t bluchilliworks-api:windows-latest .
+
+3. Run the Windows container:
+    docker run -p 5000:8080 bluchilliworks-api:windows-latest
+
+4. (Optional) Update docker-compose.yml for Windows containers or create docker-compose.windows.yml.
+
+---
+
+**Q: Help with the build and run commands, and update the Docker Compose setup**
+
+1. Build the Windows container image:
+    docker build -f Api/Dockerfile.windows -t bluchilliworks-api:windows-latest .
+
+2. Run the Windows container directly:
+    docker run -p 5000:8080 bluchilliworks-api:windows-latest
+
+3. Use Docker Compose for Windows containers:
+    docker-compose -f docker-compose.windows.yml up --build
+
+Note: The healthcheck for the API service uses PowerShell for Windows compatibility. Make sure Docker Desktop is set to use Windows containers.
+
+---
+
+**Q: How can the Windows container image be pushed to Docker Hub?**
+
+Pushing Windows container images to Docker Hub can be problematic due to their large size and layer compatibility. See the main instructions above for step-by-step guidance and troubleshooting tips.
+
+---
+
+**Q: Write all the details from this chat windows, including previous responses, to How to push Windows container images to Docker Hub.txt**
+
+All relevant details, step-by-step instructions, and troubleshooting tips from this chat have been included in this file for your reference.
+
+7. Web Project Windows Container Build & Deployment (2026)
+---------------------------------------------------------
+- To build the Web project as a Windows container:
+
+      docker build -f Web/Dockerfile.windows -t yourrepo/bluchilliworks-web:windows-latest .
+
+- To push the image to Docker Hub:
+
+      docker push yourrepo/bluchilliworks-web:windows-latest
+
+- To deploy using Docker Compose (Windows):
+
+      docker-compose -f docker-compose.windows.yml up -d --build web
+
+- Ensure both build and runtime stages in Web/Dockerfile.windows use the correct Windows base image (e.g., windowsservercore-ltsc2022) matching your host OS version (10.0.22621).
+- If you see 'no matching manifest' errors, update the Dockerfile to use the correct ltsc2022 tag and verify Docker is set to use Windows containers.
+- Example Dockerfile.windows base images:
+
+      FROM mcr.microsoft.com/dotnet/sdk:9.0-windowsservercore-ltsc2022 AS build
+      FROM mcr.microsoft.com/dotnet/aspnet:9.0-windowsservercore-ltsc2022 AS runtime
+
+- Fix YAML indentation errors in docker-compose.windows.yml for the web service if needed.
+- Always check Docker Desktop is running in Windows container mode.
+

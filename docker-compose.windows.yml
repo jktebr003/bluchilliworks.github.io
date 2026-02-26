@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: bluchilli-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-Admin123!}
+      MONGO_INITDB_DATABASE: ttl
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - bluchilli-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  api:
+    build:
+      context: .
+      dockerfile: Api/Dockerfile.windows
+    container_name: bluchilli-api-windows
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - Database__ConnectionString=mongodb+srv://bluchillworks:mmZBoRILdptwojfC@cluster0.6dfqp1l.mongodb.net/?retryWrites=true&w=majority&tls=true&tlsAllowInvalidCertificates=false
+      - Database__DatabaseName=ttl
+      - App__BaseUrl=${APP_BASE_URL:-https://bluchilliworks-api-latest.onrender.com}
+      - SecretKeys__ApiKey=${API_KEY:-9B000A31-59B3-465F-B642-1094E5C12078}
+      - SecretKeys__ApiKeySecondary=${API_KEY_SECONDARY:-4D2C6F5B-45CB-45B6-B5BA-7DC77EB22934}
+      - SecretKeys__UseSecondaryKey=true
+      - Email__FromEmail=${EMAIL_FROM:-noreply@bluchilliworks.com}
+      - Email__FromName=BluChilli Works
+      - Email__Smtp__Host=${SMTP_HOST:-smtp.example.com}
+      - Email__Smtp__Port=${SMTP_PORT:-587}
+      - Email__Smtp__Username=${SMTP_USERNAME}
+      - Email__Smtp__Password=${SMTP_PASSWORD}
+      - Email__Smtp__EnableSsl=true
+    ports:
+      - "5000:8080"
+    volumes:
+      - ./Api/logs:/app/logs
+    networks:
+      - bluchilli-network
+    healthcheck:
+      test: ["CMD", "powershell", "Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  web:
+    build:
+      context: .
+      dockerfile: Web/Dockerfile.windows
+    container_name: bluchilli-web
+    restart: unless-stopped
+    ports:
+      - "5001:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - bluchilli-network
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+
+networks:
+  bluchilli-network:
+    driver: bridge
