@@ -1,5 +1,6 @@
+ARG BASE_TAG=windowsservercore-ltsc2019
 # Use the official .NET SDK image for build
-FROM mcr.microsoft.com/dotnet/sdk:9.0-windowsservercore-ltsc2022 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-${BASE_TAG} AS build
 WORKDIR /src
 
 COPY ["BluChilliWorks.sln", "./"]
@@ -17,8 +18,7 @@ WORKDIR /src/Api
 RUN dotnet build "Api.csproj" -c Release -o /app/build
 RUN dotnet publish "Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Use the official .NET runtime image for runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-windowsservercore-ltsc2022 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-${BASE_TAG} AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 

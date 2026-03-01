@@ -1,7 +1,8 @@
 # escape=`
 
+ARG BASE_TAG=windowsservercore-ltsc2019
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0-windowsservercore-ltsc2022 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-${BASE_TAG} AS build
 WORKDIR /src
 
 # Copy solution and project files
@@ -20,8 +21,7 @@ COPY Shared/ Shared/
 WORKDIR /src/Web
 RUN dotnet publish "Web.csproj" -c Release -o C:/app/publish
 
-# Runtime stage - use IIS to serve static files
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-windowsservercore-ltsc2022 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-${BASE_TAG} AS runtime
 WORKDIR /inetpub/wwwroot
 
 # Copy published Blazor WebAssembly files

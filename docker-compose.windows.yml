@@ -27,6 +27,8 @@ services:
     build:
       context: .
       dockerfile: Api/Dockerfile.windows
+      args:
+        BASE_TAG: windowsservercore-ltsc2019
     container_name: bluchilli-api-windows
     restart: unless-stopped
     environment:
@@ -49,7 +51,7 @@ services:
     ports:
       - "5000:8080"
     volumes:
-      - ./Api/logs:/app/logs
+      - Api/logs:/app/logs
     networks:
       - bluchilli-network
     healthcheck:
@@ -63,6 +65,8 @@ services:
     build:
       context: .
       dockerfile: Web/Dockerfile.windows
+      args:
+        BASE_TAG: windowsservercore-ltsc2019
     container_name: bluchilli-web
     restart: unless-stopped
     ports:
@@ -81,4 +85,4 @@ volumes:
 
 networks:
   bluchilli-network:
-    driver: bridge
+    driver: nat
