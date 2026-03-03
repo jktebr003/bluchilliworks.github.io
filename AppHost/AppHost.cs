@@ -18,4 +18,6 @@ builder.AddProject<Projects.Web>("web")
     .WithReference(api)
     .WithExternalHttpEndpoints();
 
+builder.AddProject<Projects.WebServer>("webserver");
+
 builder.Build().Run();
