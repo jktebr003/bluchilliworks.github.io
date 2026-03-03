@@ -1,34 +1,26 @@
-# escape=`
 
+
+# escape=`
 ARG BASE_TAG=windowsservercore-ltsc2019
+
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0-${BASE_TAG} AS build
 WORKDIR /src
 
-# Copy solution and project files
-COPY ["BluChilliWorks.sln", "./"]
-COPY ["Web/Web.csproj", "Web/"]
-COPY ["Shared/Shared.csproj", "Shared/"]
+# Copy everything for a complete publish
+COPY . .
 
-# Restore dependencies
-RUN dotnet restore "Web/Web.csproj"
+# Publish Blazor WASM app (includes web.config and all static files)
+RUN dotnet publish "Web/Web.csproj" -c Release -o C:/app/publish
 
-# Copy remaining source code
-COPY Web/ Web/
-COPY Shared/ Shared/
-
-# Build and publish (Blazor WebAssembly publishes to wwwroot)
-WORKDIR /src/Web
-RUN dotnet publish "Web.csproj" -c Release -o C:/app/publish
-
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-${BASE_TAG} AS runtime
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-${BASE_TAG}
 WORKDIR /inetpub/wwwroot
 
-# Copy published Blazor WebAssembly files
-COPY --from=build C:/app/publish/wwwroot/ .
+# Copy all published files (including web.config) to IIS root
+COPY --from=build C:/app/publish/ .
 
-# Expose port
+# Expose port 80 for IIS
 EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 CMD powershell -command "try { $response = Invoke-WebRequest http://localhost/; if ($response.StatusCode -eq 200) { exit 0 } else { exit 1 } } catch { exit 1 }"
+# IIS will start automatically; no need to set ENTRYPOINT or CMD

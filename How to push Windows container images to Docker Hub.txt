@@ -134,3 +134,8 @@ All relevant details, step-by-step instructions, and troubleshooting tips from t
 - Fix YAML indentation errors in docker-compose.windows.yml for the web service if needed.
 - Always check Docker Desktop is running in Windows container mode.
 
+
+Q: How to run Blazor WASM container:
+A: docker run -d -p 8080:80 --name bluchilliworks-web jktebr003/bluchilliworks-web:windows-latest
+
+
