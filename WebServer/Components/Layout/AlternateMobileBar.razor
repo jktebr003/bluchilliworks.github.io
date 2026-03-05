@@ -1,0 +1,201 @@
+﻿@* @using Microsoft.AspNetCore.Authentication *@
+@using Microsoft.AspNetCore.Components.Authorization
+@using MudBlazor
+@using Solutaris.InfoWARE.ProtectedBrowserStorage.Services
+@using WebServer.Features.Authentication
+@inject AuthenticationStateProvider _asp
+@inject NavigationManager Navigation
+@inject IIWLocalStorageService _localStorage
+@inject IJSRuntime JSRuntime
+@inject IAuthenticationService AuthService
+
+@if (IsHomePage())
+{
+    <div class="mobile-header home">
+        <div class="header-content">
+            <div class="header-logo">
+                <img src="img/bluchilliworks-logo.png" alt="BluChilliWorks Logo" class="bluchilliworks-logo-header" />
+                <span class="header-title align-content-center">The Teachers Lounge</span>
+            </div>
+            @* <Connection /> *@
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Class="menu-button" OnClick="ToggleDrawer" />
+        </div>
+    </div>
+}
+else
+{
+    <div class="mobile-header other">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" Color="Color.Inherit"
+                       OnClick='() => Navigation?.NavigateTo("/")' Class="back-button" />
+        <h2 class="page-title">@GetPageTitle()</h2>
+        @* <Connection /> *@
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Class="menu-button"
+                       OnClick="ToggleDrawer" />
+    </div>
+}
+
+<div class="collapsible-menu @(_drawerOpen ? "open" : "")">
+    <MudPaper Elevation="2" Class="menu-content">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.Home" />
+                <span> Home</span>
+            </MudNavLink>
+            <MudNavLink Href="/pricing" Match="NavLinkMatch.Prefix">
+                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" />
+                <span> Pricing</span>
+            </MudNavLink>
+            <MudNavLink Href="/contact" Match="NavLinkMatch.Prefix">
+                <MudIcon Icon="@Icons.Material.Filled.ContactMail" />
+                <span> Contact</span>
+            </MudNavLink>
+            <MudNavLink Href="/authentication/register" Match="NavLinkMatch.Prefix">
+                <MudIcon Icon="@Icons.Material.Filled.Edit" />
+                <span> Register</span>
+            </MudNavLink>
+            @if (isAuthenticated)
+            {
+                <MudNavLink Href="/posts" Match="NavLinkMatch.Prefix">
+                    <MudIcon Icon="@Icons.Material.Filled.QuestionAnswer" />
+                    <span> Posts</span>
+                </MudNavLink>
+                <MudNavLink Href="/users" Match="NavLinkMatch.Prefix">
+                    <MudIcon Icon="@Icons.Material.Filled.Group" />
+                    <span> Users</span>
+                </MudNavLink>
+                <MudNavLink Href="/profile" Match="NavLinkMatch.Prefix">
+                    <MudIcon Icon="@Icons.Material.Filled.Badge" />
+                    <span> Profile</span>
+                </MudNavLink>
+                <MudNavLink OnClick="HandleLogout" Match="NavLinkMatch.Prefix">
+                    <MudIcon Icon="@Icons.Material.Filled.Logout" />
+                    <span> Logout @UserFullName</span>
+                </MudNavLink>
+            }
+            else
+            {
+                <MudNavLink Href="/authentication/login" Match="NavLinkMatch.Prefix">
+                    <MudIcon Icon="@Icons.Material.Filled.Login" />
+                    <span> Login</span>
+                </MudNavLink>
+            }
+        </MudNavMenu>
+        <MudDivider Class="mt-2" />
+        <MudStack Spacing="0" Class="menu-footer">
+            <MudText Typo="Typo.caption">Version 1.0.0</MudText>
+            <MudText Typo="Typo.caption">The Teachers Lounge</MudText>
+            <MudText Typo="Typo.caption">&copy; @DateTime.Now.Year BluChilliWorks.</MudText>
+            <MudText Typo="Typo.caption">All rights reserved.</MudText>
+        </MudStack>
+    </MudPaper>
+</div>
+
+<ProgressSpinner IsBusy="Busy" />
+
+@code {
+    private bool _drawerOpen = false;
+    private bool isAuthenticated = false;
+    protected string UserFullName { get; set; } = string.Empty;
+    bool Busy = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetLoggedInUser();
+        Navigation.LocationChanged += OnLocationChanged;
+
+        StateHasChanged();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _drawerOpen = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
+    private bool IsHomePage()
+    {
+        var uri = new Uri(Navigation.Uri);
+        return uri.AbsolutePath == "/" || uri.AbsolutePath.Equals("/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetPageTitle()
+    {
+        var uri = new Uri(Navigation.Uri);
+        return uri.AbsolutePath.ToLowerInvariant() switch
+        {
+            "/pricing" => "Pricing",
+            "/contact" => "Contact",
+            "/users" => "Users",
+            "/profile" => "Profile",
+            "/posts" => "Posts",
+            "/authentication/login" => "Login",
+            "/authentication/register" => "Register",
+            _ => "The Teachers Lounge"
+        };
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    @* private void CloseMenu() => _drawerOpen = !_drawerOpen; *@
+
+    protected async Task ShowLoginOverlay()
+    {
+        Busy = true;
+        StateHasChanged();
+        await Task.Delay(1);
+    }
+
+    private async Task GetLoggedInUser()
+    {
+        Microsoft.AspNetCore.Components.Authorization.AuthenticationState userContext = await _asp.GetAuthenticationStateAsync();
+        if (userContext.User.Identity != null && userContext.User.Identity.IsAuthenticated)
+        {
+            isAuthenticated = true;
+            string? givenName = userContext.User.Identity.Name;
+
+            UserFullName = $"{givenName}";
+        }
+        else
+        {
+            isAuthenticated = false;
+            UserFullName = string.Empty;
+        }
+
+        // StateHasChanged();
+    }
+
+    private async Task HandleLogin()
+    {
+        _drawerOpen = false;
+        Navigation.NavigateTo("/authentication/login");
+    }
+
+    private async Task HandleLogout()
+    {
+        _drawerOpen = false;
+
+        // Show the overlay to indicate a busy state
+        await ToggleOverlay(true);
+
+        await AuthService.LogoutAsync();
+        isAuthenticated = false;
+        UserFullName = string.Empty;
+
+        // Hide the overlay to indicate a busy state
+        await ToggleOverlay(false);
+    }
+
+    private async Task ToggleOverlay(bool value)
+    {
+        Busy = value;
+
+        // Update the UI state
+        StateHasChanged();
+        await Task.Delay(1); // allow the GUI to catch up
+    }
+}

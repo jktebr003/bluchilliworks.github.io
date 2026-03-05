@@ -8,6 +8,11 @@
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["WebServer.styles.css"]" />
+    <link rel="stylesheet" href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" />
+    <link rel="stylesheet" href="@Assets["css/colors.css"]" />
+    <link rel="stylesheet" href="@Assets["css/app.css"]" />
+    <link rel="stylesheet" href="@Assets["css/desktop-modern.css"]" />
+    <link rel="stylesheet" href="@Assets["css/teacherslounge.css"]" />
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
@@ -16,6 +21,31 @@
 <body>
     <Routes />
     <script src="_framework/blazor.web.js"></script>
+    <script src="_content/Solutaris.InfoWARE.ProtectedBrowserStorage/config.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="js/MobileScript.js"></script>
+    <script src="js/sounds.js?v=1"></script>
+    <script src="js/Connection.js?v=2"></script>
+    <script src="js/speechToTextCapture.js"></script>
+    <script src="js/ajaxFunctions.js"></script>
+    <script src="js/audioCapture.js"></script>
+    <script src="js/audioRecorder.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/cameraRecorder.js"></script>
+    <script src="js/site.js"></script>
+    <script src="js/videoRecorder.js"></script>
+    <script src="js/indexedDb.js"></script>
+    <script src="js/infiniteScroll.js"></script>
+    <script>
+        window.downloadFileFromUrl = (url, filename) => {
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    </script>
 </body>
 
 </html>
