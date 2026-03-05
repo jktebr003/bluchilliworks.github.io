@@ -64,10 +64,10 @@ services:
   web:
     build:
       context: .
-      dockerfile: Web/Dockerfile.windows
+      dockerfile: WebServer/Dockerfile.windows
       args:
         BASE_TAG: windowsservercore-ltsc2019
-    container_name: bluchilli-web
+    container_name: bluchilli-webserver
     restart: unless-stopped
     ports:
       - "5001:80"
