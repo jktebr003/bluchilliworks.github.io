@@ -1,0 +1,45 @@
+.ttl-pricing {
+    padding: 20px 0;
+}
+
+.pricing-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pricing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.pricing-card .mud-card-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.pricing-card .mud-card-actions {
+    padding: 16px;
+}
+
+.pricing-card h5 {
+    font-weight: 600;
+    color: #1976d2;
+}
+
+.pricing-card h4 {
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+.pricing-card .mud-divider {
+    margin: 16px 0;
+}
+
+@media (max-width: 960px) {
+    .pricing-card {
+        margin-bottom: 20px;
+    }
+}

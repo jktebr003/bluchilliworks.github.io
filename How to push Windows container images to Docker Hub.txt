@@ -139,3 +139,4 @@ Q: How to run Blazor WASM container:
 A: docker run -d -p 8080:80 --name bluchilliworks-web jktebr003/bluchilliworks-web:windows-latest
 
 
+docker run -d -p 5001:8080 --name bluchilliworks-web jktebr003/bluchilliworks-web:windows-26.1.64
