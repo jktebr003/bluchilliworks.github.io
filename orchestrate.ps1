@@ -67,14 +67,22 @@ function Start-DockerDev {
     Write-Host "Hot reload enabled" -ForegroundColor Yellow
     Write-Host ""
     
-    # Check if .env exists, if not create from example
+    # Prefer .env.development for development mode
     if (-not (Test-Path "$RootPath\.env")) {
-        Write-Host ".env file not found. Creating from .env.example..." -ForegroundColor Yellow
-        Copy-Item "$RootPath\.env.example" "$RootPath\.env"
+        if (Test-Path "$RootPath\.env.development") {
+            Write-Host ".env file not found. Creating from .env.development..." -ForegroundColor Yellow
+            Copy-Item "$RootPath\.env.development" "$RootPath\.env"
+        } elseif (Test-Path "$RootPath\.env.example") {
+            Write-Host ".env file not found. Creating from .env.example..." -ForegroundColor Yellow
+            Copy-Item "$RootPath\.env.example" "$RootPath\.env"
+        } else {
+            Write-Host ".env file not found and no .env.development or .env.example available!" -ForegroundColor Red
+            exit 1
+        }
     }
     
     Set-Location $RootPath
-    docker-compose up --build
+    docker-compose -f docker-compose.windows.yml up --build
 }
 
 function Start-DockerProd {
@@ -91,7 +99,7 @@ function Start-DockerProd {
     }
     
     Set-Location $RootPath
-    docker-compose -f docker-compose.yml up --build -d
+    docker-compose -f docker-compose.windows.yml up --build -d
     
     Write-Host ""
     Write-Host "Services started in detached mode" -ForegroundColor Green
