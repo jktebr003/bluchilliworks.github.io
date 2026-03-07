@@ -40,7 +40,7 @@ if (-not $SkipBuild) {
     
     if ($buildApi) {
         Write-Host "Building API image..." -ForegroundColor Cyan
-        docker build -t ${Username}/${ApiImageName}:${Version} -t ${Username}/${ApiImageName}:latest -f Api/Dockerfile .
+        docker build -t ${Username}/${ApiImageName}:${Version} -t ${Username}/${ApiImageName}:latest -f Api/Dockerfile.windows .
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Failed to build API image" -ForegroundColor Red
             exit 1
@@ -51,7 +51,7 @@ if (-not $SkipBuild) {
     
     if ($buildWeb) {
         Write-Host "Building Web image..." -ForegroundColor Cyan
-        docker build -t ${Username}/${WebImageName}:${Version} -t ${Username}/${WebImageName}:latest -f Web/Dockerfile .
+        docker build -t ${Username}/${WebImageName}:${Version} -t ${Username}/${WebImageName}:latest -f Web/Dockerfile.windows .
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Failed to build Web image" -ForegroundColor Red
             exit 1

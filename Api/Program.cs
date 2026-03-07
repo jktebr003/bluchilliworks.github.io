@@ -485,6 +485,11 @@ Console.WriteLine($"🌐 Environment: {app.Environment.EnvironmentName}");
 
 try
 {
+    // Add this before app.Run();
+    //app.MapGet("/health", () => Results.Ok("Healthy"));
+    
+    app.UseHealthChecks("/health");
+    
     app.Run();
 }
 catch (Exception ex)

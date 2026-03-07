@@ -22,14 +22,13 @@ services:
       - SecretKeys__UseSecondaryKey=true
       - Email__FromEmail=${EMAIL_FROM:-noreply@bluchilliworks.com}
       - Email__FromName=BluChilli Works
-      - Email__Smtp__Host=${SMTP_HOST:-smtp.example.com}
+      - Email__Smtp__Host=${SMTP_HOST:-smtp.ethereal.email}
       - Email__Smtp__Port=${SMTP_PORT:-587}
-      - Email__Smtp__Username=${SMTP_USERNAME}
-      - Email__Smtp__Password=${SMTP_PASSWORD}
+      - Email__Smtp__Username=${SMTP_USERNAME:-hertha.luettgen92@ethereal.email}
+      - Email__Smtp__Password=${SMTP_PASSWORD:-vkxbECCP819UyWugEm}
       - Email__Smtp__EnableSsl=true
     ports:
       - "5000:8080"
-    # volumes removed to avoid Windows Compose errors
     networks:
       - bluchilli-network
     healthcheck:
@@ -60,9 +59,9 @@ services:
       - ApplicationName=BluChilliWorks Web Server
     ports:
       - "5001:80"
-    depends_on:
-      api:
-        condition: service_healthy
+    # depends_on:
+    #   api:
+    #     condition: service_healthy
     networks:
       - bluchilli-network
 
