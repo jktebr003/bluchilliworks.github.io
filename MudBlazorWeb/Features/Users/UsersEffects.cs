@@ -1,7 +1,7 @@
 using Fluxor;
 
 using MudBlazorWeb.Features.Authentication;
-using MudBlazorWeb.Shared.Infrastructure;
+using MudBlazorWeb.Infrastructure;
 using MudBlazorWeb.Shared.Models;
 
 using static MudBlazorWeb.Features.Users.UsersActions;

@@ -7,10 +7,15 @@ using Fluxor.Blazor.Web.ReduxDevTools;
 
 using log4net.Config;
 
+using Microsoft.AspNetCore.Components.Authorization;
+
 using MudBlazor.Services;
 
 using MudBlazorWeb.Components;
+using MudBlazorWeb.Features.Authentication;
+using MudBlazorWeb.Infrastructure;
 using MudBlazorWeb.Shared.Helpers;
+using MudBlazorWeb.Shared.Services;
 
 using MudExtensions.Services;
 
@@ -56,7 +61,23 @@ builder.Services.AddFluxor(options =>
     options.UseReduxDevTools();
 });
 
+// HTTP Client
+builder.Services.AddHttpClient<WebApiClient>(client =>
+{
+    var baseApiServiceUrl = builder.Configuration["BaseApiServiceUrl"];
+    if (string.IsNullOrEmpty(baseApiServiceUrl))
+        throw new ArgumentNullException(nameof(baseApiServiceUrl), "BaseApiServiceUrl is not configured.");
+    client.DefaultRequestHeaders.AcceptLanguage.Clear();
+    client.DefaultRequestHeaders.Add("Authorization", builder.Configuration["AuthorizationKey"]);
+    client.BaseAddress = new Uri(baseApiServiceUrl);
+});
+
 builder.Services.AddScoped<LocalStorageHelper>();
+builder.Services.AddScoped<AuthenticationStateProvider, DatabaseAuthenticationStateProvider>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddAuthorizationCore();
+
+builder.Services.AddSingleton<BusyDialogService>();
 
 Console.WriteLine("✅ All available services registered successfully");
 

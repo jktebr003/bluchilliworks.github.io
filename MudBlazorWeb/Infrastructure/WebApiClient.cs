@@ -1,8 +1,10 @@
 using MudBlazorWeb.Shared.Exceptions;
+
 using Newtonsoft.Json;
+
 using System.Net.Http.Headers;
 
-namespace MudBlazorWeb.Shared.Infrastructure;
+namespace MudBlazorWeb.Infrastructure;
 
 /// <summary>
 /// Web Client - Get, Put, Delete and Post for WEB API

@@ -1,0 +1,1111 @@
+Simplified Vertical Slice Architecture for MudBlazorWeb
+--------------------------------------------------------
+
+Project: MudBlazorWeb (Blazor WebAssembly + .NET 9)
+Architecture: Vertical Slice + Clean Architecture (Simplified)
+---
+
+Overview
+This is a simplified folder structure that maintains Clean Architecture principles while reducing folder depth and complexity. Each feature is self-contained with clear boundaries.
+
+
+Key Simplifications
+1.	Merged Api + Application: DTOs and handlers live together in Application/
+2.	Fluxor in UI root: State management directly under UI/ (no nested State/ folder)
+3.	Flatten Components: Components directly in UI/ (no nested Components/ folder)
+4.	Single DI file: One DependencyInjection.cs per feature (at feature root)
+5.	Tests at feature root: Tests/ directly under feature folder
+6.	Command + Handler in same file: Related code stays together
+---
+
+Simplified Folder Structure:
+src/
+├── MudBlazorWeb/
+│   ├── Features/
+│   │   ├── Pricing/
+│   │   │   ├── Application/                   # Commands, Queries, Handlers, DTOs
+│   │   │   │   ├── GetPricingsQuery.cs        # Query + Handler in same file
+│   │   │   │   ├── CreatePricingCommand.cs    # Command + Handler in same file
+|   |   |   |   ├── PricingEndpoints.cs        # ⭐ Minimal API endpoints
+│   │   │   │   └── PricingDto.cs              # DTOs
+│   │   │   ├── Domain/                        # Entities, Value Objects
+│   │   │   │   ├── Pricing.cs
+│   │   │   │   └── IPricingRepository.cs
+│   │   │   ├── Infrastructure/                # Repository implementations
+│   │   │   │   └── PricingRepository.cs
+│   │   │   ├── UI/                            # Components + Fluxor state
+│   │   │   │   ├── Index.razor                # Components at root
+│   │   │   │   ├── PricingCard.razor
+│   │   │   │   ├── PricingForm.razor
+│   │   │   │   ├── PricingState.cs            # Fluxor state
+│   │   │   │   ├── PricingActions.cs
+│   │   │   │   ├── PricingReducers.cs
+│   │   │   │   └── PricingEffects.cs
+│   │   │   ├── Tests/                         # All tests here
+│   │   │   │   ├── PricingHandlerTests.cs
+│   │   │   │   └── PricingReducerTests.cs
+│   │   │   ├── DependencyInjection.cs         # Single DI file for feature
+│   │   │   └── README.md
+│   │   │
+│   │   ├── Authentication/
+│   │   │   ├── Application/
+│   │   │   │   ├── LoginCommand.cs
+│   │   │   │   ├── RegisterCommand.cs
+│   │   │   │   ├── GetUserQuery.cs
+│   │   │   │   └── UserDto.cs
+│   │   │   ├── Domain/
+│   │   │   │   ├── User.cs
+│   │   │   │   └── IUserRepository.cs
+│   │   │   ├── Infrastructure/
+│   │   │   │   ├── UserRepository.cs
+│   │   │   │   └── DatabaseAuthenticationStateProvider.cs
+│   │   │   ├── UI/
+│   │   │   │   ├── Login.razor
+│   │   │   │   ├── Register.razor
+│   │   │   │   ├── AuthState.cs
+│   │   │   │   ├── AuthActions.cs
+│   │   │   │   ├── AuthReducers.cs
+│   │   │   │   └── AuthEffects.cs
+│   │   │   ├── Tests/
+│   │   │   │   └── LoginHandlerTests.cs
+│   │   │   └── DependencyInjection.cs
+│   │   │
+│   │   └── [OtherFeatures]/
+│   │
+│   ├── Shared/                                # Shared components only
+│   │   ├── MainLayout.razor
+│   │   ├── NavMenu.razor
+│   │   ├── LoadingSpinner.razor
+│   │   ├── Result.cs                          # Shared types
+│   │   └── HttpService.cs                     # Shared services
+│   │
+│   ├── wwwroot/
+│   ├── Program.cs
+│   ├── App.razor
+│   └── _Imports.razor
+│
+└── tests/
+    └── MudBlazorWeb.IntegrationTests/         # Only cross-feature tests
+
+e.g.
+Features/Pricing/
+├── Application/                    # Commands, Queries, DTOs together
+│   ├── GetPricingsQuery.cs         # Query + Handler in one file
+│   ├── CreatePricingCommand.cs     # Command + Handler in one file
+│   └── PricingDto.cs
+├── Domain/
+│   ├── Pricing.cs
+│   └── IPricingRepository.cs
+├── Infrastructure/
+│   └── PricingRepository.cs
+├── UI/                             # Components + State together
+│   ├── Index.razor
+│   ├── PricingCard.razor
+│   ├── PricingState.cs
+│   ├── PricingActions.cs
+│   ├── PricingReducers.cs
+│   └── PricingEffects.cs
+├── Tests/
+├── DependencyInjection.cs          # Single DI file
+└── README.md
+
+
+Layer Responsibilities
+1. Application Layer
+Location: Application/
+Contains: Commands, Queries, Handlers, DTOs, Validation
+Pattern: Combine Command/Query with Handler in one file
+
+using MediatR;
+
+namespace MudBlazorWeb.Features.Pricing.Application;
+
+// DTO
+public record PricingDto(string PlanType, decimal Price, List<string> Features);
+
+// Query
+public record GetPricingsQuery : IRequest<Result<List<PricingDto>>>;
+
+// Handler (same file)
+public class GetPricingsHandler : IRequestHandler<GetPricingsQuery, Result<List<PricingDto>>>
+{
+    private readonly IPricingRepository _repository;
+
+    public GetPricingsHandler(IPricingRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<Result<List<PricingDto>>> Handle(
+        GetPricingsQuery request, 
+        CancellationToken cancellationToken)
+    {
+        var pricings = await _repository.GetAllAsync(cancellationToken);
+        
+        var dtos = pricings
+            .Select(p => new PricingDto(p.PlanType, p.Price, p.Features))
+            .ToList();
+        
+        return Result<List<PricingDto>>.Success(dtos);
+    }
+}
+
+// Endpoints (same file for minimal API)
+using MediatR;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+
+namespace MudBlazorWeb.Features.Pricing.Application;
+
+public static class PricingEndpoints
+{
+    public static IEndpointRouteBuilder MapPricingEndpoints(this IEndpointRouteBuilder endpoints)
+    {
+        var group = endpoints.MapGroup("/api/pricing")
+            .WithTags("Pricing");
+
+        group.MapGet("/", GetPricings)
+            .WithName("GetPricings")
+            .Produces<List<PricingDto>>();
+
+        group.MapGet("/{id}", GetPricingById)
+            .WithName("GetPricingById")
+            .Produces<PricingDto>()
+            .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/", CreatePricing)
+            .WithName("CreatePricing")
+            .Produces<Guid>(StatusCodes.Status201Created)
+            .ProducesValidationProblem();
+
+        return endpoints;
+    }
+
+    private static async Task<IResult> GetPricings(IMediator mediator)
+    {
+        var result = await mediator.Send(new GetPricingsQuery());
+        
+        return result.IsSuccess 
+            ? Results.Ok(result.Value) 
+            : Results.BadRequest(result.ErrorMessage);
+    }
+
+    private static async Task<IResult> GetPricingById(Guid id, IMediator mediator)
+    {
+        var result = await mediator.Send(new GetPricingByIdQuery(id));
+        
+        return result.IsSuccess 
+            ? Results.Ok(result.Value) 
+            : Results.NotFound();
+    }
+
+    private static async Task<IResult> CreatePricing(
+        CreatePricingRequest request, 
+        IMediator mediator)
+    {
+        var command = new CreatePricingCommand(
+            request.PlanType, 
+            request.Price, 
+            request.Features
+        );
+        
+        var result = await mediator.Send(command);
+        
+        return result.IsSuccess 
+            ? Results.Created($"/api/pricing/{result.Value}", result.Value)
+            : Results.BadRequest(result.ErrorMessage);
+    }
+}
+
+public record CreatePricingRequest(string PlanType, decimal Price, List<string> Features);
+
+Option 2: Separate Api/ Folder (If Endpoints Grow Large)
+If your feature has many endpoints (10+), create a dedicated Api/ folder:
+Features/Pricing/
+├── Api/                            # ⭐ Minimal API endpoints
+│   ├── PricingEndpoints.cs
+│   └── Requests.cs                 # Request DTOs
+├── Application/
+│   ├── GetPricingsQuery.cs
+│   ├── CreatePricingCommand.cs
+│   └── PricingDto.cs
+├── Domain/
+├── Infrastructure/
+├── UI/
+└── DependencyInjection.cs
+
+
+---
+2. Domain Layer
+Location: Domain/
+Contains: Entities, Value Objects, Repository Interfaces
+
+namespace MudBlazorWeb.Features.Pricing.Domain;
+
+public class Pricing
+{
+    public Guid Id { get; private set; }
+    public string PlanType { get; private set; }
+    public decimal Price { get; private set; }
+    public List<string> Features { get; private set; }
+
+    private Pricing() { }
+
+    public static Pricing Create(string planType, decimal price, List<string> features)
+    {
+        if (string.IsNullOrWhiteSpace(planType))
+            throw new ArgumentException("Plan type cannot be empty");
+
+        if (price < 0)
+            throw new ArgumentException("Price cannot be negative");
+
+        return new Pricing
+        {
+            Id = Guid.NewGuid(),
+            PlanType = planType,
+            Price = price,
+            Features = features ?? new List<string>()
+        };
+    }
+}
+
+namespace MudBlazorWeb.Features.Pricing.Domain;
+
+public interface IPricingRepository
+{
+    Task<List<Pricing>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<Pricing?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task AddAsync(Pricing pricing, CancellationToken cancellationToken = default);
+}
+
+---
+3. Infrastructure Layer
+Location: Infrastructure/
+Contains: Repository implementations, External services
+
+using MudBlazorWeb.Features.Pricing.Domain;
+
+namespace MudBlazorWeb.Features.Pricing.Infrastructure;
+
+public class PricingRepository : IPricingRepository
+{
+    private readonly HttpClient _httpClient;
+
+    public PricingRepository(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+
+    public async Task<List<Pricing>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        // Example: Call API
+        var response = await _httpClient.GetFromJsonAsync<List<PricingDto>>(
+            "api/pricing", 
+            cancellationToken
+        );
+
+        return response?.Select(dto => 
+            Pricing.Create(dto.PlanType, dto.Price, dto.Features)
+        ).ToList() ?? new List<Pricing>();
+    }
+
+    public async Task<Pricing?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.GetFromJsonAsync<PricingDto>(
+            $"api/pricing/{id}", 
+            cancellationToken
+        );
+
+        return response != null 
+            ? Pricing.Create(response.PlanType, response.Price, response.Features)
+            : null;
+    }
+
+    public async Task AddAsync(Pricing pricing, CancellationToken cancellationToken = default)
+    {
+        await _httpClient.PostAsJsonAsync("api/pricing", pricing, cancellationToken);
+    }
+}
+
+---
+4. UI Layer
+Location: UI/
+Contains: Blazor components + Fluxor state (same level)
+
+@page "/pricing"
+@using Fluxor
+@using MudBlazorWeb.Features.Pricing.Application
+@inherits FluxorComponent
+
+<MudContainer Class="mt-8">
+    <MudText Typo="Typo.h3" Class="mb-4">Pricing Plans</MudText>
+
+    @if (PricingState.Value.IsLoading)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else if (PricingState.Value.ErrorMessage != null)
+    {
+        <MudAlert Severity="Severity.Error">@PricingState.Value.ErrorMessage</MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var pricing in PricingState.Value.Pricings)
+            {
+                <MudItem xs="12" md="4">
+                    <PricingCard Pricing="pricing" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [Inject] private IState<PricingState> PricingState { get; set; } = default!;
+    [Inject] private IDispatcher Dispatcher { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Dispatcher.Dispatch(new LoadPricingsAction());
+    }
+}
+
+namespace MudBlazorWeb.Features.Pricing.UI;
+
+public record PricingState
+{
+    public bool IsLoading { get; init; }
+    public List<PricingDto> Pricings { get; init; } = new();
+    public string? ErrorMessage { get; init; }
+}
+
+namespace MudBlazorWeb.Features.Pricing.UI;
+
+public record LoadPricingsAction;
+public record LoadPricingsSuccessAction(List<PricingDto> Pricings);
+public record LoadPricingsFailureAction(string ErrorMessage);
+
+using Fluxor;
+
+namespace MudBlazorWeb.Features.Pricing.UI;
+
+public static class PricingReducers
+{
+    [ReducerMethod]
+    public static PricingState ReduceLoadPricingsAction(PricingState state, LoadPricingsAction action) =>
+        state with { IsLoading = true, ErrorMessage = null };
+
+    [ReducerMethod]
+    public static PricingState ReduceLoadPricingsSuccessAction(
+        PricingState state, 
+        LoadPricingsSuccessAction action) =>
+        state with { IsLoading = false, Pricings = action.Pricings };
+
+    [ReducerMethod]
+    public static PricingState ReduceLoadPricingsFailureAction(
+        PricingState state, 
+        LoadPricingsFailureAction action) =>
+        state with { IsLoading = false, ErrorMessage = action.ErrorMessage };
+}
+
+using Fluxor;
+using MediatR;
+using MudBlazorWeb.Features.Pricing.Application;
+
+namespace MudBlazorWeb.Features.Pricing.UI;
+
+public class PricingEffects
+{
+    private readonly IMediator _mediator;
+
+    public PricingEffects(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
+    [EffectMethod]
+    public async Task HandleLoadPricingsAction(LoadPricingsAction action, IDispatcher dispatcher)
+    {
+        var result = await _mediator.Send(new GetPricingsQuery());
+
+        if (result.IsSuccess)
+            dispatcher.Dispatch(new LoadPricingsSuccessAction(result.Value));
+        else
+            dispatcher.Dispatch(new LoadPricingsFailureAction(result.ErrorMessage));
+    }
+}
+
+---
+Single DependencyInjection.cs
+One file per feature at feature root:
+
+using Microsoft.Extensions.DependencyInjection;
+using MudBlazorWeb.Features.Pricing.Domain;
+using MudBlazorWeb.Features.Pricing.Infrastructure;
+
+namespace MudBlazorWeb.Features.Pricing;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddPricingFeature(this IServiceCollection services)
+    {
+        // Application (MediatR auto-scans handlers)
+        services.AddMediatR(cfg => 
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        
+        // Infrastructure
+        services.AddScoped<IPricingRepository, PricingRepository>();
+        
+        return services;
+    }
+
+    // Optional: Extension for endpoint mapping
+    public static IEndpointRouteBuilder MapPricingFeature(this IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapPricingEndpoints();
+        return endpoints;
+    }
+}
+
+---
+Program.cs Configuration
+
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
+using Fluxor;
+using MudBlazorWeb;
+using MudBlazorWeb.Features.Pricing;
+using MudBlazorWeb.Features.Authentication;
+
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
+
+// HTTP Client
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+});
+
+// MudBlazor
+builder.Services.AddMudServices();
+
+// Fluxor State Management
+builder.Services.AddFluxor(options =>
+{
+    options.ScanAssemblies(typeof(Program).Assembly);
+#if DEBUG
+    options.UseReduxDevTools();
+#endif
+});
+
+// Features (one line per feature)
+builder.Services.AddPricingFeature();
+builder.Services.AddAuthenticationFeature();
+
+await builder.Build().RunAsync();
+----
+
+or if there are minimal API endpoints:
+
+var app = builder.Build();
+
+// Map endpoints
+app.MapPricingEndpoints();
+or
+// Endpoints
+app.MapPricingFeature();
+
+app.Run();
+----
+
+---
+Architecture Diagram
+
+graph TB
+    subgraph Feature["Feature: Pricing"]
+        UI["UI/<br/>Components + Fluxor State"]
+        APP["Application/<br/>Commands + Queries + DTOs"]
+        DOM["Domain/<br/>Entities + Interfaces"]
+        INF["Infrastructure/<br/>Repositories"]
+        
+        UI -->|"Uses"| APP
+        APP -->|"Uses"| DOM
+        INF -->|"Implements"| DOM
+    end
+    
+    UI -.->|"Dispatches Actions"| FLUX[Fluxor Store]
+    FLUX -.->|"Effects Call Handlers"| APP
+    
+    style UI fill:#e1f5ff
+    style APP fill:#fff9c4
+    style DOM fill:#c8e6c9
+    style INF fill:#ffccbc
+
+---
+Dependency Flow
+
+┌──────────────────────┐
+│     UI Layer         │  Blazor Components + Fluxor State
+└──────────┬───────────┘
+           │ depends on
+           ▼
+┌──────────────────────┐
+│  Application Layer   │  Commands, Queries, Handlers, DTOs
+└──────────┬───────────┘
+           │ depends on
+           ▼
+┌──────────────────────┐
+│    Domain Layer      │  Entities, Value Objects, Interfaces
+│  (NO DEPENDENCIES)   │
+└──────────────────────┘
+           ▲
+           │ implements
+┌──────────┴───────────┐
+│ Infrastructure Layer │  Repositories, External Services
+└──────────────────────┘
+
+---
+Migration Guide
+Migration Steps
+1.	Create folder structure for one feature:
+    - Features/Pricing/
+      - Application/
+      - Domain/
+      - Infrastructure/
+      - UI/
+      - Tests/
+      - DependencyInjection.cs
+2.	Move existing files:
+3.	Update namespaces in moved files:
+// Old
+   namespace MudBlazorWeb.Features.Pricing;
+   
+   // New
+   namespace MudBlazorWeb.Features.Pricing.UI;
+4.	Create missing layers:
+•	Add Domain/Pricing.cs and Domain/IPricingRepository.cs
+•	Add Application/GetPricingsQuery.cs
+•	Add Infrastructure/PricingRepository.cs
+•	Add DependencyInjection.cs at feature root
+5.	Update Program.cs:
+builder.Services.AddPricingFeature();
+6.	Test the feature before moving to next one
+
+Quick Reference Table
+## Quick Reference: File Locations
+
+| Artifact | Location | Example |
+|----------|----------|---------|
+| Command/Query + Handler | `Application/` | `CreatePricingCommand.cs` |
+| DTOs | `Application/` | `PricingDto.cs` |
+| Entities | `Domain/` | `Pricing.cs` |
+| Repository Interface | `Domain/` | `IPricingRepository.cs` |
+| Repository Implementation | `Infrastructure/` | `PricingRepository.cs` |
+| Blazor Components | `UI/` | `Index.razor`, `PricingCard.razor` |
+| Fluxor State | `UI/` | `PricingState.cs` |
+| Fluxor Actions | `UI/` | `PricingActions.cs` |
+| Fluxor Reducers | `UI/` | `PricingReducers.cs` |
+| Fluxor Effects | `UI/` | `PricingEffects.cs` |
+| Feature DI | Feature root | `DependencyInjection.cs` |
+| Tests | `Tests/` | `PricingHandlerTests.cs` |
+---
+Benefits of Simplified Structure
+1. Less Nesting (3 vs 5 levels)
+•	Faster file navigation
+•	Easier to understand at a glance
+•	Less cognitive load
+2. Related Code Together
+•	Command + Handler in same file
+•	Components + State in same folder
+•	Single DI registration per feature
+3. Maintained Clean Architecture
+•	Clear Domain layer (no dependencies)
+•	Application orchestrates use cases
+•	Infrastructure hidden behind interfaces
+•	UI depends only on Application
+4. Better Developer Experience
+•	Quicker onboarding for new devs
+•	Less clicking through folders
+•	Easier to find related files
+5. Scalability
+•	Easy to add new features (copy structure)
+•	Features stay isolated
+•	Clear boundaries maintained
+---
+
+Complete Feature Structure with Minimal API
+Features/Pricing/
+├── Application/
+│   ├── GetPricingsQuery.cs         # Query + Handler
+│   ├── CreatePricingCommand.cs     # Command + Handler
+│   ├── PricingEndpoints.cs         # ⭐ Minimal API endpoints
+│   └── PricingDto.cs               # DTOs
+├── Domain/
+│   ├── Pricing.cs                  # Entity
+│   └── IPricingRepository.cs       # Repository interface
+├── Infrastructure/
+│   └── PricingRepository.cs        # Repository implementation
+├── UI/
+│   ├── Index.razor                 # Blazor components
+│   ├── PricingCard.razor
+│   ├── PricingState.cs             # Fluxor state
+│   ├── PricingActions.cs
+│   ├── PricingReducers.cs
+│   └── PricingEffects.cs
+├── Tests/
+│   ├── PricingEndpointsTests.cs    # ⭐ API endpoint tests
+│   ├── PricingHandlerTests.cs
+│   └── PricingReducerTests.cs
+├── DependencyInjection.cs          # Service + Endpoint registration
+└── README.md
+
+Architecture Flow with Minimal API
+graph TB
+    subgraph "Blazor WASM Client"
+        UI["UI Components<br/>(Fluxor)"]
+    end
+    
+    subgraph "API Server"
+        EP["Minimal API Endpoints<br/>(Application/)"]
+        APP["Handlers<br/>(Application/)"]
+        DOM["Domain"]
+        INF["Infrastructure"]
+    end
+    
+    UI -->|"HTTP Request"| EP
+    EP -->|"Send Command/Query"| APP
+    APP -->|"Uses"| DOM
+    INF -->|"Implements"| DOM
+    EP -->|"Returns DTO"| UI
+
+
+DbContext Implementation Strategy
+---------------------------------
+Option 1: Shared DbContext (Recommended for Small-Medium Projects)
+Keep a single shared DbContext that aggregates all feature entities, but configure each entity within its feature's Infrastructure layer.
+src/
+├── MudBlazorWeb/
+│   ├── Features/
+│   │   ├── Pricing/
+│   │   │   ├── Domain/
+│   │   │   │   └── Pricing.cs                    # Entity
+│   │   │   ├── Infrastructure/
+│   │   │   │   ├── PricingRepository.cs
+│   │   │   │   └── PricingEntityConfiguration.cs # ⭐ EF Configuration
+│   │   │   └── DependencyInjection.cs
+│   │   │
+│   │   ├── Authentication/
+│   │   │   ├── Domain/
+│   │   │   │   └── User.cs
+│   │   │   ├── Infrastructure/
+│   │   │   │   ├── UserRepository.cs
+│   │   │   │   └── UserEntityConfiguration.cs    # ⭐ EF Configuration
+│   │   │   └── DependencyInjection.cs
+│   │
+│   ├── Infrastructure/                            # ⭐ Shared Database
+│   │   ├── Database/
+│   │   │   ├── AppDbContext.cs                   # Shared DbContext
+│   │   │   ├── BaseAuditableEntity.cs            # Shared base
+│   │   │   └── DependencyInjection.cs            # DbContext registration
+│   │   └── Migrations/                           # All migrations here
+│   │       └── 20260308120000_InitialCreate.cs
+│   │
+│   ├── Shared/
+│   ├── Program.cs
+│   └── MudBlazorWeb.csproj
+
+---
+Implementation Details
+1. Shared Infrastructure Layer
+using Microsoft.EntityFrameworkCore;
+using MudBlazorWeb.Features.Pricing.Domain;
+using MudBlazorWeb.Features.Authentication.Domain;
+
+namespace MudBlazorWeb.Infrastructure.Database;
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    // DbSets for each feature
+    public DbSet<Pricing> Pricings => Set<Pricing>();
+    public DbSet<User> Users => Set<User>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Apply all configurations from assemblies
+        // This automatically finds all IEntityTypeConfiguration<T> implementations
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // Or apply specific feature configurations manually
+        // modelBuilder.ApplyConfiguration(new PricingEntityConfiguration());
+        // modelBuilder.ApplyConfiguration(new UserEntityConfiguration());
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        // Handle audit fields
+        var entries = ChangeTracker.Entries<BaseAuditableEntity>();
+
+        foreach (var entry in entries)
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedOn = DateTime.UtcNow;
+                    entry.Entity.CreatedBy = "System"; // Get from auth context
+                    break;
+
+                case EntityState.Modified:
+                    entry.Entity.ModifiedOn = DateTime.UtcNow;
+                    entry.Entity.ModifiedBy = "System"; // Get from auth context
+                    break;
+
+                case EntityState.Deleted:
+                    entry.State = EntityState.Modified;
+                    entry.Entity.DeletedOn = DateTime.UtcNow;
+                    entry.Entity.DeletedBy = "System"; // Get from auth context
+                    entry.Entity.IsDeleted = true;
+                    break;
+            }
+        }
+
+        return base.SaveChangesAsync(cancellationToken);
+    }
+}
+
+using System.ComponentModel.DataAnnotations;
+
+namespace MudBlazorWeb.Infrastructure.Database;
+
+public abstract class BaseAuditableEntity
+{
+    [Key]
+    public Guid Id { get; set; }
+    public DateTime CreatedOn { get; set; }
+    public string CreatedBy { get; set; } = string.Empty;
+    public DateTime? ModifiedOn { get; set; }
+    public string? ModifiedBy { get; set; }
+    public DateTime? DeletedOn { get; set; }
+    public string? DeletedBy { get; set; }
+    public bool IsDeleted { get; set; }
+}
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MudBlazorWeb.Infrastructure.Database;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddDatabase(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+        services.AddDbContext<AppDbContext>(options =>
+        {
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+                npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3);
+            });
+
+#if DEBUG
+            options.EnableSensitiveDataLogging();
+            options.EnableDetailedErrors();
+#endif
+        });
+
+        return services;
+    }
+}
+
+---
+2. Feature-Specific Entity Configuration
+Each feature defines its own EF Core entity configuration in its Infrastructure layer:
+using MudBlazorWeb.Infrastructure.Database;
+
+namespace MudBlazorWeb.Features.Pricing.Domain;
+
+public class Pricing : BaseAuditableEntity
+{
+    public string PlanType { get; private set; } = string.Empty;
+    public decimal Price { get; private set; }
+    public List<string> Features { get; private set; } = new();
+
+    private Pricing() { } // EF Core constructor
+
+    public static Pricing Create(string planType, decimal price, List<string> features)
+    {
+        if (string.IsNullOrWhiteSpace(planType))
+            throw new ArgumentException("Plan type cannot be empty");
+
+        if (price < 0)
+            throw new ArgumentException("Price cannot be negative");
+
+        return new Pricing
+        {
+            Id = Guid.NewGuid(),
+            PlanType = planType,
+            Price = price,
+            Features = features ?? new List<string>()
+        };
+    }
+
+    public void UpdatePrice(decimal newPrice)
+    {
+        if (newPrice < 0)
+            throw new ArgumentException("Price cannot be negative");
+
+        Price = newPrice;
+    }
+}
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using MudBlazorWeb.Features.Pricing.Domain;
+
+namespace MudBlazorWeb.Features.Pricing.Infrastructure;
+
+public class PricingEntityConfiguration : IEntityTypeConfiguration<Pricing>
+{
+    public void Configure(EntityTypeBuilder<Pricing> builder)
+    {
+        builder.ToTable("Pricings", schema: "pricing");
+
+        builder.HasKey(p => p.Id);
+
+        builder.Property(p => p.PlanType)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(p => p.Price)
+            .IsRequired()
+            .HasPrecision(18, 2);
+
+        builder.Property(p => p.Features)
+            .HasConversion(
+                v => string.Join(',', v),
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
+            )
+            .HasMaxLength(1000);
+
+        // Index
+        builder.HasIndex(p => p.PlanType);
+
+        // Query filter for soft delete
+        builder.HasQueryFilter(p => !p.IsDeleted);
+
+        // Seed data
+        builder.HasData(
+            Pricing.Create("Basic", 9.99m, new List<string> { "Feature 1", "Feature 2" }),
+            Pricing.Create("Pro", 19.99m, new List<string> { "Feature 1", "Feature 2", "Feature 3" }),
+            Pricing.Create("Enterprise", 49.99m, new List<string> { "All Features" })
+        );
+    }
+}
+
+using Microsoft.EntityFrameworkCore;
+using MudBlazorWeb.Features.Pricing.Domain;
+using MudBlazorWeb.Infrastructure.Database;
+
+namespace MudBlazorWeb.Features.Pricing.Infrastructure;
+
+public class PricingRepository : IPricingRepository
+{
+    private readonly AppDbContext _context;
+
+    public PricingRepository(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<List<Pricing>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Pricings
+            .OrderBy(p => p.Price)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Pricing?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Pricings
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+
+    public async Task AddAsync(Pricing pricing, CancellationToken cancellationToken = default)
+    {
+        await _context.Pricings.AddAsync(pricing, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateAsync(Pricing pricing, CancellationToken cancellationToken = default)
+    {
+        _context.Pricings.Update(pricing);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(Pricing pricing, CancellationToken cancellationToken = default)
+    {
+        _context.Pricings.Remove(pricing);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}
+
+---
+3. Feature DependencyInjection (No DbContext Registration)
+using Microsoft.Extensions.DependencyInjection;
+using MudBlazorWeb.Features.Pricing.Domain;
+using MudBlazorWeb.Features.Pricing.Infrastructure;
+
+namespace MudBlazorWeb.Features.Pricing;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddPricingFeature(this IServiceCollection services)
+    {
+        // Application
+        services.AddMediatR(cfg => 
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        
+        // Infrastructure - Only register repository (DbContext comes from shared infrastructure)
+        services.AddScoped<IPricingRepository, PricingRepository>();
+        
+        return services;
+    }
+}
+
+---
+4. Program.cs Registration
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
+using Fluxor;
+using MudBlazorWeb;
+using MudBlazorWeb.Infrastructure.Database;
+using MudBlazorWeb.Features.Pricing;
+using MudBlazorWeb.Features.Authentication;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services
+builder.Services.AddMudServices();
+
+// Fluxor
+builder.Services.AddFluxor(options =>
+{
+    options.ScanAssemblies(typeof(Program).Assembly);
+#if DEBUG
+    options.UseReduxDevTools();
+#endif
+});
+
+// ⭐ Database (register FIRST before features)
+builder.Services.AddDatabase(builder.Configuration);
+
+// Features (features depend on DbContext)
+builder.Services.AddPricingFeature();
+builder.Services.AddAuthenticationFeature();
+
+var app = builder.Build();
+
+// Run migrations on startup (optional, for development)
+#if DEBUG
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+#endif
+
+app.MapPricingEndpoints();
+app.MapAuthenticationEndpoints();
+
+app.Run();
+
+---
+5. Migrations Workflow
+Create Migrations
+# From solution root
+dotnet ef migrations add InitialCreate --project MudBlazorWeb --context AppDbContext --output-dir Infrastructure/Database/Migrations
+
+# Or for specific feature changes
+dotnet ef migrations add AddPricingTable --project MudBlazorWeb --context AppDbContext --output-dir Infrastructure/Database/Migrations
+
+Apply Migrations
+# Development
+dotnet ef database update --project MudBlazorWeb --context AppDbContext
+
+# Production (in Program.cs or separate migration runner)
+
+Update Database in Code
+// In Program.cs startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+
+---
+6. appsettings.json Configuration
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=mudblazor_db;Username=postgres;Password=yourpassword"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.EntityFrameworkCore": "Warning"
+    }
+  }
+}
+   appsettings.Development.json Configuration
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=mudblazor_dev;Username=postgres;Password=dev123"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Microsoft.EntityFrameworkCore.Database.Command": "Information"
+    }
+  }
+}
+
+---
+Summary
+✅ Recommended Structure (Shared DbContext)
+
+Infrastructure/
+├── Database/
+│   ├── AppDbContext.cs              # ⭐ Shared DbContext
+│   ├── BaseAuditableEntity.cs       # Shared base entity
+│   ├── DependencyInjection.cs       # DbContext registration
+│   └── Migrations/                  # All migrations
+
+Features/Pricing/
+├── Domain/
+│   └── Pricing.cs                   # Entity (inherits BaseAuditableEntity)
+├── Infrastructure/
+│   ├── PricingEntityConfiguration.cs # ⭐ EF Configuration
+│   └── PricingRepository.cs         # Uses AppDbContext
+└── DependencyInjection.cs           # Registers repository only
+
+Key Points
+1.	Shared DbContext in Infrastructure/Database/
+2.	Entity Configurations in each feature's Infrastructure/
+3.	Migrations in shared Infrastructure/Database/Migrations/
+4.	Repositories inject AppDbContext
+5.	Register Database FIRST in Program.cs before features
+This approach maintains Clean Architecture boundaries while keeping EF Core migrations manageable! 🎯

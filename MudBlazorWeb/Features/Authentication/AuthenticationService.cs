@@ -1,9 +1,10 @@
 using System;
+
 using Microsoft.AspNetCore.Components.Authorization;
 
+using MudBlazorWeb.Infrastructure;
 using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Helpers;
-using MudBlazorWeb.Shared.Infrastructure;
 using MudBlazorWeb.Shared.Models;
 
 namespace MudBlazorWeb.Features.Authentication;

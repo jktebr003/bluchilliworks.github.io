@@ -1,6 +1,6 @@
 using Fluxor;
 
-using MudBlazorWeb.Shared.Infrastructure;
+using MudBlazorWeb.Infrastructure;
 using MudBlazorWeb.Shared.Models;
 
 namespace MudBlazorWeb.Features.Posts;
