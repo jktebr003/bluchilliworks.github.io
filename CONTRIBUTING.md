@@ -48,7 +48,7 @@ Notes:
 - Domain entities use domain language and do not include suffixes like `Entity` unless ambiguous.
 
 ## Clean Architecture within a feature
-- Api/Contracts: Public contracts � DTOs, minimal request/response models, endpoint routes.
+- Api/Contracts: Public contracts — DTOs, minimal request/response models, endpoint routes.
 - Application: Use-cases, request/response messages, handlers, validation, mapping.
 - Domain: Pure domain models, value objects, domain exceptions, domain events.
 - Infrastructure: Persistence, external integrations, repository implementations, proxies. Implementation details depend on IoC and should be injected via interfaces defined in Application or Domain.
@@ -67,7 +67,7 @@ Example registration pattern:
   - `public static IServiceCollection AddOrdersFeature(this IServiceCollection services, IConfiguration configuration) { ... }`
 
 ## Using MediatR or explicit handlers
-- Either pattern is acceptable�use MediatR for simpler wiring of requests/handlers, or explicit interface handlers for clarity.
+- Either pattern is acceptable—use MediatR for simpler wiring of requests/handlers, or explicit interface handlers for clarity.
 - If using MediatR, keep pipeline behaviors (validation, logging) centralized.
 
 ## Blazor (WASM + Server) specifics
@@ -132,3 +132,180 @@ A: Prefer orchestrators in an Application-level service or a dedicated cross-fea
 Thank you for following these guidelines. The next suggested steps are:
 - Create the `CONTRIBUTING.md` file in the repository root with these contents (this will be applied now).
 - Add an `.editorconfig` with formatting rules tailored to .NET 9 and Blazor projects (can be provided on request).
+
+
+
+
+
+src/
+├── MudBlazorWeb/
+│   ├── Features/
+│   │   ├── Pricing/
+│   │   │   ├── Api/                           # Contracts, DTOs, API models
+│   │   │   │   ├── GetPricingRequest.cs
+│   │   │   │   ├── GetPricingResponse.cs
+│   │   │   │   └── PricingDto.cs
+│   │   │   ├── Application/                   # Commands, Queries, Handlers
+│   │   │   │   ├── Commands/
+│   │   │   │   │   ├── CreatePricingCommand.cs
+│   │   │   │   │   └── CreatePricingHandler.cs
+│   │   │   │   ├── Queries/
+│   │   │   │   │   ├── GetPricingQuery.cs
+│   │   │   │   │   └── GetPricingHandler.cs
+│   │   │   │   └── DependencyInjection.cs
+│   │   │   ├── Domain/                        # Entities, Value Objects, Interfaces
+│   │   │   │   ├── Pricing.cs
+│   │   │   │   ├── PricingId.cs
+│   │   │   │   └── IPricingRepository.cs
+│   │   │   ├── Infrastructure/                # Repository implementations
+│   │   │   │   ├── PricingRepository.cs
+│   │   │   │   └── DependencyInjection.cs
+│   │   │   ├── UI/                            # Blazor UI + Fluxor State
+│   │   │   │   ├── Components/
+│   │   │   │   │   ├── Index.razor            # Main feature page
+│   │   │   │   │   ├── PricingCard.razor
+│   │   │   │   │   └── PricingForm.razor
+│   │   │   │   ├── State/                     # Fluxor state management
+│   │   │   │   │   ├── PricingState.cs
+│   │   │   │   │   ├── PricingActions.cs
+│   │   │   │   │   ├── PricingReducers.cs
+│   │   │   │   │   └── PricingEffects.cs
+│   │   │   │   └── Styles/
+│   │   │   │       └── Pricing.razor.css
+│   │   │   ├── Tests/
+│   │   │   │   ├── PricingHandlerTests.cs
+│   │   │   │   └── PricingReducerTests.cs
+│   │   │   └── README.md                      # Feature documentation
+│   │   │
+│   │   ├── Authentication/
+│   │   │   ├── Api/
+│   │   │   │   ├── LoginRequest.cs
+│   │   │   │   └── LoginResponse.cs
+│   │   │   ├── Application/
+│   │   │   │   ├── Commands/
+│   │   │   │   │   ├── LoginCommand.cs
+│   │   │   │   │   └── LoginHandler.cs
+│   │   │   │   └── DependencyInjection.cs
+│   │   │   ├── Domain/
+│   │   │   │   ├── User.cs
+│   │   │   │   └── IUserRepository.cs
+│   │   │   ├── Infrastructure/
+│   │   │   │   ├── UserRepository.cs
+│   │   │   │   ├── DatabaseAuthenticationStateProvider.cs
+│   │   │   │   └── DependencyInjection.cs
+│   │   │   ├── UI/
+│   │   │   │   ├── Components/
+│   │   │   │   │   ├── Login.razor
+│   │   │   │   │   └── Register.razor
+│   │   │   │   └── State/
+│   │   │   │       ├── AuthState.cs
+│   │   │   │       ├── AuthActions.cs
+│   │   │   │       ├── AuthReducers.cs
+│   │   │   │       └── AuthEffects.cs
+│   │   │   └── Tests/
+│   │   │       └── LoginHandlerTests.cs
+│   │   │
+│   │   └── [OtherFeatures]/
+│   │       └── [Same structure as above]
+│   │
+│   ├── Shared/                                # Cross-cutting concerns
+│   │   ├── Components/
+│   │   │   ├── Layout/
+│   │   │   │   ├── MainLayout.razor
+│   │   │   │   ├── NavMenu.razor
+│   │   │   │   └── NavMenu.razor.css
+│   │   │   └── Common/
+│   │   │       ├── LoadingSpinner.razor
+│   │   │       └── ErrorBoundary.razor
+│   │   ├── Services/
+│   │   │   ├── IHttpService.cs
+│   │   │   ├── HttpService.cs
+│   │   │   └── ILocalStorageService.cs
+│   │   ├── Extensions/
+│   │   │   └── ServiceCollectionExtensions.cs
+│   │   └── Models/
+│   │       ├── Result.cs
+│   │       └── ApiResponse.cs
+│   │
+│   ├── wwwroot/
+│   │   ├── css/
+│   │   ├── js/
+│   │   └── index.html
+│   │
+│   ├── Program.cs                             # DI composition root
+│   ├── App.razor
+│   ├── _Imports.razor
+│   └── MudBlazorWeb.csproj
+│
+└── tests/
+    ├── MudBlazorWeb.IntegrationTests/
+    │   └── MudBlazorWeb.IntegrationTests.csproj
+    └── MudBlazorWeb.ArchitectureTests/        # Optional: enforce rules
+        └── ArchitectureTests.cs
+
+
+
+
+using Microsoft.Extensions.DependencyInjection;
+
+namespace MudBlazorWeb.Features.Pricing.Application;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddPricingApplication(this IServiceCollection services)
+    {
+        // Register handlers (if using manual registration)
+        // Or use MediatR assembly scanning
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        
+        return services;
+    }
+}
+
+
+
+
+using Microsoft.Extensions.DependencyInjection;
+using MudBlazorWeb.Features.Pricing.Domain;
+
+namespace MudBlazorWeb.Features.Pricing.Infrastructure;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddPricingInfrastructure(this IServiceCollection services)
+    {
+        services.AddScoped<IPricingRepository, PricingRepository>();
+        
+        return services;
+    }
+}
+
+
+
+
+using Fluxor;
+using MudBlazorWeb.Features.Pricing.Application;
+using MudBlazorWeb.Features.Pricing.Infrastructure;
+using MudBlazorWeb.Features.Authentication.Application;
+using MudBlazorWeb.Features.Authentication.Infrastructure;
+
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
+// Fluxor state management
+builder.Services.AddFluxor(options =>
+{
+    options.ScanAssemblies(typeof(Program).Assembly);
+    options.UseReduxDevTools();
+});
+
+// Feature registrations
+builder.Services.AddPricingApplication();
+builder.Services.AddPricingInfrastructure();
+builder.Services.AddAuthenticationApplication();
+builder.Services.AddAuthenticationInfrastructure();
+
+// MudBlazor
+builder.Services.AddMudServices();
+
+await builder.Build().RunAsync();
+

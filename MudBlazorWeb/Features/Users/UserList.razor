@@ -1,0 +1,158 @@
+@page "/users"
+
+@using MudBlazor
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@using MudBlazorWeb.Shared.Enums
+@using MudBlazorWeb.Shared.Models
+@using static MudBlazorWeb.Features.Users.UsersActions
+
+@inject IState<UsersState> UsersState
+@inject IDispatcher Dispatcher
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@inherits FluxorComponent
+
+<div class="div-page-content">
+    <span class="heading-meta">Users</span>
+    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">User Directory</MudText>
+
+    <!-- Search Component -->
+    <UserSearch />
+
+    <div class="ttl-users">
+        <!-- Loading State -->
+        @if (UsersState.Value.IsLoading)
+        {
+            <div class="text-center py-5">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Class="mt-3">Loading users...</MudText>
+            </div>
+        }
+        else if (UsersState.Value.ErrorMessage != null)
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-4">
+                @UsersState.Value.ErrorMessage
+            </MudAlert>
+        }
+        else if (UsersState.Value.Users == null || !UsersState.Value.Users.Any())
+        {
+            <MudAlert Severity="MudBlazor.Severity.Info">
+                No users found.
+            </MudAlert>
+        }
+        else
+        {
+            <!-- Desktop Data Grid View -->
+            <MudTable Items="@UsersState.Value.Users"
+                      Hover="true"
+                      Striped="true"
+                      Elevation="2"
+                      Class="users-table">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Username</MudTh>
+                    <MudTh>Email</MudTh>
+                    <MudTh>Mobile</MudTh>
+                    <MudTh>Gender</MudTh>
+                    <MudTh>Package</MudTh>
+                    <MudTh>Role</MudTh>
+                    <MudTh>Actions</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">
+                        <div class="d-flex align-center">
+                            <MudAvatar Color="Color.Primary" Size="Size.Small" Class="mr-2">
+                                @GetInitials(context.Name ?? context.Username ?? "U")
+                            </MudAvatar>
+                            @context.Name
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Username">@context.Username</MudTd>
+                    <MudTd DataLabel="Email">@context.EmailAddress</MudTd>
+                    <MudTd DataLabel="Mobile">@context.MobileNumber</MudTd>
+                    <MudTd DataLabel="Gender">@context.Gender</MudTd>
+                    <MudTd DataLabel="Package">@context.Package?.Name</MudTd>
+                    <MudTd DataLabel="Role">
+                        <MudChip T="string" Size="Size.Small" Color="@GetUserRoleColor(context.UserRole)">
+                            @GetUserRoleDisplayName(context.UserRole)
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudIconButton Icon="@Icons.Material.Filled.Visibility"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       OnClick="@(() => ViewUserDetails(context))"
+                                       aria-label="view" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+
+            <!-- Pagination -->
+            @if (UsersState.Value.TotalPages > 1)
+            {
+                <div class="pagination-container">
+                    <MudPagination Count="@UsersState.Value.TotalPages"
+                                   Selected="@UsersState.Value.CurrentPage"
+                                   SelectedChanged="@OnPageChanged"
+                                   Color="Color.Primary"
+                                   Variant="Variant.Filled"
+                                   ShowFirstButton="true"
+                                   ShowLastButton="true" />
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+
+    private void OnPageChanged(int page)
+    {
+        // If search is active, trigger search with new page, otherwise load users normally
+        if (UsersState.Value.IsSearchActive)
+        {
+            Dispatcher.Dispatch(new SearchUsersAction(page, UsersState.Value.PageSize));
+        }
+        else
+        {
+            Dispatcher.Dispatch(new ChangePageAction(page));
+        }
+    }
+
+    private void ViewUserDetails(UserResponse user)
+    {
+        NavigationManager.NavigateTo($"/users/{user.ID}/details");
+    }
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+        return name.Length >= 2 ? name.Substring(0, 2).ToUpper() : name[0].ToString().ToUpper();
+    }
+
+    private string GetUserRoleDisplayName(UserType role)
+    {
+        return role switch
+        {
+            UserType.Customer => "Customer",
+            UserType.Staff => "Staff",
+            _ => "Unknown"
+        };
+    }
+
+    private Color GetUserRoleColor(UserType role)
+    {
+        return role switch
+        {
+            UserType.Customer => Color.Primary,
+            UserType.Staff => Color.Secondary,
+            _ => Color.Default
+        };
+    }
+}

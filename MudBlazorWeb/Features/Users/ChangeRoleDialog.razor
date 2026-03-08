@@ -1,0 +1,86 @@
+@using MudBlazor
+@using MudBlazorWeb.Shared.Enums
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-3">
+            Change role for user: <strong>@Username</strong>
+        </MudText>
+        
+        <MudText Typo="Typo.body2" Class="mb-2">
+            Current Role: <MudChip T="string" Size="Size.Small" Color="@GetRoleColor(CurrentRole)">@GetRoleDisplayName(CurrentRole)</MudChip>
+        </MudText>
+
+        <MudSelect @bind-Value="selectedRole" 
+                   Label="New Role" 
+                   Variant="Variant.Outlined"
+                   FullWidth="true"
+                   Class="mt-3">
+            <MudSelectItem Value="@UserType.Customer">Customer</MudSelectItem>
+            <MudSelectItem Value="@UserType.Staff">Staff</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" 
+                   Variant="Variant.Filled" 
+                   OnClick="Submit"
+                   Disabled="@(selectedRole == CurrentRole)">
+            Change Role
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Username { get; set; } = string.Empty;
+
+    [Parameter]
+    public UserType CurrentRole { get; set; }
+
+    private UserType selectedRole;
+
+    protected override void OnInitialized()
+    {
+        selectedRole = CurrentRole;
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void Submit()
+    {
+        if (selectedRole != CurrentRole)
+        {
+            MudDialog.Close(DialogResult.Ok(selectedRole));
+        }
+    }
+
+    private string GetRoleDisplayName(UserType role)
+    {
+        return role switch
+        {
+            UserType.Customer => "Customer",
+            UserType.Staff => "Staff",
+            _ => "Unknown"
+        };
+    }
+
+    private Color GetRoleColor(UserType role)
+    {
+        return role switch
+        {
+            UserType.Customer => Color.Primary,
+            UserType.Staff => Color.Secondary,
+            _ => Color.Default
+        };
+    }
+}

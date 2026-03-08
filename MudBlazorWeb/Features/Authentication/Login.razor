@@ -1,0 +1,100 @@
+@page "/authentication/login"
+
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+
+@inject IState<AuthenticationState> AuthState
+@inject IDispatcher Dispatcher
+@inject NavigationManager NavigationManager
+
+@inherits FluxorComponent
+
+<div>
+    <div>
+        <span class="heading-meta">Login</span>
+        <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Sign-in</MudText>
+
+        <div>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudCard Class="pb-3 div-login" style="height:100%">
+                        <MudCardMedia Image="img/sign-in-to-our-community.png" />
+                        <MudCardContent>
+                            <div class="mb-2">
+                                <MudText Typo="Typo.caption">* indicates a required field</MudText>
+                            </div>
+                            @if (!string.IsNullOrEmpty(AuthState.Value.ErrorMessage))
+                            {
+                                <MudAlert Severity="Severity.Error" Class="mb-3">@AuthState.Value.ErrorMessage</MudAlert>
+                            }
+                            <EditForm Model="loginModel" OnValidSubmit="OnLogin">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary />
+
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username *</label>
+                                    <InputText id="username" class="form-control login-input" @bind-Value="loginModel.Username" placeholder="Enter your username" />
+                                    <ValidationMessage For="@(() => loginModel.Username)" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password *</label>
+                                    <InputText id="password" type="password" class="form-control login-input" @bind-Value="loginModel.Password" placeholder="Enter your password" />
+                                    <ValidationMessage For="@(() => loginModel.Password)" />
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <a href="/authentication/forgot-password" class="login-link">Forgot password?</a>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 login-btn" disabled="@AuthState.Value.IsBusy">
+                                    @if (AuthState.Value.IsBusy)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <span>Signing in...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Sign In</span>
+                                    }
+                                </button>
+                            </EditForm>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <div class="div-login-register-form">
+                        <div class="div-login-register-form-contents">
+                            <MudText Typo="Typo.h6" GutterBottom="true" class="ttl-sub-heading">Welcome to login</MudText>
+                            <p>Don't have an account?</p>
+                            <MudFab Color="Color.Transparent" Style="margin-top: 2rem; color: black; border: 2px solid black" StartIcon="@Icons.Material.Filled.Edit" Label="Sign Up" Href="/authentication/register" />
+                        </div>
+                    </div>
+                </MudItem>
+            </MudGrid>
+        </div>
+    </div>
+</div>
+
+<ProgressSpinner IsBusy="AuthState.Value.IsBusy" />
+
+@code {
+    private LoginModel loginModel = new();
+
+    private void OnLogin()
+    {
+        Dispatcher.Dispatch(new LoginAction(loginModel.Username, loginModel.Password));
+    }
+
+    public class LoginModel
+    {
+        [Required]
+        public string Username { get; set; } = string.Empty;
+
+        [Required]
+        public string Password { get; set; } = string.Empty;
+    }
+}
