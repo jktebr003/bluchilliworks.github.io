@@ -1,0 +1,50 @@
+using MudBlazorWeb.Shared.Enums;
+
+namespace MudBlazorWeb.Shared.Models;
+
+public class UserResponse : BaseResponse
+{
+    public string? Name { get; set; } = null;
+
+    public string? FirstName { get; set; } = null;
+
+    public string? LastName { get; set; } = null;
+
+    public string? Username { get; set; } = null;
+
+    public string? EmailAddress { get; set; } = null;
+
+    public string? TelephoneNumber { get; set; }
+
+    public string? MobileNumber { get; set; }
+
+    public string? HashedPassword { get; set; } = null;
+
+    public bool EmailVerified { get; set; } = false;
+
+    [Obsolete("Use HashedPassword instead. This field will be removed in future versions.")]
+    public string? EncryptedPassword { get; set; } = null;
+
+    [Obsolete("Use HashedPassword instead. This field will be removed in future versions.")]
+    public string? DecryptedPassword { get; set; } = null;
+
+    public string? Gender { get; set; } = null;
+
+    public string? DateOfBirth { get; set; } = null;
+
+    public PackageResponse? Package { get; set; }
+
+    public IEnumerable<JobResponse>? Jobs { get; set; } = null;
+
+    public IEnumerable<QualificationResponse>? Qualifications { get; set; } = null;
+
+    public IEnumerable<CertificationResponse>? Certifications { get; set; } = null;
+
+    //public AvatarType Avatar { get; set; }
+
+    public string? Skills { get; set; }
+
+    public string? Hobbies { get; set; }
+
+    public UserType UserRole { get; set; }
+}
