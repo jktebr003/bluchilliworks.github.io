@@ -1,4 +1,4 @@
-﻿using Api.Filters;
+using Api.Filters;
 using Carter;
 using MediatR;
 using Shared.Models;

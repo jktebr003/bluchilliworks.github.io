@@ -1,8 +1,8 @@
 using Fluxor;
 
-using static MudBlazorWeb.Features.Pricing.PricingAction;
+using static MudBlazorWeb.Features.Pricing.UI.PricingAction;
 
-namespace MudBlazorWeb.Features.Pricing;
+namespace MudBlazorWeb.Features.Pricing.UI;
 
 public class PricingReducers
 {

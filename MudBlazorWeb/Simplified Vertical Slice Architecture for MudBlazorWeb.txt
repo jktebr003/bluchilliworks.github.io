@@ -1037,16 +1037,17 @@ app.Run();
 
 ---
 5. Migrations Workflow
-Create Migrations
-# From solution root
-dotnet ef migrations add InitialCreate --project MudBlazorWeb --context AppDbContext --output-dir Infrastructure/Database/Migrations
+# Restore packages first
+dotnet restore
 
-# Or for specific feature changes
-dotnet ef migrations add AddPricingTable --project MudBlazorWeb --context AppDbContext --output-dir Infrastructure/Database/Migrations
+# Build the project
+dotnet build
 
-Apply Migrations
-# Development
-dotnet ef database update --project MudBlazorWeb --context AppDbContext
+# Create migration
+dotnet ef migrations add InitialCreate --project MudBlazorWeb --context AppDbContext --verbose
+
+# If successful, apply migration
+dotnet ef database update --project MudBlazorWeb --context AppDbContext --verbose
 
 # Production (in Program.cs or separate migration runner)
 

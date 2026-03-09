@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MudBlazorWeb.Infrastructure.Database.Postgres.Entities;
+namespace MudBlazorWeb.Infrastructure.Database.Postgres.Common;
 
 public abstract class BaseAuditableEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    //[Key]
+    //public Guid Id { get; set; }
     public DateTime CreatedOn { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
     public DateTime? ModifiedOn { get; set; }

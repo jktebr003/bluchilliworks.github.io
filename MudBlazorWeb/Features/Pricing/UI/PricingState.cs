@@ -3,7 +3,7 @@ using Fluxor;
 using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Models;
 
-namespace MudBlazorWeb.Features.Pricing;
+namespace MudBlazorWeb.Features.Pricing.UI;
 
 public record PricingState
 {
