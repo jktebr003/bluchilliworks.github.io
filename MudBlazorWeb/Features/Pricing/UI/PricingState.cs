@@ -1,5 +1,5 @@
 using Fluxor;
-
+using MudBlazorWeb.Features.Pricing.Application;
 using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Models;
 
@@ -9,8 +9,8 @@ public record PricingState
 {
     public bool IsLoading { get; init; }
     public string? ErrorMessage { get; init; }
-    public List<PackageResponse> AllPackages { get; init; } = new();
-    public List<PackageResponse> FilteredPackages { get; init; } = new();
+    public List<GetPackagesQuery.PackageDto> AllPackages { get; init; } = new();
+    public List<GetPackagesQuery.PackageDto> FilteredPackages { get; init; } = new();
     public PackageType SelectedPackageType { get; init; } = PackageType.None;
 }
 

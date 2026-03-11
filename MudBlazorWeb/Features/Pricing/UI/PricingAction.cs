@@ -1,13 +1,13 @@
+using MudBlazorWeb.Features.Pricing.Application;
 using MudBlazorWeb.Shared.Enums;
-using MudBlazorWeb.Shared.Models;
 
 namespace MudBlazorWeb.Features.Pricing.UI;
 
 public class PricingAction
 {
     public record LoadPackagesAction;
-    public record LoadPackagesSuccessAction(List<PackageResponse> Packages);
+    public record LoadPackagesSuccessAction(List<GetPackagesQuery.PackageDto> Packages);
     public record LoadPackagesFailedAction(string ErrorMessage);
     public record FilterPackagesByTypeAction(PackageType PackageType);
-    public record SelectPackageAction(PackageResponse Package);
+    public record SelectPackageAction(GetPackagesQuery.PackageDto Package);
 }

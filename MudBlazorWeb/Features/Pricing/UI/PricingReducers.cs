@@ -15,7 +15,7 @@ public class PricingReducers
     {
         var filteredPackages = state.SelectedPackageType == global::MudBlazorWeb.Shared.Enums.PackageType.None
             ? action.Packages
-            : action.Packages.Where(p => p.Type == state.SelectedPackageType).ToList();
+            : action.Packages.Where(p => p.PackageType == state.SelectedPackageType).ToList();
 
         return state with
         {
@@ -35,7 +35,7 @@ public class PricingReducers
     {
         var filteredPackages = action.PackageType == global::MudBlazorWeb.Shared.Enums.PackageType.None
             ? state.AllPackages
-            : state.AllPackages.Where(p => p.Type == action.PackageType).ToList();
+            : state.AllPackages.Where(p => p.PackageType == action.PackageType).ToList();
 
         return state with
         {

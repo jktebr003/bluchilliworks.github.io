@@ -7,6 +7,7 @@
 @using Fluxor
 @using Fluxor.Blazor.Web.Components
 @using Microsoft.AspNetCore.Components.Authorization
+@using MudBlazorWeb.Features.Pricing.Application
 @using MudBlazorWeb.Features.Authentication
 @using MudBlazorWeb.Features.Users
 @using static MudBlazorWeb.Features.Users.UsersActions
@@ -80,7 +81,7 @@
                                     @package.Description
                                 </MudText>
                                 <MudChip T="string" Color="Color.Secondary" Size="Size.Small">
-                                    @GetPackageTypeDisplayName(package.Type)
+                                    @GetPackageTypeDisplayName(package.PackageType)
                                 </MudChip>
                             </MudCardContent>
                             <MudCardActions>
@@ -134,7 +135,7 @@
         Dispatcher.Dispatch(new FilterPackagesByTypeAction(value));
     }
 
-    private async Task SelectPackage(PackageResponse package)
+    private async Task SelectPackage(GetPackagesQuery.PackageDto package)
     {
         var currentUser = UsersState.Value.CurrentUser;
 
@@ -162,7 +163,7 @@
                 MobileNumber = currentUser.MobileNumber,
                 Gender = currentUser.Gender,
                 DateOfBirth = currentUser.DateOfBirth,
-                PackageId = package.ID,
+                PackageId = package.Id.ToString(),
                 Jobs = currentUser.Jobs,
                 Qualifications = currentUser.Qualifications,
                 UserType = currentUser.UserRole,
