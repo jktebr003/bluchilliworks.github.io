@@ -20,6 +20,14 @@
     </MudMainContent>
 </MudLayout>
 
+<style>
+    .mud-theme-light .mud-navmenu .mud-nav-link.active {
+        background-color: #e8edec;
+        color: #0b3c49;
+        border-radius: 6px;
+    }
+</style>
+
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
@@ -56,41 +64,51 @@
 
     private readonly PaletteLight _lightPalette = new()
     {
-        Black = "#110e2d",
-        AppbarText = "#424242",
-        AppbarBackground = "rgba(255,255,255,0.8)",
-        DrawerBackground = "#ffffff",
-        GrayLight = "#e8e8e8",
-        GrayLighter = "#f9f9f9",
+        Black = "#272c34",
+        Primary = "#0b3c49",
+        Secondary = "#f0e100",
+        Tertiary = "#1ec8a5",
+        Surface = "#ffffff",
+        Background = "#fffdfd",
+        TextPrimary = "#424242",
+        TextSecondary = "#00000089",
+        AppbarText = "#cbd2d0",
+        AppbarBackground = "#731963",
+        DrawerBackground = "#cbd2d0",
+        DrawerText = "#0b3c49",
+        DrawerIcon = "#0b3c49",
+        GrayLight = "#BDBDBD",
+        GrayLighter = "#E0E0E0",
     };
 
     private readonly PaletteDark _darkPalette = new()
     {
-        Primary = "#7e6fff",
-        Surface = "#1e1e2d",
-        Background = "#1a1a27",
-        BackgroundGray = "#151521",
-        AppbarText = "#92929f",
-        AppbarBackground = "rgba(26,26,39,0.8)",
-        DrawerBackground = "#1a1a27",
-        ActionDefault = "#74718e",
+        Primary = "#f0e100",
+        Secondary = "#731963",
+        Surface = "#0b3c49",
+        Background = "#0b3c49",
+        BackgroundGray = "#cbd2d0",
+        AppbarText = "#fffdfd",
+        AppbarBackground = "rgba(11,60,73,0.8)",
+        DrawerBackground = "#0b3c49",
+        ActionDefault = "#cbd2d0",
         ActionDisabled = "#9999994d",
-        ActionDisabledBackground = "#605f6d4d",
-        TextPrimary = "#b2b0bf",
-        TextSecondary = "#92929f",
+        ActionDisabledBackground = "#cbd2d04d",
+        TextPrimary = "#fffdfd",
+        TextSecondary = "#cbd2d0",
         TextDisabled = "#ffffff33",
-        DrawerIcon = "#92929f",
-        DrawerText = "#92929f",
-        GrayLight = "#2a2833",
-        GrayLighter = "#1e1e2d",
-        Info = "#4a86ff",
-        Success = "#3dcb6c",
-        Warning = "#ffb545",
-        Error = "#ff3f5f",
-        LinesDefault = "#33323e",
-        TableLines = "#33323e",
-        Divider = "#292838",
-        OverlayLight = "#1e1e2d80",
+        DrawerIcon = "#cbd2d0",
+        DrawerText = "#cbd2d0",
+        GrayLight = "#731963",
+        GrayLighter = "#0b3c49",
+        Info = "#cbd2d0",
+        Success = "#cbd2d0",
+        Warning = "#f0e100",
+        Error = "#731963",
+        LinesDefault = "#731963",
+        TableLines = "#731963",
+        Divider = "#731963",
+        OverlayLight = "#0b3c4980",
     };
 
     public string DarkLightModeButtonIcon => _isDarkMode switch
