@@ -1,5 +1,3 @@
-using Asp.Versioning;
-
 using Blazor.SubtleCrypto;
 
 using BlazorDownloadFile;
@@ -14,10 +12,7 @@ using Fluxor.Blazor.Web.ReduxDevTools;
 using log4net.Config;
 
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.OpenApi.Models;
 
 using MudBlazor.Services;
 
@@ -27,15 +22,12 @@ using MudBlazorWeb.Features.Pricing;
 using MudBlazorWeb.Infrastructure;
 using MudBlazorWeb.Infrastructure.Database;
 using MudBlazorWeb.Infrastructure.Database.Postgres;
-using MudBlazorWeb.Shared.Extensions.Swagger;
 using MudBlazorWeb.Shared.Helpers;
 using MudBlazorWeb.Shared.Services;
 
 using MudExtensions.Services;
 
 using Solutaris.InfoWARE.ProtectedBrowserStorage.Extensions;
-
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,99 +42,6 @@ builder.Configuration.SetBasePath(Directory.GetCurrentDirectory())
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
-
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddApiVersioning(
-//                    options =>
-//                    {
-//                        // reporting api versions will return the headers
-//                        // "api-supported-versions" and "api-deprecated-versions"
-//                        options.ReportApiVersions = true;
-
-//                        options.Policies.Sunset(0.9)
-//                                        .Effective(DateTimeOffset.Now.AddDays(60))
-//                                        .Link("policy.html")
-//                                        .Title("Versioning Policy")
-//                                        .Type("text/html");
-//                        options.DefaultApiVersion = new ApiVersion(1, 0);
-//                        options.AssumeDefaultVersionWhenUnspecified = true;
-//                    })
-//                .AddMvc()
-//                .AddApiExplorer(
-//                    options =>
-//                    {
-//                        // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
-//                        // note: the specified format code will format the version as "'v'major[.minor][-status]"
-//                        options.GroupNameFormat = "'v'VVV";
-
-//                        // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
-//                        // can also be used to control the format of the API version in route templates
-//                        options.SubstituteApiVersionInUrl = true;
-//                    });
-
-//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-
-//builder.Services.AddSwaggerGen(c =>
-//{
-//    c.AddSecurityDefinition("basic", new OpenApiSecurityScheme
-//    {
-//        Description = "api key.",
-//        Name = "Authorization",
-//        In = ParameterLocation.Header,
-//        Type = SecuritySchemeType.ApiKey,
-//        Scheme = "basic"
-//    });
-
-//    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-//    {
-//        {
-//            new OpenApiSecurityScheme
-//            {
-//                Reference = new OpenApiReference
-//                {
-//                    Type = ReferenceType.SecurityScheme,
-//                    Id = "basic"
-//                },
-//                In = ParameterLocation.Header
-//            },
-//            new List<string>()
-//        }
-//    });
-
-//    // add a custom operation filter which sets default values
-//    c.OperationFilter<SwaggerDefaultValues>();
-
-//    var fileName = typeof(Program).Assembly.GetName().Name + ".xml";
-//    var filePath = Path.Combine(AppContext.BaseDirectory, fileName);
-
-//    // integrate xml comments
-//    c.IncludeXmlComments(filePath);
-
-//    c.ResolveConflictingActions(apiDescriptions =>
-//    {
-//        var descriptions = apiDescriptions as ApiDescription[] ?? apiDescriptions.ToArray();
-//        var first = descriptions.First(); // build relative to the 1st method
-//        var parameters = descriptions.SelectMany(d => d.ParameterDescriptions).ToList();
-
-//        first.ParameterDescriptions.Clear();
-//        // add parameters and make them optional
-//        foreach (var parameter in parameters)
-//            if (first.ParameterDescriptions.All(x => x.Name != parameter.Name))
-//            {
-//                first.ParameterDescriptions.Add(new ApiParameterDescription
-//                {
-//                    ModelMetadata = parameter.ModelMetadata,
-//                    Name = parameter.Name,
-//                    ParameterDescriptor = parameter.ParameterDescriptor,
-//                    Source = parameter.Source,
-//                    IsRequired = false,
-//                    DefaultValue = null
-//                });
-//            }
-//        return first;
-//    });
-//});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -216,20 +115,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//app.UseSwagger();
-//app.UseSwaggerUI(
-//options =>
-//{
-//    var descriptions = app.DescribeApiVersions();
-
-//    // build a swagger endpoint for each discovered API version
-//    foreach (var description in descriptions)
-//    {
-//        var url = $"/swagger/{description.GroupName}/swagger.json";
-//        var name = description.GroupName.ToUpperInvariant();
-//        options.SwaggerEndpoint(url, name);
-//    }
-//});
+app.MapCarter();
 
 app.UseAntiforgery();
 
@@ -266,8 +152,6 @@ using (var scope = app.Services.CreateScope())
 }
 #endif
 
-
-//app.Run();
 try
 {
     Console.WriteLine("Starting up...");

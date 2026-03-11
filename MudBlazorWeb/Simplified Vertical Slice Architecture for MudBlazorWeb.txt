@@ -1044,10 +1044,10 @@ dotnet restore
 dotnet build
 
 # Create migration
-dotnet ef migrations add InitialCreate --project MudBlazorWeb --context AppDbContext --verbose
+dotnet ef migrations add InitialCreate --context AppDbContext --verbose -o Infrastructure/Database/Migrations
 
 # If successful, apply migration
-dotnet ef database update --project MudBlazorWeb --context AppDbContext --verbose
+dotnet ef database update --context AppDbContext --verbose
 
 # Production (in Program.cs or separate migration runner)
 

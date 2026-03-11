@@ -101,7 +101,7 @@ public class GetPackagesQueryEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("packages", async (int? pageSize, int? pageNumber, ISender sender) =>
+        app.MapGet("api/packages", async (int? pageSize, int? pageNumber, ISender sender) =>
         {
             var query = new GetPackagesQuery.Query(pageSize, pageNumber);
 
