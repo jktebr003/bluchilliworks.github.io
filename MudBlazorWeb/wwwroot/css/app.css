@@ -1,0 +1,52 @@
+.div-background-primary {
+    padding-top: 7.5rem;
+}
+
+.div-background-secondary {
+    padding-top: 7.5rem;
+}
+
+.heading-meta {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 5px;
+}
+
+.main-heading {
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    line-height: 1.8;
+    position: relative;
+}
+
+    .main-heading:after {
+        position: absolute;
+        bottom: -6px;
+        left: 0;
+        width: 60%;
+        height: 4px;
+        content: '';
+        background: #ff4081;
+    }
+
+.ttl-heading {
+    margin-bottom: 1.5em;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    line-height: 1.8;
+    position: relative;
+}
+
+    .ttl-heading:after {
+        position: absolute;
+        bottom: -6px;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        content: '';
+        background: #ffc43d;
+    }
