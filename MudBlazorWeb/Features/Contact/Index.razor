@@ -26,52 +26,64 @@
 
                                 <EditForm Model="@contactModel" OnValidSubmit="HandleValidSubmit">
                                     <DataAnnotationsValidator />
-                                    <ValidationSummary />
+                                    <MudStack Spacing="2">
+                                        <MudTextField T="string"
+                                                      Label="Name *"
+                                                      Variant="Variant.Outlined"
+                                                      For="@(() => contactModel.Name)"
+                                                      @bind-Value="contactModel.Name" />
 
-                                    <div class="mb-3">
-                                        <label for="name" class="form-label">Name *</label>
-                                        <InputText id="name" class="form-control" @bind-Value="contactModel.Name" />
-                                        <ValidationMessage For="@(() => contactModel.Name)" />
-                                    </div>
+                                        <MudTextField T="string"
+                                                      Label="Email Address *"
+                                                      Variant="Variant.Outlined"
+                                                      For="@(() => contactModel.Email)"
+                                                      @bind-Value="contactModel.Email" />
 
-                                    <div class="mb-3">
-                                        <label for="email" class="form-label">Email Address *</label>
-                                        <InputText id="email" class="form-control" @bind-Value="contactModel.Email" />
-                                        <ValidationMessage For="@(() => contactModel.Email)" />
-                                    </div>
+                                        <MudTextField T="string"
+                                                      Label="Subject *"
+                                                      Variant="Variant.Outlined"
+                                                      For="@(() => contactModel.Subject)"
+                                                      @bind-Value="contactModel.Subject" />
 
-                                    <div class="mb-3">
-                                        <label for="subject" class="form-label">Subject *</label>
-                                        <InputText id="subject" class="form-control" @bind-Value="contactModel.Subject" />
-                                        <ValidationMessage For="@(() => contactModel.Subject)" />
-                                    </div>
+                                        <MudTextField T="string"
+                                                      Label="Message *"
+                                                      Variant="Variant.Outlined"
+                                                      Lines="6"
+                                                      For="@(() => contactModel.Message)"
+                                                      @bind-Value="contactModel.Message" />
 
-                                    <div class="mb-3">
-                                        <label for="message" class="form-label">Message *</label>
-                                        <InputTextArea id="message" class="form-control" @bind-Value="contactModel.Message" />
-                                        <ValidationMessage For="@(() => contactModel.Message)" />
-                                    </div>
-
-                                    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
-                                        @if (isSubmitting)
-                                        {
-                                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                            <span>Sending...</span>
-                                        }
-                                        else
-                                        {
-                                            <span>Send</span>
-                                        }
-                                    </button>
+                                        <MudButton ButtonType="ButtonType.Submit"
+                                                   Variant="Variant.Filled"
+                                                   Color="Color.Primary"
+                                                   Disabled="@isSubmitting"
+                                                   FullWidth="false">
+                                            @if (isSubmitting)
+                                            {
+                                                <MudProgressCircular Class="me-2"
+                                                                     Color="Color.Inherit"
+                                                                     Size="Size.Small"
+                                                                     Indeterminate="true" />
+                                                <span>Sending...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Send</span>
+                                            }
+                                        </MudButton>
+                                    </MudStack>
                                 </EditForm>
 
                                 @if (successMessage != null)
                                 {
-                                    <div class="alert alert-success mt-3">@successMessage</div>
+                                    <MudAlert Severity="Severity.Success" Variant="Variant.Filled" Dense="true" Class="mt-3">
+                                        @successMessage
+                                    </MudAlert>
                                 }
                                 @if (errorMessage != null)
                                 {
-                                    <div class="alert alert-danger mt-3">@errorMessage</div>
+                                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true" Class="mt-3">
+                                        @errorMessage
+                                    </MudAlert>
                                 }
                             </MudCardContent>
                         </MudCard>
