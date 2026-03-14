@@ -75,6 +75,10 @@
 
 
   <ItemGroup>
+    <Folder Include="Features\Contact\Application\" />
+    <Folder Include="Features\Contact\Domain\" />
+    <Folder Include="Features\Contact\Infrastructure\" />
+    <Folder Include="Features\Contact\Tests\" />
     <Folder Include="Features\Pricing\Tests\" />
     <Folder Include="Shared\Components\" />
     <Folder Include="Shared\Exceptions\" />

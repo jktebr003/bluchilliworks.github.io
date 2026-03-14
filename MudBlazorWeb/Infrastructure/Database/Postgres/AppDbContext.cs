@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using MudBlazorWeb.Features.Contact.Domain;
+using MudBlazorWeb.Features.Contact.Infrastructure;
 using MudBlazorWeb.Features.Pricing.Domain;
 using MudBlazorWeb.Features.Pricing.Infrastructure;
 using MudBlazorWeb.Infrastructure.Database.Postgres.Common;
@@ -13,6 +15,7 @@ public class AppDbContext : DbContext, IAuditDbContext
     // DbSets for each feature
     public DbSet<Audit> Audits { get; set; }
     public DbSet<Package> Packages => Set<Package>();
+    public DbSet<Message> Messages => Set<Message>();
 
     public string GenerateReferenceNumber<T>() where T : class
     {
@@ -50,8 +53,10 @@ public class AppDbContext : DbContext, IAuditDbContext
         {
             if (entry.State == EntityState.Added)
             {
-                entry.Entity.CreatedOn = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time"));
+                entry.Entity.CreatedOn = DateTime.UtcNow;
             }
+
+            NormalizeDateTimesToUtc(entry);
         }
 
         return base.SaveChanges();
@@ -83,9 +88,44 @@ public class AppDbContext : DbContext, IAuditDbContext
                     entry.Entity.IsDeleted = true;
                     break;
             }
+
+            NormalizeDateTimesToUtc(entry);
         }
 
         return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void NormalizeDateTimesToUtc(EntityEntry<BaseAuditableEntity> entry)
+    {
+        foreach (var property in entry.Properties)
+        {
+            if (property.Metadata.ClrType == typeof(DateTime))
+            {
+                var value = property.CurrentValue as DateTime?;
+                if (value.HasValue)
+                {
+                    property.CurrentValue = NormalizeToUtc(value.Value);
+                }
+            }
+            else if (property.Metadata.ClrType == typeof(DateTime?))
+            {
+                var value = property.CurrentValue as DateTime?;
+                if (value.HasValue)
+                {
+                    property.CurrentValue = NormalizeToUtc(value.Value);
+                }
+            }
+        }
+    }
+
+    private static DateTime NormalizeToUtc(DateTime dateTime)
+    {
+        return dateTime.Kind switch
+        {
+            DateTimeKind.Utc => dateTime,
+            DateTimeKind.Local => dateTime.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(dateTime, DateTimeKind.Utc)
+        };
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -95,6 +135,7 @@ public class AppDbContext : DbContext, IAuditDbContext
         // Explicitly apply configurations to avoid reflection issues
         modelBuilder.ApplyConfiguration(new AuditConfiguration());
         modelBuilder.ApplyConfiguration(new PackageConfiguration());
+        modelBuilder.ApplyConfiguration(new MessageConfiguration());
 
         // Alternative: If you want to keep assembly scanning, be more specific
         // modelBuilder.ApplyConfigurationsFromAssembly(
@@ -106,6 +147,7 @@ public class AppDbContext : DbContext, IAuditDbContext
 
     private readonly Dictionary<Type, string> _acronyms = new()
     {
-        { typeof(Package), "PCKG" },
+        { typeof(Package), "PKG" },
+        { typeof(Message), "MSG" },
     };
 }

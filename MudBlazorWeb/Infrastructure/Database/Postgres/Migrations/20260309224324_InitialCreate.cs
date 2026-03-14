@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace MudBlazorWeb.Infrastructure.Database.Migrations
+namespace MudBlazorWeb.Infrastructure.Database.Postgres.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

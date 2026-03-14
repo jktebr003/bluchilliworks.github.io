@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MudBlazorWeb.Infrastructure.Database.Postgres;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MudBlazorWeb.Infrastructure.Database.Migrations
+namespace MudBlazorWeb.Infrastructure.Database.Postgres.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260313092817_AddMessagesTable")]
+    partial class AddMessagesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +24,113 @@ namespace MudBlazorWeb.Infrastructure.Database.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("MudBlazorWeb.Features.Contact.Domain.Message", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Body")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EmailAddress")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("LastAttemptedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("SentOn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Messages", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("e3425ce6-67e6-4318-b522-920f2c96fa41"),
+                            AttemptCount = 0,
+                            Body = "This is a test message.",
+                            CreatedBy = "Seeder",
+                            CreatedOn = new DateTime(2026, 3, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EmailAddress = "john.doe@example.com",
+                            IsDeleted = false,
+                            MaxRetries = 3,
+                            Name = "John Doe",
+                            SentOn = new DateTime(2026, 3, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = 0,
+                            Subject = "Hello"
+                        },
+                        new
+                        {
+                            Id = new Guid("e3425ce6-67e6-4318-b522-920f2c96fa42"),
+                            AttemptCount = 0,
+                            Body = "This is another test message.",
+                            CreatedBy = "Seeder",
+                            CreatedOn = new DateTime(2026, 3, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EmailAddress = "jane.smith@example.com",
+                            IsDeleted = false,
+                            MaxRetries = 3,
+                            Name = "Jane Smith",
+                            SentOn = new DateTime(2026, 3, 13, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Status = 0,
+                            Subject = "Hi"
+                        });
+                });
 
             modelBuilder.Entity("MudBlazorWeb.Features.Pricing.Domain.Package", b =>
                 {

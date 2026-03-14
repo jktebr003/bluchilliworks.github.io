@@ -1,5 +1,7 @@
 @page "/contact"
 
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
 @using MudBlazor
@@ -7,7 +9,10 @@
 @using MudBlazorWeb.Shared
 @using MudBlazorWeb.Shared.Models
 
-@inject WebApiClient ApiClient
+@inject IState<ContactState> ContactState
+@inject IDispatcher Dispatcher
+
+@inherits FluxorComponent
 
 <div>
     <div class="div-page-content">
@@ -55,9 +60,9 @@
                                         <MudButton ButtonType="ButtonType.Submit"
                                                    Variant="Variant.Filled"
                                                    Color="Color.Primary"
-                                                   Disabled="@isSubmitting"
+                                                   Disabled="@ContactState.Value.IsSubmitting"
                                                    FullWidth="false">
-                                            @if (isSubmitting)
+                                            @if (ContactState.Value.IsSubmitting)
                                             {
                                                 <MudProgressCircular Class="me-2"
                                                                      Color="Color.Inherit"
@@ -73,16 +78,16 @@
                                     </MudStack>
                                 </EditForm>
 
-                                @if (successMessage != null)
+                                @if (ContactState.Value.SuccessMessage != null)
                                 {
                                     <MudAlert Severity="Severity.Success" Variant="Variant.Filled" Dense="true" Class="mt-3">
-                                        @successMessage
+                                        @ContactState.Value.SuccessMessage
                                     </MudAlert>
                                 }
-                                @if (errorMessage != null)
+                                @if (ContactState.Value.ErrorMessage != null)
                                 {
                                     <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true" Class="mt-3">
-                                        @errorMessage
+                                        @ContactState.Value.ErrorMessage
                                     </MudAlert>
                                 }
                             </MudCardContent>
@@ -102,54 +107,34 @@
 
 @code {
     private ContactModel contactModel = new();
-    private string? successMessage;
-    private string? errorMessage;
-    private bool isSubmitting;
+    private string? lastSuccessMessage;
 
-    private async Task HandleValidSubmit()
+    protected override void OnParametersSet()
     {
-        try
+        base.OnParametersSet();
+
+        if (!string.IsNullOrWhiteSpace(ContactState.Value.SuccessMessage)
+            && ContactState.Value.SuccessMessage != lastSuccessMessage)
         {
-            isSubmitting = true;
-            errorMessage = null;
-            successMessage = null;
-
-            var request = new CreateMessageRequest
-            {
-                From = contactModel.Name,
-                EmailAddress = contactModel.Email,
-                Subject = contactModel.Subject,
-                Body = contactModel.Message,
-                SentOn = DateTime.UtcNow.ToString("o"),
-                CreatedBy = "web-contact-form"
-            };
-
-            var info = new WebApiClientInfo<CreateMessageRequest>
-            {
-                Method = "messages",
-                Request = request
-            };
-
-            var response = await ApiClient.Post<CreateMessageRequest, ApiResponse<string>>(info);
-
-            if (response.Success)
-            {
-                successMessage = "Thank you for contacting us! We'll get back to you soon.";
-                contactModel = new(); // Reset form
-            }
-            else
-            {
-                errorMessage = $"Failed to send message: {response.Message}";
-            }
+            contactModel = new();
+            lastSuccessMessage = ContactState.Value.SuccessMessage;
         }
-        catch (Exception ex)
+    }
+
+    private Task HandleValidSubmit()
+    {
+        var request = new CreateMessageRequest
         {
-            errorMessage = $"An error occurred while sending your message: {ex.Message}";
-        }
-        finally
-        {
-            isSubmitting = false;
-        }
+            From = contactModel.Name,
+            EmailAddress = contactModel.Email,
+            Subject = contactModel.Subject,
+            Body = contactModel.Message,
+            SentOn = DateTime.UtcNow.ToString("o"),
+            CreatedBy = "web-contact-form"
+        };
+
+        Dispatcher.Dispatch(new SubmitContactMessageAction(request));
+        return Task.CompletedTask;
     }
 
     public class ContactModel

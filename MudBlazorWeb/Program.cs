@@ -18,6 +18,7 @@ using MudBlazor.Services;
 
 using MudBlazorWeb.Components;
 using MudBlazorWeb.Features.Authentication;
+using MudBlazorWeb.Features.Contact;
 using MudBlazorWeb.Features.Pricing;
 using MudBlazorWeb.Infrastructure;
 using MudBlazorWeb.Infrastructure.Database;
@@ -74,6 +75,7 @@ builder.Services.AddDatabase(builder.Configuration);
 
 // Features (features depend on DbContext)
 builder.Services.AddPackageFeature();
+builder.Services.AddMessageFeature();
 
 // HTTP Client
 builder.Services.AddHttpClient<WebApiClient>(client =>

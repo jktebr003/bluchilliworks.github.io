@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MudBlazorWeb.Infrastructure.Database.Migrations
+namespace MudBlazorWeb.Infrastructure.Database.Postgres.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260311204749_AddAuditDataToPackagesData")]
-    partial class AddAuditDataToPackagesData
+    [Migration("20260311203704_SeePackagesData")]
+    partial class SeePackagesData
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -90,8 +90,8 @@ namespace MudBlazorWeb.Infrastructure.Database.Migrations
                         {
                             Id = new Guid("10905436-1671-4900-9d0e-6fced3fbd3d1"),
                             Code = "INDV-1E-MTH",
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2026, 3, 11, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "",
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "1 educator",
                             IsDeleted = false,
                             Name = "Individual Educator",
@@ -102,8 +102,8 @@ namespace MudBlazorWeb.Infrastructure.Database.Migrations
                         {
                             Id = new Guid("10905436-1671-4900-9d0e-6fced3fbd3d2"),
                             Code = "INDV-1E-2YR",
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2026, 3, 11, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "",
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "1 educator",
                             IsDeleted = false,
                             Name = "Individual Educator",
@@ -114,8 +114,8 @@ namespace MudBlazorWeb.Infrastructure.Database.Migrations
                         {
                             Id = new Guid("10905436-1671-4900-9d0e-6fced3fbd3d3"),
                             Code = "SCH-20E-MTH",
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2026, 3, 11, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "",
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Up to 20 educators",
                             IsDeleted = false,
                             Name = "School Sign On",
@@ -126,8 +126,8 @@ namespace MudBlazorWeb.Infrastructure.Database.Migrations
                         {
                             Id = new Guid("10905436-1671-4900-9d0e-6fced3fbd3d4"),
                             Code = "SCH-20E-2YR",
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2026, 3, 11, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "",
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Up to 20 educators",
                             IsDeleted = false,
                             Name = "School Sign On",
@@ -138,8 +138,8 @@ namespace MudBlazorWeb.Infrastructure.Database.Migrations
                         {
                             Id = new Guid("10905436-1671-4900-9d0e-6fced3fbd3d5"),
                             Code = "SCH-40E-MTH",
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2026, 3, 11, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "",
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Up to 40 educators",
                             IsDeleted = false,
                             Name = "School Sign On",
@@ -150,8 +150,8 @@ namespace MudBlazorWeb.Infrastructure.Database.Migrations
                         {
                             Id = new Guid("10905436-1671-4900-9d0e-6fced3fbd3d6"),
                             Code = "SCH-40E-2YR",
-                            CreatedBy = "System",
-                            CreatedOn = new DateTime(2026, 3, 11, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "",
+                            CreatedOn = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Up to 40 educators",
                             IsDeleted = false,
                             Name = "School Sign On",
