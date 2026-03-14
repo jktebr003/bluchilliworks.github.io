@@ -1,0 +1,91 @@
+@page "/audits"
+
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@using MudBlazor
+@using static MudBlazorWeb.Features.Audits.UI.AuditsAction
+
+@inject IState<AuditsState> AuditsState
+@inject IDispatcher Dispatcher
+
+@inherits FluxorComponent
+
+<div class="div-page-content">
+    <span class="heading-meta">Audits</span>
+    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Audit Log</MudText>
+
+    <div class="ttl-users">
+        @if (AuditsState.Value.IsLoading)
+        {
+            <div class="text-center py-5">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+                <MudText Typo="Typo.body1" Class="mt-3">Loading audits...</MudText>
+            </div>
+        }
+        else if (AuditsState.Value.ErrorMessage != null)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">
+                @AuditsState.Value.ErrorMessage
+            </MudAlert>
+        }
+        else if (AuditsState.Value.Audits == null || !AuditsState.Value.Audits.Any())
+        {
+            <MudAlert Severity="Severity.Info">
+                No audit entries found.
+            </MudAlert>
+        }
+        else
+        {
+            <MudTable Items="@AuditsState.Value.Audits"
+                      Dense="true"
+                      Hover="true"
+                      Striped="true"
+                      Elevation="2">
+                <HeaderContent>
+                    <MudTh>Created</MudTh>
+                    <MudTh>Type</MudTh>
+                    <MudTh>User</MudTh>
+                    <MudTh>Table</MudTh>
+                    <MudTh>Changed Columns</MudTh>
+                    <MudTh>Key Values</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Created">@FormatDate(context.CreatedDate)</MudTd>
+                    <MudTd DataLabel="Type">@context.AuditType</MudTd>
+                    <MudTd DataLabel="User">@context.AuditUser</MudTd>
+                    <MudTd DataLabel="Table">@context.TableName</MudTd>
+                    <MudTd DataLabel="Changed Columns">@ShortText(context.ChangedColumns)</MudTd>
+                    <MudTd DataLabel="Key Values">@ShortText(context.KeyValues)</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Dispatcher.Dispatch(new LoadAuditsAction());
+    }
+
+    private static string FormatDate(DateTime? value)
+    {
+        return value.HasValue
+            ? value.Value.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss 'UTC'")
+            : "-";
+    }
+
+    private static string ShortText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "-";
+        }
+
+        const int maxLength = 80;
+        return value.Length > maxLength
+            ? value[..maxLength] + "..."
+            : value;
+    }
+}

@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 
 using MudBlazorWeb.Components;
+using MudBlazorWeb.Features.Audits;
 using MudBlazorWeb.Features.Authentication;
 using MudBlazorWeb.Features.Contact;
 using MudBlazorWeb.Features.Pricing;
@@ -74,6 +75,7 @@ builder.Services.AddFluxor(options =>
 builder.Services.AddDatabase(builder.Configuration);
 
 // Features (features depend on DbContext)
+builder.Services.AddAuditFeature();
 builder.Services.AddPackageFeature();
 builder.Services.AddMessageFeature();
 
