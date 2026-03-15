@@ -215,7 +215,7 @@ public class PostEndpointsTests
         new GetPostQueryEndpoint().AddRoutes(app);
         new GetPostsQueryEndpoint().AddRoutes(app);
         new FilterPostsQueryEndpoint().AddRoutes(app);
-        new CreatePostCommandEndpoint().AddRoutes(app);
+        new PostCommandsEndpoint().AddRoutes(app);
 
         await app.StartAsync();
 

@@ -102,7 +102,7 @@ public static class UpdatePostCommand
 	}
 }
 
-public class CreatePostCommandEndpoint : ICarterModule
+public class PostCommandsEndpoint : ICarterModule
 {
 	public void AddRoutes(IEndpointRouteBuilder app)
 	{
