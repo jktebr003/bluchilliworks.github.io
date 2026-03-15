@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using MudBlazorWeb.Features.Contact.Domain;
 using MudBlazorWeb.Features.Contact.Infrastructure;
+using MudBlazorWeb.Features.Posts.Domain;
+using MudBlazorWeb.Features.Posts.Infrastructure;
 using MudBlazorWeb.Features.Pricing.Domain;
 using MudBlazorWeb.Features.Pricing.Infrastructure;
 using MudBlazorWeb.Infrastructure.Database.Postgres.Common;
@@ -16,6 +18,7 @@ public class AppDbContext : DbContext, IAuditDbContext
     public DbSet<Audit> Audits { get; set; }
     public DbSet<Package> Packages => Set<Package>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<Post> Posts => Set<Post>();
 
     public string GenerateReferenceNumber<T>() where T : class
     {
@@ -136,6 +139,7 @@ public class AppDbContext : DbContext, IAuditDbContext
         modelBuilder.ApplyConfiguration(new AuditConfiguration());
         modelBuilder.ApplyConfiguration(new PackageConfiguration());
         modelBuilder.ApplyConfiguration(new MessageConfiguration());
+        modelBuilder.ApplyConfiguration(new PostConfiguration());
 
         // Alternative: If you want to keep assembly scanning, be more specific
         // modelBuilder.ApplyConfigurationsFromAssembly(
@@ -149,5 +153,6 @@ public class AppDbContext : DbContext, IAuditDbContext
     {
         { typeof(Package), "PKG" },
         { typeof(Message), "MSG" },
+        { typeof(Post), "PST" },
     };
 }

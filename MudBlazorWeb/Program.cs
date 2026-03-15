@@ -20,6 +20,7 @@ using MudBlazorWeb.Components;
 using MudBlazorWeb.Features.Audits;
 using MudBlazorWeb.Features.Authentication;
 using MudBlazorWeb.Features.Contact;
+using MudBlazorWeb.Features.Posts;
 using MudBlazorWeb.Features.Pricing;
 using MudBlazorWeb.Infrastructure;
 using MudBlazorWeb.Infrastructure.Database;
@@ -78,6 +79,7 @@ builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddAuditFeature();
 builder.Services.AddPackageFeature();
 builder.Services.AddMessageFeature();
+builder.Services.AddPostFeature();
 
 // HTTP Client
 builder.Services.AddHttpClient<WebApiClient>(client =>

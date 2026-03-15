@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MudBlazorWeb.Infrastructure.Database.Postgres;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MudBlazorWeb.Infrastructure.Database.Postgres.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260315201827_UpdatedPostsSeedData")]
+    partial class UpdatedPostsSeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -183,9 +186,7 @@ namespace MudBlazorWeb.Infrastructure.Database.Postgres.Migrations
 
                     b.PrimitiveCollection<List<string>>("Likes")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text[]")
-                        .HasDefaultValueSql("'{}'::text[]");
+                        .HasColumnType("text[]");
 
                     b.Property<string>("ModifiedBy")
                         .HasMaxLength(100)
@@ -225,6 +226,7 @@ namespace MudBlazorWeb.Infrastructure.Database.Postgres.Migrations
                             Description = "This is the first post.",
                             Heading = "First Post Heading",
                             IsDeleted = false,
+                            Likes = new List<string>(),
                             PostedOn = new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             Title = "First Post",
                             TotalViews = 0,
@@ -241,6 +243,7 @@ namespace MudBlazorWeb.Infrastructure.Database.Postgres.Migrations
                             Description = "This is the second post.",
                             Heading = "Second Post Heading",
                             IsDeleted = false,
+                            Likes = new List<string>(),
                             PostedOn = new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             Title = "Second Post",
                             TotalViews = 0,

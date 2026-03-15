@@ -1,8 +1,8 @@
 @page "/posts/{PostId}"
 
-@using MudBlazor
 @using Fluxor
 @using Fluxor.Blazor.Web.Components
+@using MudBlazor
 @using MudBlazorWeb.Shared.Models
 
 @inject IState<PostsState> PostsState
@@ -11,10 +11,11 @@
 @inject NavigationManager NavigationManager
 
 @inherits FluxorComponent
+@implements IDisposable
 
 <div class="div-page-content">
     <span class="heading-meta">@(isEditMode ? "Edit Post" : "Post Details")</span>
-    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">@(isEditMode ? "Edit Post" : "Post Details")</MudText>
+    <MudText Typo="Typo.h4" GutterBottom="true" Class="ttl-heading">@(isEditMode ? "Edit Post" : "Post Details")</MudText>
 
     @if (showSuccessAlert)
     {
@@ -27,7 +28,7 @@
         </MudAlert>
     }
 
-    @if (showErrorAlert && !string.IsNullOrEmpty(PostsState.Value.DetailErrorMessage))
+    @if (showErrorAlert && !string.IsNullOrWhiteSpace(PostsState.Value.DetailErrorMessage))
     {
         <MudAlert Severity="MudBlazor.Severity.Error"
                   Class="mb-4"
@@ -41,18 +42,16 @@
         </MudButton>
     }
 
-    @if (PostsState.Value.IsLoadingDetail)
+    @if (PostsState.Value.IsLoadingDetail || isAwaitingFirstLoad)
     {
         <div class="text-center py-5">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
             <MudText Typo="Typo.body1" Class="mt-3">Loading post...</MudText>
         </div>
     }
-    else if (PostsState.Value.CurrentPost == null)
+    else if (currentPost == null)
     {
-        <MudAlert Severity="MudBlazor.Severity.Warning">
-            Post not found.
-        </MudAlert>
+        <MudAlert Severity="MudBlazor.Severity.Warning">Post not found.</MudAlert>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/posts"))">
             Back to Posts
         </MudButton>
@@ -60,35 +59,31 @@
     else
     {
         <div class="post-detail-container">
-            <!-- Header Section -->
             <div class="d-flex justify-space-between align-center mb-4">
-                @* <MudText Typo="Typo.h4" GutterBottom="true">
-                    @(isEditMode ? "Edit Post" : "Post Details")
-                </MudText> *@
                 <MudSpacer />
                 <div>
                     @if (!isEditMode)
                     {
-                        <MudButton Variant="Variant.Filled" 
-                                  Color="Color.Primary" 
-                                  StartIcon="@Icons.Material.Filled.Edit"
-                                  OnClick="@EnableEditMode">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Edit"
+                                   OnClick="@EnableEditMode">
                             Edit Post
                         </MudButton>
                     }
                     else
                     {
-                        <MudButton Variant="Variant.Text" 
-                                  Color="Color.Default" 
-                                  OnClick="@CancelEdit"
-                                  Class="mr-2">
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Default"
+                                   OnClick="@CancelEdit"
+                                   Class="mr-2">
                             Cancel
                         </MudButton>
-                        <MudButton Variant="Variant.Filled" 
-                                  Color="Color.Primary" 
-                                  StartIcon="@Icons.Material.Filled.Save"
-                                  OnClick="@SavePost"
-                                  Disabled="@PostsState.Value.IsUpdating">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   OnClick="@SavePost"
+                                   Disabled="@PostsState.Value.IsUpdating">
                             @(PostsState.Value.IsUpdating ? "Saving..." : "Save Changes")
                         </MudButton>
                     }
@@ -98,153 +93,142 @@
             <MudForm @ref="form" @bind-IsValid="@isFormValid">
                 <MudPaper Class="pa-4" Elevation="2">
                     <MudGrid>
-                        <!-- Title -->
                         <MudItem xs="12">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Title"
-                                            Label="Title"
-                                            Variant="Variant.Outlined"
-                                            Required="true"
-                                            RequiredError="Title is required"
-                                            Lines="1" />
+                                <MudTextField @bind-Value="currentPost.Title"
+                                              Label="Title"
+                                              Variant="Variant.Outlined"
+                                              Required="true"
+                                              RequiredError="Title is required"
+                                              Lines="1" />
                             }
                             else
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Title</MudText>
-                                    <MudText Typo="Typo.h5">@PostsState.Value.CurrentPost.Title</MudText>
+                                    <MudText Typo="Typo.h5">@currentPost.Title</MudText>
                                 </div>
                             }
                         </MudItem>
 
-                        <!-- Category -->
                         <MudItem xs="12" sm="6">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Category"
-                                            Label="Category"
-                                            Variant="Variant.Outlined"
-                                            Required="true"
-                                            RequiredError="Category is required" />
+                                <MudTextField @bind-Value="currentPost.Category"
+                                              Label="Category"
+                                              Variant="Variant.Outlined"
+                                              Required="true"
+                                              RequiredError="Category is required" />
                             }
                             else
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Category</MudText>
-                                    <MudChip T="string" Color="Color.Primary">@PostsState.Value.CurrentPost.Category</MudChip>
+                                    <MudChip T="string" Color="Color.Primary">@currentPost.Category</MudChip>
                                 </div>
                             }
                         </MudItem>
 
-                        <!-- Author -->
                         <MudItem xs="12" sm="6">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Author"
-                                            Label="Author"
-                                            Variant="Variant.Outlined"
-                                            Required="true"
-                                            RequiredError="Author is required" />
+                                <MudTextField @bind-Value="currentPost.Author"
+                                              Label="Author"
+                                              Variant="Variant.Outlined"
+                                              Required="true"
+                                              RequiredError="Author is required" />
                             }
                             else
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Author</MudText>
-                                    <MudText Typo="Typo.body1">@PostsState.Value.CurrentPost.Author</MudText>
+                                    <MudText Typo="Typo.body1">@currentPost.Author</MudText>
                                 </div>
                             }
                         </MudItem>
 
-                        <!-- Heading -->
                         <MudItem xs="12">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Heading"
-                                            Label="Heading"
-                                            Variant="Variant.Outlined"
-                                            Required="true"
-                                            RequiredError="Heading is required"
-                                            Lines="2" />
+                                <MudTextField @bind-Value="currentPost.Heading"
+                                              Label="Heading"
+                                              Variant="Variant.Outlined"
+                                              Required="true"
+                                              RequiredError="Heading is required"
+                                              Lines="2" />
                             }
                             else
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Heading</MudText>
-                                    <MudText Typo="Typo.h6">@PostsState.Value.CurrentPost.Heading</MudText>
+                                    <MudText Typo="Typo.h6">@currentPost.Heading</MudText>
                                 </div>
                             }
                         </MudItem>
 
-                        <!-- Description -->
                         <MudItem xs="12">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Description"
-                                            Label="Description"
-                                            Variant="Variant.Outlined"
-                                            Lines="3" />
+                                <MudTextField @bind-Value="currentPost.Description"
+                                              Label="Description"
+                                              Variant="Variant.Outlined"
+                                              Lines="3" />
                             }
                             else
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Description</MudText>
-                                    <MudText Typo="Typo.body1">@PostsState.Value.CurrentPost.Description</MudText>
+                                    <MudText Typo="Typo.body1">@currentPost.Description</MudText>
                                 </div>
                             }
                         </MudItem>
 
-                        <!-- Content -->
                         <MudItem xs="12">
                             @if (isEditMode)
                             {
-                                <MudTextField @bind-Value="PostsState.Value.CurrentPost.Content"
-                                            Label="Content"
-                                            Variant="Variant.Outlined"
-                                            Required="true"
-                                            RequiredError="Content is required"
-                                            Lines="10" />
+                                <MudTextField @bind-Value="currentPost.Content"
+                                              Label="Content"
+                                              Variant="Variant.Outlined"
+                                              Required="true"
+                                              RequiredError="Content is required"
+                                              Lines="10" />
                             }
                             else
                             {
                                 <div class="detail-field">
                                     <MudText Typo="Typo.subtitle2" Class="field-label">Content</MudText>
                                     <MudPaper Class="pa-3 content-display" Elevation="0">
-                                        <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@PostsState.Value.CurrentPost.Content</MudText>
+                                        <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@currentPost.Content</MudText>
                                     </MudPaper>
                                 </div>
                             }
                         </MudItem>
 
-                        <!-- Stats (Read-only) -->
                         <MudItem xs="12">
                             <MudDivider Class="my-3" />
                             <MudText Typo="Typo.subtitle2" Class="field-label mb-2">Post Statistics</MudText>
                             <div class="post-stats">
-                                @* <div class="stat-item">
-                                    <MudIcon Icon="@Icons.Material.Filled.Comment" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">@(PostsState.Value.CurrentPost.TotalComments ?? 0) Comments</MudText>
-                                </div> *@
                                 <div class="stat-item">
                                     <MudIcon Icon="@Icons.Material.Filled.ThumbUp" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">@(PostsState.Value.CurrentPost.TotalLikes ?? 0) Likes</MudText>
+                                    <MudText Typo="Typo.body2">@(currentPost.TotalLikes ?? 0) Likes</MudText>
                                 </div>
                                 <div class="stat-item">
                                     <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">@(PostsState.Value.CurrentPost.TotalViews ?? 0) Views</MudText>
+                                    <MudText Typo="Typo.body2">@(currentPost.TotalViews ?? 0) Views</MudText>
                                 </div>
-                                @if (!string.IsNullOrEmpty(PostsState.Value.CurrentPost.PostedOn))
+                                @if (!string.IsNullOrWhiteSpace(currentPost.PostedOn))
                                 {
                                     <div class="stat-item">
                                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" />
-                                        <MudText Typo="Typo.body2">Posted: @FormatDate(PostsState.Value.CurrentPost.PostedOn)</MudText>
+                                        <MudText Typo="Typo.body2">Posted: @FormatDate(currentPost.PostedOn)</MudText>
                                     </div>
                                 }
-                                @if (!string.IsNullOrEmpty(PostsState.Value.CurrentPost.ModifiedOn))
+                                @if (!string.IsNullOrWhiteSpace(currentPost.ModifiedOn))
                                 {
                                     <div class="stat-item">
                                         <MudIcon Icon="@Icons.Material.Filled.Update" Size="Size.Small" />
-                                        <MudText Typo="Typo.body2">Modified: @FormatDate(PostsState.Value.CurrentPost.ModifiedOn)</MudText>
+                                        <MudText Typo="Typo.body2">Modified: @FormatDate(currentPost.ModifiedOn)</MudText>
                                     </div>
                                 }
                             </div>
@@ -262,101 +246,60 @@
 
     private MudForm? form;
     private bool isFormValid;
-    private bool isEditMode = false;
+    private bool isEditMode;
     private PostResponse? currentPost;
     private PostResponse? originalPost;
-    private bool showSuccessAlert = false;
-    private bool showErrorAlert = false;
-    private bool wasLoading = false;
-    private bool isUpdateOperation = false;
+    private bool showSuccessAlert;
+    private bool showErrorAlert;
+    private bool wasLoading;
+    private bool isUpdateOperation;
+    private string? lastRequestedPostId;
+    private bool isAwaitingFirstLoad;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
         PostsState.StateChanged += OnStateChanged;
+    }
 
-        if (!string.IsNullOrEmpty(PostId))
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (!string.IsNullOrWhiteSpace(PostId) && !string.Equals(PostId, lastRequestedPostId, StringComparison.OrdinalIgnoreCase))
         {
+            lastRequestedPostId = PostId;
+            isAwaitingFirstLoad = true;
+            currentPost = null;
+            originalPost = null;
+            isEditMode = false;
+            showErrorAlert = false;
+            showSuccessAlert = false;
+            isUpdateOperation = false;
             Dispatcher.Dispatch(new LoadPostDetailAction(PostId));
         }
     }
 
-    // protected override void OnParametersSet()
-    // {
-    //     base.OnParametersSet();
-
-    //     if (PostsState.Value.CurrentPost != null)
-    //     {
-    //         currentPost = new PostResponse
-    //         {
-    //             ID = PostsState.Value.CurrentPost.ID,
-    //             Title = PostsState.Value.CurrentPost.Title,
-    //             Heading = PostsState.Value.CurrentPost.Heading,
-    //             Description = PostsState.Value.CurrentPost.Description,
-    //             Content = PostsState.Value.CurrentPost.Content,
-    //             Author = PostsState.Value.CurrentPost.Author,
-    //             UserId = PostsState.Value.CurrentPost.UserId,
-    //             Category = PostsState.Value.CurrentPost.Category,
-    //             TotalViews = PostsState.Value.CurrentPost.TotalViews,
-    //             TotalLikes = PostsState.Value.CurrentPost.TotalLikes,
-    //             TotalComments = PostsState.Value.CurrentPost.TotalComments,
-    //             PostedOn = PostsState.Value.CurrentPost.PostedOn,
-    //             CreatedOn = PostsState.Value.CurrentPost.CreatedOn,
-    //             ModifiedOn = PostsState.Value.CurrentPost.ModifiedOn,
-    //             CreatedBy = PostsState.Value.CurrentPost.CreatedBy,
-    //             ModifiedBy = PostsState.Value.CurrentPost.ModifiedBy,
-    //             IsDeleted = PostsState.Value.CurrentPost.IsDeleted
-    //         };
-
-    //         if (originalPost == null)
-    //         {
-    //             originalPost = PostsState.Value.CurrentPost;
-    //         }
-    //     }
-    // }
-
     private void EnableEditMode()
     {
-        currentPost = PostsState.Value.CurrentPost;
+        if (currentPost == null)
+        {
+            return;
+        }
+
         isEditMode = true;
         isUpdateOperation = false;
-        originalPost = currentPost != null
-            ? new PostResponse
-            {
-                ID = currentPost.ID,
-                Title = currentPost.Title,
-                Heading = currentPost.Heading,
-                Description = currentPost.Description,
-                Content = currentPost.Content,
-                Author = currentPost.Author,
-                UserId = currentPost.UserId,
-                Category = currentPost.Category,
-                TotalViews = currentPost.TotalViews,
-                TotalLikes = currentPost.TotalLikes,
-                TotalComments = currentPost.TotalComments,
-                PostedOn = currentPost.PostedOn,
-                CreatedOn = currentPost.CreatedOn,
-                ModifiedOn = currentPost.ModifiedOn,
-                CreatedBy = currentPost.CreatedBy,
-                ModifiedBy = currentPost.ModifiedBy,
-                IsDeleted = currentPost.IsDeleted
-            }
-            : null;
+        originalPost = ClonePost(currentPost);
     }
 
     private void CancelEdit()
     {
         isEditMode = false;
         isUpdateOperation = false;
-        if (originalPost != null && currentPost != null)
+
+        if (originalPost != null)
         {
-            currentPost.Title = originalPost.Title;
-            currentPost.Heading = originalPost.Heading;
-            currentPost.Description = originalPost.Description;
-            currentPost.Content = originalPost.Content;
-            currentPost.Author = originalPost.Author;
-            currentPost.Category = originalPost.Category;
+            currentPost = ClonePost(originalPost);
         }
     }
 
@@ -369,7 +312,6 @@
         if (form != null)
         {
             await form.Validate();
-
             if (!isFormValid)
             {
                 Snackbar.Add("Please fix validation errors", MudBlazor.Severity.Error);
@@ -377,7 +319,7 @@
             }
         }
 
-        if (currentPost == null || string.IsNullOrEmpty(currentPost.ID))
+        if (currentPost == null || string.IsNullOrWhiteSpace(currentPost.ID))
         {
             Snackbar.Add("Invalid post data", MudBlazor.Severity.Error);
             return;
@@ -408,44 +350,76 @@
         if (justFinishedLoading)
         {
             wasLoading = false;
+            isAwaitingFirstLoad = false;
+            currentPost = PostsState.Value.CurrentPost == null ? null : ClonePost(PostsState.Value.CurrentPost);
 
-            if (PostsState.Value.CurrentPost != null && currentPost != null)
-            {
-                currentPost = PostsState.Value.CurrentPost;
-            }
-
-            if (!string.IsNullOrEmpty(PostsState.Value.DetailErrorMessage))
+            if (!string.IsNullOrWhiteSpace(PostsState.Value.DetailErrorMessage))
             {
                 showErrorAlert = true;
                 showSuccessAlert = false;
+                originalPost = null;
+                isEditMode = false;
             }
             else if (PostsState.Value.CurrentPost != null && isUpdateOperation)
             {
                 showSuccessAlert = true;
                 showErrorAlert = false;
+                isEditMode = false;
+                currentPost = ClonePost(PostsState.Value.CurrentPost);
+                originalPost = ClonePost(PostsState.Value.CurrentPost);
+            }
+            else if (PostsState.Value.CurrentPost != null)
+            {
+                showErrorAlert = false;
+                originalPost = ClonePost(PostsState.Value.CurrentPost);
             }
 
             isUpdateOperation = false;
-
             InvokeAsync(StateHasChanged);
         }
         else if (PostsState.Value.IsLoadingDetail && !wasLoading)
         {
             wasLoading = true;
+            InvokeAsync(StateHasChanged);
         }
     }
 
-    private string FormatDate(string? dateString)
+    private static PostResponse ClonePost(PostResponse source)
     {
-        if (string.IsNullOrEmpty(dateString))
-            return "Unknown";
-
-        if (DateTime.TryParse(dateString, out var date))
+        return new PostResponse
         {
-            return date.ToString("MMMM dd, yyyy 'at' hh:mm tt");
+            ID = source.ID,
+            Title = source.Title,
+            Heading = source.Heading,
+            Description = source.Description,
+            Content = source.Content,
+            Author = source.Author,
+            UserId = source.UserId,
+            Category = source.Category,
+            TotalViews = source.TotalViews,
+            TotalLikes = source.TotalLikes,
+            TotalComments = source.TotalComments,
+            PostedOn = source.PostedOn,
+            CreatedOn = source.CreatedOn,
+            CreatedBy = source.CreatedBy,
+            ModifiedOn = source.ModifiedOn,
+            ModifiedBy = source.ModifiedBy,
+            DeletedOn = source.DeletedOn,
+            DeletedBy = source.DeletedBy,
+            IsDeleted = source.IsDeleted
+        };
+    }
+
+    private static string FormatDate(string? dateString)
+    {
+        if (string.IsNullOrWhiteSpace(dateString))
+        {
+            return "Unknown";
         }
 
-        return dateString;
+        return DateTime.TryParse(dateString, out var date)
+            ? date.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+            : dateString;
     }
 
     public void Dispose()

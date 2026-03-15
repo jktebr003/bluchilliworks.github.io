@@ -2,7 +2,7 @@ using Fluxor;
 
 using MudBlazorWeb.Shared.Models;
 
-namespace MudBlazorWeb.Features.Posts;
+namespace MudBlazorWeb.Features.Posts.UI;
 
 public record PostsState
 {

@@ -1,6 +1,6 @@
 using MudBlazorWeb.Shared.Models;
 
-namespace MudBlazorWeb.Features.Posts;
+namespace MudBlazorWeb.Features.Posts.UI;
 
 public record LoadPostsAction(int PageNumber = 1, int PageSize = 10);
 public record LoadPostsSuccessAction(List<PostResponse> Posts, int TotalItems, int TotalPages, int PageNumber, int PageSize);

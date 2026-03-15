@@ -2,7 +2,7 @@ using Fluxor;
 
 using MudBlazorWeb.Shared.Models;
 
-namespace MudBlazorWeb.Features.Posts;
+namespace MudBlazorWeb.Features.Posts.UI;
 
 public static class PostsReducers
 {
@@ -59,7 +59,8 @@ public static class PostsReducers
         {
             IsLoadingDetail = true,
             IsUpdating = false,
-            DetailErrorMessage = null
+            DetailErrorMessage = null,
+            CurrentPost = null
         };
     }
 

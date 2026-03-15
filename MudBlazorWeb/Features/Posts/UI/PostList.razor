@@ -1,13 +1,12 @@
 @page "/posts"
 
-@using MudBlazor
 @using Fluxor
 @using Fluxor.Blazor.Web.Components
+@using MudBlazor
 @using MudBlazorWeb.Shared.Models
 
 @inject IState<PostsState> PostsState
 @inject IDispatcher Dispatcher
-@inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
 @inherits FluxorComponent
@@ -16,18 +15,17 @@
     <div class="d-flex justify-space-between align-center mb-4">
         <div>
             <span class="heading-meta">Posts</span>
-            <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Latest Posts</MudText>
+            <MudText Typo="Typo.h4" GutterBottom="true" Class="ttl-heading">Latest Posts</MudText>
         </div>
-        <MudButton Variant="Variant.Filled" 
-                  Color="Color.Primary" 
-                  StartIcon="@Icons.Material.Filled.Add"
-                  OnClick="@(() => NavigationManager.NavigateTo("/posts/create"))">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="@(() => NavigationManager.NavigateTo("/posts/create"))">
             Create Post
         </MudButton>
     </div>
 
     <div class="posts-container">
-        <!-- Loading State -->
         @if (PostsState.Value.IsLoading)
         {
             <div class="text-center py-5">
@@ -35,69 +33,53 @@
                 <MudText Typo="Typo.body1" Class="mt-3">Loading posts...</MudText>
             </div>
         }
-        else if (PostsState.Value.ErrorMessage != null)
+        else if (!string.IsNullOrWhiteSpace(PostsState.Value.ErrorMessage))
         {
             <MudAlert Severity="MudBlazor.Severity.Error" Class="mb-4">
                 @PostsState.Value.ErrorMessage
             </MudAlert>
         }
-        else if (PostsState.Value.Posts == null || !PostsState.Value.Posts.Any())
+        else if (PostsState.Value.Posts.Count == 0)
         {
-            <MudAlert Severity="MudBlazor.Severity.Info">
-                No posts found.
-            </MudAlert>
+            <MudAlert Severity="MudBlazor.Severity.Info">No posts found.</MudAlert>
         }
         else
         {
-            <!-- Posts Card Grid -->
             <div class="posts-grid">
                 @foreach (var post in PostsState.Value.Posts)
                 {
                     <MudCard Class="post-card" Elevation="2">
                         <MudCardContent>
-                            <!-- Title -->
                             <MudText Typo="Typo.h5" Class="post-title">@post.Title</MudText>
-                            
-                            <!-- Category -->
-                            @if (!string.IsNullOrEmpty(post.Category))
+
+                            @if (!string.IsNullOrWhiteSpace(post.Category))
                             {
                                 <MudChip T="string" Size="Size.Small" Color="Color.Primary" Class="mt-2">
                                     @post.Category
                                 </MudChip>
                             }
-                            
-                            <!-- Description -->
-                            @if (!string.IsNullOrEmpty(post.Description))
+
+                            @if (!string.IsNullOrWhiteSpace(post.Description))
                             {
                                 <MudText Typo="Typo.body2" Class="mt-3 post-description">
                                     @post.Description
                                 </MudText>
                             }
-                            
+
                             <MudDivider Class="my-3" />
-                            
-                            <!-- Post Stats -->
+
                             <div class="post-stats">
-                                <!-- Comments -->
-                                @* <div class="stat-item">
-                                    <MudIcon Icon="@Icons.Material.Filled.Comment" Size="Size.Small" />
-                                    <MudText Typo="Typo.body2">@(post.TotalComments ?? 0)</MudText>
-                                </div> *@
-                                
-                                <!-- Likes -->
                                 <div class="stat-item">
                                     <MudIcon Icon="@Icons.Material.Filled.ThumbUp" Size="Size.Small" />
                                     <MudText Typo="Typo.body2">@(post.TotalLikes ?? 0)</MudText>
                                 </div>
-                                
-                                <!-- Views -->
+
                                 <div class="stat-item">
                                     <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
                                     <MudText Typo="Typo.body2">@(post.TotalViews ?? 0)</MudText>
                                 </div>
-                                
-                                <!-- Date Posted -->
-                                @if (!string.IsNullOrEmpty(post.PostedOn))
+
+                                @if (!string.IsNullOrWhiteSpace(post.PostedOn))
                                 {
                                     <div class="stat-item">
                                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" />
@@ -107,10 +89,10 @@
                             </div>
                         </MudCardContent>
                         <MudCardActions>
-                            <MudButton Variant="Variant.Text" 
-                                      Color="Color.Primary" 
-                                      Size="Size.Small"
-                                      OnClick="@(() => ViewPostDetails(post))">
+                            <MudButton Variant="Variant.Text"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       OnClick="@(() => ViewPostDetails(post))">
                                 Read More
                             </MudButton>
                         </MudCardActions>
@@ -118,17 +100,16 @@
                 }
             </div>
 
-            <!-- Pagination -->
             @if (PostsState.Value.TotalPages > 1)
             {
                 <div class="pagination-container mt-4">
-                    <MudPagination Count="@PostsState.Value.TotalPages" 
-                                  Selected="@PostsState.Value.CurrentPage" 
-                                  SelectedChanged="@OnPageChanged"
-                                  Color="Color.Primary"
-                                  Variant="Variant.Filled"
-                                  ShowFirstButton="true"
-                                  ShowLastButton="true" />
+                    <MudPagination Count="@PostsState.Value.TotalPages"
+                                   Selected="@PostsState.Value.CurrentPage"
+                                   SelectedChanged="@OnPageChanged"
+                                   Color="Color.Primary"
+                                   Variant="Variant.Filled"
+                                   ShowFirstButton="true"
+                                   ShowLastButton="true" />
                 </div>
             }
         }
@@ -139,7 +120,7 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        Dispatcher.Dispatch(new LoadPostsAction(1, 12)); // Load first page with 12 posts
+        Dispatcher.Dispatch(new LoadPostsAction(1, 12));
     }
 
     private void OnPageChanged(int newPage)
@@ -149,24 +130,22 @@
 
     private void ViewPostDetails(PostResponse post)
     {
-        // Navigate to post details page (you can implement this later)
-        if (!string.IsNullOrEmpty(post.ID))
+        if (!string.IsNullOrWhiteSpace(post.ID))
         {
             NavigationManager.NavigateTo($"/posts/{post.ID}");
         }
     }
 
-    private string FormatDate(string? dateString)
+    private static string FormatDate(string? dateString)
     {
-        if (string.IsNullOrEmpty(dateString))
-            return "Unknown";
-
-        if (DateTime.TryParse(dateString, out var date))
+        if (string.IsNullOrWhiteSpace(dateString))
         {
-            return date.ToString("MMM dd, yyyy");
+            return "Unknown";
         }
 
-        return dateString;
+        return DateTime.TryParse(dateString, out var date)
+            ? date.ToString("MMM dd, yyyy")
+            : dateString;
     }
 }
 
@@ -193,7 +172,7 @@
 
     .post-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
     }
 
     .post-title {

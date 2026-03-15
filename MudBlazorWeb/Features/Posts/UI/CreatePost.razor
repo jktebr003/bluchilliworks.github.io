@@ -1,0 +1,222 @@
+@page "/posts/create"
+
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@using MudBlazor
+@using MudBlazorWeb.Shared.Models
+
+@inject IState<PostsState> PostsState
+@inject IDispatcher Dispatcher
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@inherits FluxorComponent
+@implements IDisposable
+
+<div class="div-page-content">
+    <div>
+        <span class="heading-meta">Posts</span>
+        <MudText Typo="Typo.h4" GutterBottom="true" Class="ttl-heading">Create Post</MudText>
+    </div>
+
+    <div class="create-post-container">
+        <div class="d-flex justify-space-between align-center mb-4">
+            <MudSpacer />
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Default"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="@(() => NavigationManager.NavigateTo("/posts"))">
+                Back to Posts
+            </MudButton>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(PostsState.Value.CreateErrorMessage))
+        {
+            <MudAlert Severity="MudBlazor.Severity.Error"
+                      Class="mb-4"
+                      CloseIcon="@Icons.Material.Filled.Close"
+                      CloseIconClicked="@ClearCreateError">
+                @PostsState.Value.CreateErrorMessage
+            </MudAlert>
+        }
+
+        <MudForm @ref="form" @bind-IsValid="@isFormValid">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudGrid>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="newPost.Title"
+                                      Label="Title"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      RequiredError="Title is required"
+                                      Placeholder="Enter a compelling title for your post"
+                                      HelperText="The main title that will appear in the post list" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="string"
+                                   @bind-Value="newPost.Category"
+                                   Label="Category"
+                                   Variant="Variant.Outlined"
+                                   Required="true"
+                                   RequiredError="Category is required"
+                                   AnchorOrigin="Origin.BottomCenter"
+                                   HelperText="Select the category that best fits your post">
+                            <MudSelectItem Value="@("General")">General</MudSelectItem>
+                            <MudSelectItem Value="@("Education")">Education</MudSelectItem>
+                            <MudSelectItem Value="@("Finance")">Finance</MudSelectItem>
+                            <MudSelectItem Value="@("Legal")">Legal</MudSelectItem>
+                            <MudSelectItem Value="@("Medical")">Medical</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="newPost.Author"
+                                      Label="Author"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      RequiredError="Author is required"
+                                      Placeholder="Your name"
+                                      HelperText="The name that will be displayed as the post author" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="newPost.Heading"
+                                      Label="Heading"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      RequiredError="Heading is required"
+                                      Lines="2"
+                                      Placeholder="Enter a brief heading"
+                                      HelperText="A short, attention-grabbing heading for your post" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="newPost.Description"
+                                      Label="Description"
+                                      Variant="Variant.Outlined"
+                                      Lines="3"
+                                      Placeholder="Enter a brief description"
+                                      HelperText="A short summary that will appear in the post list (optional)" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="newPost.Content"
+                                      Label="Content"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      RequiredError="Content is required"
+                                      Lines="15"
+                                      Placeholder="Write your post content here..."
+                                      HelperText="The main content of your post" />
+                    </MudItem>
+
+                    <MudItem xs="12" Class="d-flex justify-end gap-2 mt-4">
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Default"
+                                   OnClick="@CancelCreate"
+                                   Disabled="@PostsState.Value.IsCreating">
+                            Cancel
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Save"
+                                   OnClick="@SubmitPost"
+                                   Disabled="@PostsState.Value.IsCreating">
+                            @(PostsState.Value.IsCreating ? "Creating..." : "Create Post")
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudForm>
+    </div>
+</div>
+
+@code {
+    private MudForm? form;
+    private bool isFormValid;
+    private CreatePostRequest newPost = new();
+    private bool wasCreating;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        PostsState.StateChanged += OnStateChanged;
+
+        newPost = new CreatePostRequest
+        {
+            CreatedBy = "system"
+        };
+    }
+
+    private async Task SubmitPost()
+    {
+        if (form != null)
+        {
+            await form.Validate();
+
+            if (!isFormValid)
+            {
+                Snackbar.Add("Please fix validation errors", MudBlazor.Severity.Error);
+                return;
+            }
+        }
+
+        Dispatcher.Dispatch(new CreatePostAction(newPost));
+    }
+
+    private void CancelCreate()
+    {
+        NavigationManager.NavigateTo("/posts");
+    }
+
+    private static void ClearCreateError()
+    {
+    }
+
+    private void OnStateChanged(object? sender, EventArgs e)
+    {
+        if (PostsState.Value.IsCreating)
+        {
+            wasCreating = true;
+            return;
+        }
+
+        if (wasCreating && !PostsState.Value.IsCreating)
+        {
+            wasCreating = false;
+
+            if (string.IsNullOrWhiteSpace(PostsState.Value.CreateErrorMessage))
+            {
+                InvokeAsync(() =>
+                {
+                    Snackbar.Add("Post created successfully!", MudBlazor.Severity.Success);
+                    NavigationManager.NavigateTo("/posts");
+                    return Task.CompletedTask;
+                });
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        PostsState.StateChanged -= OnStateChanged;
+    }
+}
+
+<style>
+    .create-post-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .gap-2 {
+        gap: 8px;
+    }
+
+    @@media (max-width: 768px) {
+        .create-post-container {
+            padding: 0 8px;
+        }
+    }
+</style>
