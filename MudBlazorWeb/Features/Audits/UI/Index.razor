@@ -7,6 +7,7 @@
 
 @inject IState<AuditsState> AuditsState
 @inject IDispatcher Dispatcher
+@inject NavigationManager NavigationManager
 
 @inherits FluxorComponent
 
@@ -48,6 +49,7 @@
                     <MudTh>Table</MudTh>
                     <MudTh>Changed Columns</MudTh>
                     <MudTh>Key Values</MudTh>
+                        <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Created">@FormatDate(context.CreatedDate)</MudTd>
@@ -56,6 +58,13 @@
                     <MudTd DataLabel="Table">@context.TableName</MudTd>
                     <MudTd DataLabel="Changed Columns">@ShortText(context.ChangedColumns)</MudTd>
                     <MudTd DataLabel="Key Values">@ShortText(context.KeyValues)</MudTd>
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew"
+                                           Size="Size.Small"
+                                           Color="Color.Primary"
+                                           Title="View Details"
+                                           OnClick="@(() => NavigationManager.NavigateTo($"/audits/{context.Id}"))" />
+                        </MudTd>
                 </RowTemplate>
             </MudTable>
         }

@@ -123,12 +123,37 @@ public class PostRepository : IPostRepository
 		_context.SaveChanges(post.CreatedBy, cancellationToken);
 	}
 
-	public Task UpdatePostAsync(Post post, CancellationToken cancellationToken = default)
+	public async Task UpdatePostAsync(Post post, CancellationToken cancellationToken = default)
 	{
-		_context.Posts.Update(post);
-		_context.SaveChanges(post.ModifiedBy ?? "System", cancellationToken);
+		var trackedPost = await _context.Posts
+			.AsTracking()
+			.SingleOrDefaultAsync(existing => existing.Id == post.Id, cancellationToken);
 
-		return Task.CompletedTask;
+		if (trackedPost == null)
+		{
+			throw new InvalidOperationException($"Post with ID {post.Id} was not found.");
+		}
+
+		// trackedPost.Title = post.Title;
+		// trackedPost.Heading = post.Heading;
+		// trackedPost.Description = post.Description;
+		// trackedPost.Content = post.Content;
+		// trackedPost.Author = post.Author;
+		// trackedPost.UserId = post.UserId;
+		// trackedPost.Category = post.Category;
+		// trackedPost.TotalViews = post.TotalViews;
+		// trackedPost.Likes = [.. post.Likes];
+		// trackedPost.PostedOn = post.PostedOn;
+		// trackedPost.ModifiedOn = post.ModifiedOn;
+		// trackedPost.ModifiedBy = post.ModifiedBy;
+		// trackedPost.DeletedOn = post.DeletedOn;
+		// trackedPost.DeletedBy = post.DeletedBy;
+		// trackedPost.IsDeleted = post.IsDeleted;
+		var currentRecord = _context.Set<Post>().Entry(trackedPost);
+
+        currentRecord.CurrentValues.SetValues(post);
+
+		_context.SaveChanges(post.ModifiedBy ?? "System", cancellationToken);
 	}
 
 	private static Post MapRowToPost(PostRow row)

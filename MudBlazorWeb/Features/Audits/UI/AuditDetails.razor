@@ -1,0 +1,251 @@
+@page "/audits/{AuditId:guid}"
+
+@using Fluxor
+@using Fluxor.Blazor.Web.Components
+@using MudBlazor
+@using System.Text.Json
+@using static MudBlazorWeb.Features.Audits.UI.AuditsAction
+
+@inject IState<AuditsState> AuditsState
+@inject IDispatcher Dispatcher
+@inject NavigationManager NavigationManager
+
+@inherits FluxorComponent
+
+<div class="div-page-content">
+    <span class="heading-meta">Audits</span>
+    <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Audit Details</MudText>
+
+    @if (AuditsState.Value.IsLoading)
+    {
+        <div class="text-center py-5">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            <MudText Typo="Typo.body1" Class="mt-3">Loading audit...</MudText>
+        </div>
+    }
+    else if (AuditsState.Value.ErrorMessage != null)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">@AuditsState.Value.ErrorMessage</MudAlert>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   OnClick="@(() => NavigationManager.NavigateTo("/audits"))"
+                   Class="mt-3">
+            Back to Audits
+        </MudButton>
+    }
+    else
+    {
+        var audit = AuditsState.Value.Audits.FirstOrDefault(a => a.Id == AuditId);
+
+        @if (audit == null)
+        {
+            <MudAlert Severity="Severity.Warning">Audit record not found.</MudAlert>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="@(() => NavigationManager.NavigateTo("/audits"))"
+                       Class="mt-3">
+                Back to Audits
+            </MudButton>
+        }
+        else
+        {
+            <!-- Metadata Card -->
+            <MudPaper Class="pa-4 mb-4" Elevation="2">
+                <div class="d-flex justify-space-between align-center mb-3">
+                    <MudText Typo="Typo.h6">Audit Information</MudText>
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                               OnClick="@(() => NavigationManager.NavigateTo("/audits"))">
+                        Back to Audits
+                    </MudButton>
+                </div>
+                <MudDivider Class="mb-3" />
+
+                <MudGrid>
+                    <MudItem xs="12" md="3">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Audit ID</MudText>
+                        <MudText Typo="Typo.body2" Style="word-break: break-all; font-family: monospace; font-size: 0.75rem;" Class="mb-3">
+                            @audit.Id
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Operation</MudText>
+                        <MudChip T="string"
+                                 Color="@GetAuditTypeColor(audit.AuditType)"
+                                 Size="Size.Small"
+                                 Class="mb-3">
+                            @(audit.AuditType ?? "Unknown")
+                        </MudChip>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Table</MudText>
+                        <MudText Typo="Typo.body1" Class="mb-3">@(audit.TableName ?? "N/A")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Timestamp</MudText>
+                        <MudText Typo="Typo.body1" Class="mb-3">@FormatDate(audit.CreatedDate)</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Performed By</MudText>
+                        <MudText Typo="Typo.body1" Class="mb-3">@(audit.AuditUser ?? "N/A")</MudText>
+                    </MudItem>
+                    <MudItem xs="12" md="9">
+                        <MudText Typo="Typo.subtitle2" Class="mb-1">Key Values</MudText>
+                        <MudText Typo="Typo.body2" Style="font-family: monospace;" Class="mb-3">
+                            @(audit.KeyValues ?? "N/A")
+                        </MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <!-- Diff Card -->
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-3">Field Changes</MudText>
+                <MudDivider Class="mb-3" />
+
+                @{
+                    var diffRows = BuildDiffRows(audit.OldValues, audit.NewValues, audit.AuditType);
+                }
+
+                @if (!diffRows.Any())
+                {
+                    <MudAlert Severity="Severity.Info">No field-level change data recorded for this entry.</MudAlert>
+                }
+                else
+                {
+                    <MudTable Items="@diffRows"
+                              Dense="true"
+                              Hover="true"
+                              Elevation="0"
+                              Class="diff-table">
+                        <HeaderContent>
+                            <MudTh Style="width: 25%;">Field</MudTh>
+                            <MudTh Style="width: 37.5%; background-color: rgba(244,67,54,0.08);">
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.RemoveCircleOutline" Color="Color.Error" Size="Size.Small" />
+                                    Old Value
+                                </div>
+                            </MudTh>
+                            <MudTh Style="width: 37.5%; background-color: rgba(76,175,80,0.08);">
+                                <div class="d-flex align-center gap-1">
+                                    <MudIcon Icon="@Icons.Material.Filled.AddCircleOutline" Color="Color.Success" Size="Size.Small" />
+                                    New Value
+                                </div>
+                            </MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Field">
+                                <MudText Typo="Typo.body2" Style="font-weight: 500;">@context.Field</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Old Value"
+                                   Style="@GetOldCellStyle(context)">
+                                @if (context.OldValue == null)
+                                {
+                                    <span style="color: var(--mud-palette-text-disabled); font-style: italic;">—</span>
+                                }
+                                else
+                                {
+                                    <span style="font-family: monospace; font-size: 0.85rem; word-break: break-all;">@context.OldValue</span>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="New Value"
+                                   Style="@GetNewCellStyle(context)">
+                                @if (context.NewValue == null)
+                                {
+                                    <span style="color: var(--mud-palette-text-disabled); font-style: italic;">—</span>
+                                }
+                                else
+                                {
+                                    <span style="font-family: monospace; font-size: 0.85rem; word-break: break-all;">@context.NewValue</span>
+                                }
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudPaper>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid AuditId { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (!AuditsState.Value.Audits.Any() && !AuditsState.Value.IsLoading)
+        {
+            Dispatcher.Dispatch(new LoadAuditsAction());
+        }
+    }
+
+    private record DiffRow(string Field, string? OldValue, string? NewValue);
+
+    private static List<DiffRow> BuildDiffRows(string? oldValuesJson, string? newValuesJson, string? auditType)
+    {
+        var old = ParseJsonDict(oldValuesJson);
+        var next = ParseJsonDict(newValuesJson);
+
+        var allKeys = old.Keys.Union(next.Keys).OrderBy(k => k).ToList();
+
+        return allKeys
+            .Select(key =>
+            {
+                old.TryGetValue(key, out var oldVal);
+                next.TryGetValue(key, out var newVal);
+                return new DiffRow(key, oldVal, newVal);
+            })
+            .Where(row => row.OldValue != row.NewValue)
+            .ToList();
+    }
+
+    private static Dictionary<string, string?> ParseJsonDict(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return new Dictionary<string, string?>();
+
+        try
+        {
+            var doc = JsonDocument.Parse(json);
+            return doc.RootElement.EnumerateObject()
+                .ToDictionary(
+                    p => p.Name,
+                    p => p.Value.ValueKind == JsonValueKind.Null ? null : p.Value.ToString());
+        }
+        catch
+        {
+            return new Dictionary<string, string?>();
+        }
+    }
+
+    private static Color GetAuditTypeColor(string? auditType) => auditType switch
+    {
+        "Create" => Color.Success,
+        "Update" => Color.Warning,
+        "Delete" => Color.Error,
+        _ => Color.Default
+    };
+
+    private static string GetOldCellStyle(DiffRow row)
+    {
+        if (row.OldValue == null)
+            return string.Empty;
+        return "background-color: rgba(244,67,54,0.12);";
+    }
+
+    private static string GetNewCellStyle(DiffRow row)
+    {
+        if (row.NewValue == null)
+            return string.Empty;
+        return "background-color: rgba(76,175,80,0.12);";
+    }
+
+    private static string FormatDate(DateTime? value) =>
+        value.HasValue
+            ? value.Value.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss 'UTC'")
+            : "-";
+}
