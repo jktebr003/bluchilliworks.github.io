@@ -5,7 +5,7 @@
 @using Fluxor.Blazor.Web.Components
 @using MudBlazorWeb.Features.Authentication
 @using MudBlazorWeb.Shared.Enums
-@using static MudBlazorWeb.Features.Users.UsersActions
+@using static MudBlazorWeb.Features.Users.UI.UsersActions
 @implements IDisposable
 
 @inject IState<UsersState> UsersState
@@ -44,7 +44,7 @@
         </MudAlert>
     }
 
-    @if (UsersState.Value.IsLoadingDetails)
+    @if (UsersState.Value.IsLoadingDetails || isAwaitingFirstLoad)
     {
         <div class="text-center py-5">
             <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
@@ -204,6 +204,9 @@
     private bool showErrorAlert = false;
     private string successMessage = string.Empty;
     private string? currentUserId;
+    private string? lastRequestedUserId;
+    private bool isAwaitingFirstLoad;
+    private bool canLoadDetails;
 
     protected override async Task OnInitializedAsync()
     {
@@ -224,12 +227,38 @@
             return;
         }
 
-        // Load user details
-        Dispatcher.Dispatch(new LoadUserDetailsAction(UserId, currentUserId));
+        canLoadDetails = true;
+        RequestUserDetailsIfNeeded();
+
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        RequestUserDetailsIfNeeded();
+    }
+
+    private void RequestUserDetailsIfNeeded()
+    {
+        if (canLoadDetails && !string.IsNullOrWhiteSpace(UserId) && !string.Equals(UserId, lastRequestedUserId, StringComparison.OrdinalIgnoreCase))
+        {
+            lastRequestedUserId = UserId;
+            isAwaitingFirstLoad = true;
+            showErrorAlert = false;
+            showSuccessAlert = false;
+            successMessage = string.Empty;
+            Dispatcher.Dispatch(new LoadUserDetailsAction(UserId, currentUserId));
+        }
     }
 
     private void OnStateChanged(object? sender, EventArgs e)
     {
+        if (isAwaitingFirstLoad && !UsersState.Value.IsLoadingDetails)
+        {
+            isAwaitingFirstLoad = false;
+        }
+
         if (!string.IsNullOrEmpty(UsersState.Value.ErrorMessage))
         {
             showErrorAlert = true;

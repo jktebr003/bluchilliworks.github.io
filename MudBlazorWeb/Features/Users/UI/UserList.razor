@@ -5,7 +5,7 @@
 @using Fluxor.Blazor.Web.Components
 @using MudBlazorWeb.Shared.Enums
 @using MudBlazorWeb.Shared.Models
-@using static MudBlazorWeb.Features.Users.UsersActions
+@using static MudBlazorWeb.Features.Users.UI.UsersActions
 
 @inject IState<UsersState> UsersState
 @inject IDispatcher Dispatcher
@@ -107,6 +107,12 @@
 </div>
 
 @code {
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Dispatcher.Dispatch(new LoadUsersAction(1, UsersState.Value.PageSize));
+    }
 
     private void OnPageChanged(int page)
     {

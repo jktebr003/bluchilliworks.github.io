@@ -3,7 +3,7 @@ using Fluxor;
 using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Models;
 
-namespace MudBlazorWeb.Features.Users;
+namespace MudBlazorWeb.Features.Users.UI;
 
 public record UsersState
 {

@@ -2,9 +2,9 @@ using Fluxor;
 
 using MudBlazorWeb.Shared.Models;
 
-using static MudBlazorWeb.Features.Users.UsersActions;
+using static MudBlazorWeb.Features.Users.UI.UsersActions;
 
-namespace MudBlazorWeb.Features.Users;
+namespace MudBlazorWeb.Features.Users.UI;
 
 public static class UsersReducers
 {

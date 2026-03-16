@@ -6,7 +6,7 @@
 @using MudBlazorWeb.Features.Authentication
 @using MudBlazorWeb.Shared.Enums
 @using MudBlazorWeb.Shared.Models
-@using static MudBlazorWeb.Features.Users.UsersActions
+@using static MudBlazorWeb.Features.Users.UI.UsersActions
 @implements IDisposable
 
 @inject IState<UsersState> UsersState
@@ -945,6 +945,13 @@
             return;
         }
 
+        if (!Guid.TryParse(currentUser.ID, out var userId))
+        {
+            isUpdateOperation = false;
+            Snackbar.Add("Unable to update profile due to an invalid user identifier.", MudBlazor.Severity.Error);
+            return;
+        }
+
         // Update date of birth
         currentUser.DateOfBirth = dateOfBirth?.ToString("yyyy-MM-dd");
 
@@ -959,7 +966,7 @@
 
         var updateRequest = new UpdateUserRequest
         {
-            Id = currentUser.ID ?? string.Empty,
+            Id = userId,
             FirstName = currentUser.FirstName,
             LastName = currentUser.LastName,
             EmailAddress = currentUser.EmailAddress,

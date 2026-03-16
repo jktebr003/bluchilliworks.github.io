@@ -9,8 +9,8 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using MudBlazorWeb.Features.Pricing.Application
 @using MudBlazorWeb.Features.Authentication
-@using MudBlazorWeb.Features.Users
-@using static MudBlazorWeb.Features.Users.UsersActions
+@using MudBlazorWeb.Features.Users.UI
+@using static MudBlazorWeb.Features.Users.UI.UsersActions
 @using static MudBlazorWeb.Features.Pricing.UI.PricingAction
 
 @inject IState<PricingState> PricingState
@@ -147,13 +147,19 @@
 
         try
         {
+            if (!Guid.TryParse(currentUser.ID, out var userId))
+            {
+                Snackbar.Add("Unable to update package because the current user identifier is invalid.", MudBlazor.Severity.Error);
+                return;
+            }
+
             // Dispatch action to select package in state
             Dispatcher.Dispatch(new SelectPackageAction(package));
 
             // Update user profile with selected package
             var updateRequest = new UpdateUserRequest
             {
-                Id = currentUser.ID ?? string.Empty,
+                Id = userId,
                 Name = currentUser.Name,
                 FirstName = currentUser.FirstName,
                 LastName = currentUser.LastName,

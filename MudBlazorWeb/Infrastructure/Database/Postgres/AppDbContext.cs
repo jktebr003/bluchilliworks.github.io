@@ -6,6 +6,8 @@ using MudBlazorWeb.Features.Posts.Domain;
 using MudBlazorWeb.Features.Posts.Infrastructure;
 using MudBlazorWeb.Features.Pricing.Domain;
 using MudBlazorWeb.Features.Pricing.Infrastructure;
+using MudBlazorWeb.Features.Users.Domain;
+using MudBlazorWeb.Features.Users.Infrastructure;
 using MudBlazorWeb.Infrastructure.Database.Postgres.Common;
 
 namespace MudBlazorWeb.Infrastructure.Database.Postgres;
@@ -19,6 +21,7 @@ public class AppDbContext : DbContext, IAuditDbContext
     public DbSet<Package> Packages => Set<Package>();
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Post> Posts => Set<Post>();
+    public DbSet<User> Users => Set<User>();
 
     public string GenerateReferenceNumber<T>() where T : class
     {
@@ -140,6 +143,7 @@ public class AppDbContext : DbContext, IAuditDbContext
         modelBuilder.ApplyConfiguration(new PackageConfiguration());
         modelBuilder.ApplyConfiguration(new MessageConfiguration());
         modelBuilder.ApplyConfiguration(new PostConfiguration());
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
 
         // Alternative: If you want to keep assembly scanning, be more specific
         // modelBuilder.ApplyConfigurationsFromAssembly(
@@ -154,5 +158,6 @@ public class AppDbContext : DbContext, IAuditDbContext
         { typeof(Package), "PKG" },
         { typeof(Message), "MSG" },
         { typeof(Post), "PST" },
+        { typeof(User), "USR" },
     };
 }
