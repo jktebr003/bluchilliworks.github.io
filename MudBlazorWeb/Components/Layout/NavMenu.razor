@@ -8,6 +8,15 @@
     <MudNavLink Href="posts" Match="NavLinkMatch.Prefix">Posts</MudNavLink>
     <MudNavLink Href="contact" Match="NavLinkMatch.Prefix">Contact</MudNavLink>
     <MudNavLink Href="audits" Match="NavLinkMatch.Prefix">Audits</MudNavLink>
+    <MudNavGroup Title="Authentication" Icon="@Icons.Material.Filled.Lock" Expanded="false">
+        <MudNavLink Href="authentication/login" Match="NavLinkMatch.All">Login</MudNavLink>
+        <MudNavLink Href="authentication/register" Match="NavLinkMatch.All">Register</MudNavLink>
+        <MudNavLink Href="authentication/forgot-password" Match="NavLinkMatch.All">Forgot Password</MudNavLink>
+    </MudNavGroup>
+    <MudNavGroup Title="Users" Icon="@Icons.Material.Filled.People" Expanded="false">
+        <MudNavLink Href="users" Match="NavLinkMatch.All">User List</MudNavLink>
+        <MudNavLink Href="profile" Match="NavLinkMatch.All">Profile</MudNavLink>
+    </MudNavGroup>
 </MudNavMenu>
 
 
