@@ -1,10 +1,11 @@
 @page "/authentication/login"
 
+@using System.ComponentModel.DataAnnotations
 @using Fluxor
 @using Fluxor.Blazor.Web.Components
-@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Components.Forms
 @using MudBlazor
+@using MudBlazorWeb.Features.Authentication.UI
 
 @inject IState<AuthenticationState> AuthState
 @inject IDispatcher Dispatcher

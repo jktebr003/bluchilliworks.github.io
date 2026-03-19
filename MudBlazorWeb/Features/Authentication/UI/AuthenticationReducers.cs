@@ -1,7 +1,8 @@
 using System;
+
 using Fluxor;
 
-namespace MudBlazorWeb.Features.Authentication;
+namespace MudBlazorWeb.Features.Authentication.UI;
 
 public static class AuthenticationReducers
 {

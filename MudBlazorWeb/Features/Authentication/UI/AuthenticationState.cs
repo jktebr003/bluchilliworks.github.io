@@ -1,8 +1,10 @@
 using System;
+
 using Fluxor;
+
 using MudBlazorWeb.Shared.Models;
 
-namespace MudBlazorWeb.Features.Authentication;
+namespace MudBlazorWeb.Features.Authentication.UI;
 
 public record AuthenticationState
 {

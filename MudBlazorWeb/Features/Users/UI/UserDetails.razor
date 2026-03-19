@@ -1,15 +1,16 @@
 @page "/users/{UserId}/details"
 
-@using MudBlazor
 @using Fluxor
 @using Fluxor.Blazor.Web.Components
+@using MudBlazor
 @using MudBlazorWeb.Features.Authentication
+@using MudBlazorWeb.Features.Authentication.UI
 @using MudBlazorWeb.Shared.Enums
 @using static MudBlazorWeb.Features.Users.UI.UsersActions
 @implements IDisposable
 
 @inject IState<UsersState> UsersState
-@inject IState<MudBlazorWeb.Features.Authentication.AuthenticationState> AuthState
+@inject IState<AuthenticationState> AuthState
 @inject IAuthenticationService AuthService
 @inject IDispatcher Dispatcher
 @inject ISnackbar Snackbar

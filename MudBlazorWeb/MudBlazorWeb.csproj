@@ -75,6 +75,10 @@
 
 
   <ItemGroup>
+    <Folder Include="Features\Authentication\Application\" />
+    <Folder Include="Features\Authentication\Domain\" />
+    <Folder Include="Features\Authentication\Infrastructure\" />
+    <Folder Include="Features\Authentication\Tests\" />
     <Folder Include="Features\Contact\Application\" />
     <Folder Include="Features\Contact\Domain\" />
     <Folder Include="Features\Contact\Infrastructure\" />

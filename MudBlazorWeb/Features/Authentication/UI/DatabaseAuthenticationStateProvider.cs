@@ -1,10 +1,12 @@
 using System;
 using System.Security.Claims;
+
 using Microsoft.AspNetCore.Components.Authorization;
+
 using MudBlazorWeb.Shared.Helpers;
 using MudBlazorWeb.Shared.Models;
 
-namespace MudBlazorWeb.Features.Authentication;
+namespace MudBlazorWeb.Features.Authentication.UI;
 
 public class DatabaseAuthenticationStateProvider : AuthenticationStateProvider
 {

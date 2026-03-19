@@ -19,6 +19,7 @@ using MudBlazor.Services;
 using MudBlazorWeb.Components;
 using MudBlazorWeb.Features.Audits;
 using MudBlazorWeb.Features.Authentication;
+using MudBlazorWeb.Features.Authentication.UI;
 using MudBlazorWeb.Features.Contact;
 using MudBlazorWeb.Features.Posts;
 using MudBlazorWeb.Features.Pricing;
@@ -82,17 +83,6 @@ builder.Services.AddPackageFeature();
 builder.Services.AddMessageFeature();
 builder.Services.AddPostFeature();
 builder.Services.AddUserFeature();
-
-// HTTP Client
-builder.Services.AddHttpClient<WebApiClient>(client =>
-{
-    var baseApiServiceUrl = builder.Configuration["BaseApiServiceUrl"];
-    if (string.IsNullOrEmpty(baseApiServiceUrl))
-        throw new ArgumentNullException(nameof(baseApiServiceUrl), "BaseApiServiceUrl is not configured.");
-    client.DefaultRequestHeaders.AcceptLanguage.Clear();
-    client.DefaultRequestHeaders.Add("Authorization", builder.Configuration["AuthorizationKey"]);
-    client.BaseAddress = new Uri(baseApiServiceUrl);
-});
 
 var assembly = typeof(Program).Assembly;
 

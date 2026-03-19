@@ -1,8 +1,12 @@
 using System;
 
+using MediatR;
+
 using Microsoft.AspNetCore.Components.Authorization;
 
-using MudBlazorWeb.Infrastructure;
+using MudBlazorWeb.Features.Authentication.Application;
+using MudBlazorWeb.Shared;
+using MudBlazorWeb.Features.Authentication.UI;
 using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Helpers;
 using MudBlazorWeb.Shared.Models;
@@ -27,13 +31,13 @@ public interface IAuthenticationService
 
 public class AuthenticationService : IAuthenticationService
 {
-    private readonly WebApiClient _webApiClient;
+    private readonly IMediator _mediator;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
     private readonly LocalStorageHelper _localStorageHelper;   
 
-    public AuthenticationService(WebApiClient webApiClient, AuthenticationStateProvider authenticationStateProvider, LocalStorageHelper localStorageHelper)
+    public AuthenticationService(IMediator mediator, AuthenticationStateProvider authenticationStateProvider, LocalStorageHelper localStorageHelper)
     {
-        _webApiClient = webApiClient;
+        _mediator = mediator;
         _authenticationStateProvider = authenticationStateProvider;
         _localStorageHelper = localStorageHelper;
     }
@@ -57,55 +61,27 @@ public class AuthenticationService : IAuthenticationService
         await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserAuthenticationAsync(user);
     }
 
-    public async Task<bool> HasClaimAsync(string claimType, string claimValue)
+    public Task<bool> HasClaimAsync(string claimType, string claimValue)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<bool> IsUserInRoleAsync(string role)
+    public Task<bool> IsUserInRoleAsync(string role)
     {
         throw new NotImplementedException();
     }
 
     public async Task<AuthResult> LoginAsync(string username, string password)
     {
-        try
+        var result = await _mediator.Send(new LoginCommand.Command(username, password));
+
+        if (result.Success && result.Value != null)
         {
-            // Check API connectivity before making the call
-            if (!await _webApiClient.IsApiHealthyAsync())
-            {
-                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
-            }
-
-            var verifyLoginRequest = new VerifyLoginRequest
-            {
-                EmailAddress = username,
-                Password = password
-            };
-
-            var result = await _webApiClient.Post<VerifyLoginRequest, ApiResult<UserResponse>>(
-                new WebApiClientInfo<VerifyLoginRequest>
-                {
-                    Method = "/users/verify-login",
-                    Request = verifyLoginRequest
-                }
-            );
-
-            if (result.Success && result.Value != null)
-            {
-                // Notify authentication state change
-                await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserAuthenticationAsync(result.Value);
-                return AuthResult.Success();
-            }
-            else
-            {
-                return AuthResult.Failure(result.Message ?? "Invalid username or password");
-            }
+            await ((DatabaseAuthenticationStateProvider)_authenticationStateProvider).NotifyUserAuthenticationAsync(result.Value);
+            return AuthResult.Success(result.Message);
         }
-        catch (Exception ex)
-        {
-            return AuthResult.Failure($"Login failed: {ex.Message}");
-        }
+
+        return AuthResult.Failure(result.Message ?? "Invalid username or password");
     }
 
     public async Task LogoutAsync()
@@ -115,206 +91,39 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress)
     {
-        try
-        {
-            // Check API connectivity before making the call
-            if (!await _webApiClient.IsApiHealthyAsync())
-            {
-                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
-            }
-
-            // Create the user request - no password needed at registration
-            var createUserRequest = new CreateUserRequest
-            {
-                FirstName = firstName,
-                LastName = lastName,
-                EmailAddress = emailAddress,
-                Username = emailAddress, // Use email as username
-                Name = $"{firstName} {lastName}",
-                PackageId = "default-package-id", // You may need to adjust this based on your application logic
-                UserType = (int)UserType.Customer, // Adjust based on your enum
-                Avatar = 17,
-                CreatedOn = DateTime.UtcNow,
-                CreatedBy = "system"
-            };
-
-            var result = await _webApiClient.Post<CreateUserRequest, ApiResult<string>>(
-                new WebApiClientInfo<CreateUserRequest>
-                {
-                    Method = "/users",
-                    Request = createUserRequest
-                }
-            );
-
-            if (result.Success)
-            {
-                return AuthResult.Success(result.Message ?? "Registration successful! Please check your email to verify your account.");
-            }
-            else
-            {
-                return AuthResult.Failure(result.Message ?? "Registration failed");
-            }
-        }
-        catch (Exception ex)
-        {
-            return AuthResult.Failure($"Registration failed: {ex.Message}");
-        }
+        var result = await _mediator.Send(new RegisterCommand.Command(firstName, lastName, emailAddress));
+        return ToAuthResult(result, "Registration successful! Please check your email to verify your account.", "Registration failed");
     }
 
     public async Task<AuthResult> SetPasswordAsync(string emailAddress, string verificationToken, string password)
     {
-        try
-        {
-            // Check API connectivity before making the call
-            if (!await _webApiClient.IsApiHealthyAsync())
-            {
-                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
-            }
-
-            var setPasswordRequest = new SetPasswordRequest
-            {
-                EmailAddress = emailAddress,
-                VerificationToken = verificationToken,
-                Password = password
-            };
-
-            var result = await _webApiClient.Post<SetPasswordRequest, ApiResult<string>>(
-                new WebApiClientInfo<SetPasswordRequest>
-                {
-                    Method = "/users/set-password",
-                    Request = setPasswordRequest
-                }
-            );
-
-            if (result.Success)
-            {
-                return AuthResult.Success(result.Message ?? "Password set successfully! You can now log in.");
-            }
-            else
-            {
-                return AuthResult.Failure(result.Message ?? "Failed to set password");
-            }
-        }
-        catch (Exception ex)
-        {
-            return AuthResult.Failure($"Failed to set password: {ex.Message}");
-        }
+        var result = await _mediator.Send(new SetPasswordCommand.Command(emailAddress, verificationToken, password));
+        return ToAuthResult(result, "Password set successfully! You can now log in.", "Failed to set password");
     }
 
     public async Task<AuthResult> ResendVerificationAsync(string emailAddress)
     {
-        try
-        {
-            // Check API connectivity before making the call
-            if (!await _webApiClient.IsApiHealthyAsync())
-            {
-                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
-            }
-
-            var resendRequest = new ResendVerificationRequest
-            {
-                EmailAddress = emailAddress
-            };
-
-            var result = await _webApiClient.Post<ResendVerificationRequest, ApiResult<string>>(
-                new WebApiClientInfo<ResendVerificationRequest>
-                {
-                    Method = "/users/resend-verification",
-                    Request = resendRequest
-                }
-            );
-
-            if (result.Success)
-            {
-                return AuthResult.Success(result.Message ?? "Verification email sent!");
-            }
-            else
-            {
-                return AuthResult.Failure(result.Message ?? "Failed to send verification email");
-            }
-        }
-        catch (Exception ex)
-        {
-            return AuthResult.Failure($"Failed to resend verification: {ex.Message}");
-        }
+        var result = await _mediator.Send(new ResendVerificationCommand.Command(emailAddress));
+        return ToAuthResult(result, "Verification email sent!", "Failed to send verification email");
     }
 
     public async Task<AuthResult> ForgotPasswordAsync(string emailAddress)
     {
-        try
-        {
-            // Check API connectivity before making the call
-            if (!await _webApiClient.IsApiHealthyAsync())
-            {
-                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
-            }
-
-            var forgotPasswordRequest = new ForgotPasswordRequest
-            {
-                EmailAddress = emailAddress
-            };
-
-            var result = await _webApiClient.Post<ForgotPasswordRequest, ApiResult<string>>(
-                new WebApiClientInfo<ForgotPasswordRequest>
-                {
-                    Method = "/users/forgot-password",
-                    Request = forgotPasswordRequest
-                }
-            );
-
-            if (result.Success)
-            {
-                return AuthResult.Success(result.Message ?? "If an account with that email exists, you will receive a password reset link.");
-            }
-            else
-            {
-                return AuthResult.Failure(result.Message ?? "Failed to send password reset email");
-            }
-        }
-        catch (Exception ex)
-        {
-            return AuthResult.Failure($"Failed to send password reset email: {ex.Message}");
-        }
+        var result = await _mediator.Send(new ForgotPasswordCommand.Command(emailAddress));
+        return ToAuthResult(result, "If an account with that email exists, you will receive a password reset link.", "Failed to send password reset email");
     }
 
     public async Task<AuthResult> ResetPasswordAsync(string emailAddress, string resetToken, string newPassword)
     {
-        try
-        {
-            // Check API connectivity before making the call
-            if (!await _webApiClient.IsApiHealthyAsync())
-            {
-                return AuthResult.Failure("Unable to connect to the API. Please check your network connection.");
-            }
+        var result = await _mediator.Send(new ResetPasswordCommand.Command(emailAddress, resetToken, newPassword));
+        return ToAuthResult(result, "Your password has been reset successfully. You can now log in with your new password.", "Failed to reset password");
+    }
 
-            var resetPasswordRequest = new ResetPasswordRequest
-            {
-                EmailAddress = emailAddress,
-                ResetToken = resetToken,
-                NewPassword = newPassword
-            };
-
-            var result = await _webApiClient.Post<ResetPasswordRequest, ApiResult<string>>(
-                new WebApiClientInfo<ResetPasswordRequest>
-                {
-                    Method = "/users/reset-password",
-                    Request = resetPasswordRequest
-                }
-            );
-
-            if (result.Success)
-            {
-                return AuthResult.Success(result.Message ?? "Your password has been reset successfully. You can now log in with your new password.");
-            }
-            else
-            {
-                return AuthResult.Failure(result.Message ?? "Failed to reset password");
-            }
-        }
-        catch (Exception ex)
-        {
-            return AuthResult.Failure($"Failed to reset password: {ex.Message}");
-        }
+    private static AuthResult ToAuthResult(Result<string> result, string successFallback, string errorFallback)
+    {
+        return result.Success
+            ? AuthResult.Success(result.Message ?? successFallback)
+            : AuthResult.Failure(result.Message ?? errorFallback);
     }
 }
 

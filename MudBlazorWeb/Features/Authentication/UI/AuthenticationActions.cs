@@ -1,6 +1,6 @@
 using System;
 
-namespace MudBlazorWeb.Features.Authentication;
+namespace MudBlazorWeb.Features.Authentication.UI;
 
 public record LoginAction(string Username, string Password);
 public record LoginSuccessAction(bool IsSuccess);
