@@ -1,6 +1,6 @@
 using MediatR;
 
-using MudBlazorWeb.Features.Users.Domain;
+using MudBlazorWeb.Features.Authentication.Domain;
 using MudBlazorWeb.Shared;
 
 namespace MudBlazorWeb.Features.Authentication.Application;
@@ -11,11 +11,11 @@ public static class ResetPasswordCommand
 
     internal sealed class Handler : IRequestHandler<Command, Result<string>>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IAuthenticationUserStore _userStore;
 
-        public Handler(IUserRepository userRepository)
+        public Handler(IAuthenticationUserStore userStore)
         {
-            _userRepository = userRepository;
+            _userStore = userStore;
         }
 
         public async Task<Result<string>> Handle(Command request, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public static class ResetPasswordCommand
                     return Failure(validationMessage, "ResetPassword.Validation");
                 }
 
-                var user = await _userRepository.GetUserByEmailAddressAsync(request.EmailAddress, cancellationToken);
+                var user = await _userStore.GetByEmailAddressAsync(request.EmailAddress, cancellationToken);
                 if (user == null)
                 {
                     return Failure("Invalid or expired reset token. Please request a new password reset.", "ResetPassword.InvalidToken");
@@ -56,7 +56,7 @@ public static class ResetPasswordCommand
                 user.ModifiedOn = DateTime.UtcNow;
                 user.ModifiedBy = user.EmailAddress;
 
-                await _userRepository.UpdateUserAsync(user, cancellationToken);
+                await _userStore.UpdateAsync(user, cancellationToken);
 
                 return new Result<string>(user.Id.ToString(), true, "ResetPassword.Success", "Your password has been reset successfully. You can now log in with your new password.");
             }

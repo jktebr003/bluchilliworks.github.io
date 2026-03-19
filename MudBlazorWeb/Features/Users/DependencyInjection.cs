@@ -1,3 +1,4 @@
+using MudBlazorWeb.Features.Authentication.Domain;
 using MudBlazorWeb.Features.Users.Domain;
 using MudBlazorWeb.Features.Users.Infrastructure;
 
@@ -11,6 +12,7 @@ public static class DependencyInjection
 			cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
 
 		services.AddScoped<IUserRepository, UserRepository>();
+		services.AddScoped<IAuthenticationUserStore, AuthenticationUserStore>();
 
 		return services;
 	}

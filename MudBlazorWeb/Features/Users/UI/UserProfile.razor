@@ -3,14 +3,14 @@
 @using MudBlazor
 @using Fluxor
 @using Fluxor.Blazor.Web.Components
-@using MudBlazorWeb.Features.Authentication
 @using MudBlazorWeb.Shared.Enums
 @using MudBlazorWeb.Shared.Models
+@using MudBlazorWeb.Shared.Services
 @using static MudBlazorWeb.Features.Users.UI.UsersActions
 @implements IDisposable
 
 @inject IState<UsersState> UsersState
-@inject IAuthenticationService AuthService
+@inject ICurrentUserContext CurrentUserContext
 @inject IDispatcher Dispatcher
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
@@ -687,7 +687,7 @@
         UsersState.StateChanged += OnStateChanged;
 
         // Get current user from authentication service
-        var authenticatedUser = await AuthService.GetCurrentUserAsync();
+        var authenticatedUser = await CurrentUserContext.GetCurrentUserAsync();
         if (authenticatedUser != null)
         {
             currentUser = new UserResponse

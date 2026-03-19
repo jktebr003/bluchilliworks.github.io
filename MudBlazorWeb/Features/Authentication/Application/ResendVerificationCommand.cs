@@ -2,7 +2,7 @@ using System.Globalization;
 
 using MediatR;
 
-using MudBlazorWeb.Features.Users.Domain;
+using MudBlazorWeb.Features.Authentication.Domain;
 using MudBlazorWeb.Shared;
 using MudBlazorWeb.Shared.Extensions;
 
@@ -14,12 +14,12 @@ public static class ResendVerificationCommand
 
     internal sealed class Handler : IRequestHandler<Command, Result<string>>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IAuthenticationUserStore _userStore;
         private readonly IConfiguration _configuration;
 
-        public Handler(IUserRepository userRepository, IConfiguration configuration)
+        public Handler(IAuthenticationUserStore userStore, IConfiguration configuration)
         {
-            _userRepository = userRepository;
+            _userStore = userStore;
             _configuration = configuration;
         }
 
@@ -32,7 +32,7 @@ public static class ResendVerificationCommand
                     return Failure("Email address is required", "ResendVerification.Validation");
                 }
 
-                var user = await _userRepository.GetUserByEmailAddressAsync(request.EmailAddress, cancellationToken);
+                var user = await _userStore.GetByEmailAddressAsync(request.EmailAddress, cancellationToken);
                 if (user == null)
                 {
                     return new Result<string>(string.Empty, true, "ResendVerification.Success", "If an account exists with this email, a verification email has been sent.");
@@ -49,7 +49,7 @@ public static class ResendVerificationCommand
                 user.ModifiedOn = DateTime.UtcNow;
                 user.ModifiedBy = "system";
 
-                await _userRepository.UpdateUserAsync(user, cancellationToken);
+                await _userStore.UpdateAsync(user, cancellationToken);
 
                 var verificationLink = $"{AuthenticationCommandHelpers.GetBaseWebUrl(_configuration)}/authentication/setup-password?token={Uri.EscapeDataString(verificationToken)}&email={Uri.EscapeDataString(request.EmailAddress)}";
                 var emailBody = AuthenticationCommandHelpers.BuildVerificationEmailBody(user.FirstName, verificationToken, verificationLink);

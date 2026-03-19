@@ -7,7 +7,7 @@ using MailKit.Security;
 
 using MimeKit;
 
-using MudBlazorWeb.Features.Users.Domain;
+using MudBlazorWeb.Features.Authentication.Domain;
 using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Models;
 
@@ -15,7 +15,7 @@ namespace MudBlazorWeb.Features.Authentication.Application;
 
 internal static class AuthenticationCommandHelpers
 {
-    public static UserResponse MapToUserResponse(User user)
+    public static UserResponse MapToUserResponse(AuthenticationUser user)
     {
         return new UserResponse
         {

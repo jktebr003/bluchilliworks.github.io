@@ -2,8 +2,8 @@ using Fluxor;
 using MediatR;
 
 using MudBlazorWeb.Features.Users.Application;
-using MudBlazorWeb.Features.Authentication;
 using MudBlazorWeb.Shared.Models;
+using MudBlazorWeb.Shared.Services;
 
 using static MudBlazorWeb.Features.Users.UI.UsersActions;
 
@@ -12,13 +12,13 @@ namespace MudBlazorWeb.Features.Users.UI;
 public class UsersEffects
 {
     private readonly IMediator _mediator;
-    private readonly IAuthenticationService _authService;
+    private readonly ICurrentUserContext _currentUserContext;
     private readonly IState<UsersState> _usersState;
 
-    public UsersEffects(IMediator mediator, IAuthenticationService authService, IState<UsersState> usersState)
+    public UsersEffects(IMediator mediator, ICurrentUserContext currentUserContext, IState<UsersState> usersState)
     {
         _mediator = mediator;
-        _authService = authService;
+        _currentUserContext = currentUserContext;
         _usersState = usersState;
     }
 
@@ -113,7 +113,7 @@ public class UsersEffects
                 if (userResult.Success && userResult.Value != null)
                 {
                     var updatedUser = MapToUserResponse(userResult.Value);
-                    await _authService.UpdateCurrentUserAsync(updatedUser);
+                    await _currentUserContext.UpdateCurrentUserAsync(updatedUser);
 
                     dispatcher.Dispatch(new UpdateUserProfileSuccessAction(updatedUser));
                 }

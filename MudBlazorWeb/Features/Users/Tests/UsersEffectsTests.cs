@@ -1,12 +1,12 @@
 using Fluxor;
 using MediatR;
 
-using MudBlazorWeb.Features.Authentication;
 using MudBlazorWeb.Features.Users.Application;
 using MudBlazorWeb.Features.Users.UI;
 using MudBlazorWeb.Shared;
 using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Models;
+using MudBlazorWeb.Shared.Services;
 
 using Xunit;
 
@@ -31,7 +31,7 @@ public class UsersEffectsTests
             }
         };
 
-        var effects = new UsersEffects(mediator, new FakeAuthenticationService(), new StaticUsersState(new UsersState()));
+        var effects = new UsersEffects(mediator, new FakeCurrentUserContext(), new StaticUsersState(new UsersState()));
         var dispatcher = new FakeDispatcher();
 
         await effects.HandleLoadUsers(new LoadUsersAction(1, 10), dispatcher);
@@ -49,7 +49,7 @@ public class UsersEffectsTests
     [Fact]
     public async Task HandleLoadUserProfile_ShouldDispatchFailure_WhenUserIdIsInvalid()
     {
-        var effects = new UsersEffects(new FakeMediator(), new FakeAuthenticationService(), new StaticUsersState(new UsersState()));
+        var effects = new UsersEffects(new FakeMediator(), new FakeCurrentUserContext(), new StaticUsersState(new UsersState()));
         var dispatcher = new FakeDispatcher();
 
         await effects.HandleLoadUserProfile(new LoadUserProfileAction("bad-guid"), dispatcher);
@@ -63,7 +63,7 @@ public class UsersEffectsTests
     public async Task HandleUpdateUserProfile_ShouldDispatchSuccess_AndUpdateAuthUser_WhenMediatorSucceeds()
     {
         var userId = Guid.NewGuid();
-        var auth = new FakeAuthenticationService();
+        var auth = new FakeCurrentUserContext();
 
         var mediator = new FakeMediator
         {
@@ -113,7 +113,7 @@ public class UsersEffectsTests
             }
         };
 
-        var effects = new UsersEffects(mediator, new FakeAuthenticationService(), new StaticUsersState(new UsersState()));
+        var effects = new UsersEffects(mediator, new FakeCurrentUserContext(), new StaticUsersState(new UsersState()));
         var dispatcher = new FakeDispatcher();
 
         await effects.HandleChangeUserRole(new ChangeUserRoleAction(userId, UserType.Staff, requesterId), dispatcher);
@@ -147,7 +147,7 @@ public class UsersEffectsTests
             }
         };
 
-        var effects = new UsersEffects(mediator, new FakeAuthenticationService(), new StaticUsersState(state));
+        var effects = new UsersEffects(mediator, new FakeCurrentUserContext(), new StaticUsersState(state));
         var dispatcher = new FakeDispatcher();
 
         await effects.HandleSearchUsers(new SearchUsersAction(1, 10), dispatcher);
@@ -303,20 +303,11 @@ public class UsersEffectsTests
         public event EventHandler? StateChanged;
     }
 
-    private sealed class FakeAuthenticationService : IAuthenticationService
+    private sealed class FakeCurrentUserContext : ICurrentUserContext
     {
         public UserResponse? UpdatedUser { get; private set; }
 
-        public Task<AuthResult> LoginAsync(string username, string password) => throw new NotImplementedException();
-        public Task LogoutAsync() => throw new NotImplementedException();
-        public Task<AuthResult> RegisterAsync(string firstName, string lastName, string emailAddress) => throw new NotImplementedException();
-        public Task<AuthResult> SetPasswordAsync(string emailAddress, string verificationToken, string password) => throw new NotImplementedException();
-        public Task<AuthResult> ResendVerificationAsync(string emailAddress) => throw new NotImplementedException();
-        public Task<AuthResult> ForgotPasswordAsync(string emailAddress) => throw new NotImplementedException();
-        public Task<AuthResult> ResetPasswordAsync(string emailAddress, string resetToken, string newPassword) => throw new NotImplementedException();
         public Task<UserResponse?> GetCurrentUserAsync() => Task.FromResult<UserResponse?>(null);
-        public Task<bool> IsUserInRoleAsync(string role) => throw new NotImplementedException();
-        public Task<bool> HasClaimAsync(string claimType, string claimValue) => throw new NotImplementedException();
 
         public Task UpdateCurrentUserAsync(UserResponse user)
         {

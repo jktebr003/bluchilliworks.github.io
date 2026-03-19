@@ -1,6 +1,6 @@
 using MediatR;
 
-using MudBlazorWeb.Features.Users.Domain;
+using MudBlazorWeb.Features.Authentication.Domain;
 using MudBlazorWeb.Shared;
 using MudBlazorWeb.Shared.Models;
 
@@ -12,11 +12,11 @@ public static class LoginCommand
 
     internal sealed class Handler : IRequestHandler<Command, Result<UserResponse>>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IAuthenticationUserStore _userStore;
 
-        public Handler(IUserRepository userRepository)
+        public Handler(IAuthenticationUserStore userStore)
         {
-            _userRepository = userRepository;
+            _userStore = userStore;
         }
 
         public async Task<Result<UserResponse>> Handle(Command request, CancellationToken cancellationToken)
@@ -28,7 +28,7 @@ public static class LoginCommand
                     return Failure("Email address and password are required.", "VerifyLogin.Validation");
                 }
 
-                var user = await _userRepository.GetUserByEmailAddressAsync(request.Username, cancellationToken);
+                var user = await _userStore.GetByEmailAddressAsync(request.Username, cancellationToken);
                 if (user == null)
                 {
                     return Failure("Invalid email or password", "VerifyLogin.InvalidCredentials");

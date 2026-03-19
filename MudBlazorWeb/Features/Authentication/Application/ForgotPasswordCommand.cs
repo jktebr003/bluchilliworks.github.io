@@ -2,7 +2,7 @@ using System.Globalization;
 
 using MediatR;
 
-using MudBlazorWeb.Features.Users.Domain;
+using MudBlazorWeb.Features.Authentication.Domain;
 using MudBlazorWeb.Shared;
 using MudBlazorWeb.Shared.Extensions;
 
@@ -14,12 +14,12 @@ public static class ForgotPasswordCommand
 
     internal sealed class Handler : IRequestHandler<Command, Result<string>>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IAuthenticationUserStore _userStore;
         private readonly IConfiguration _configuration;
 
-        public Handler(IUserRepository userRepository, IConfiguration configuration)
+        public Handler(IAuthenticationUserStore userStore, IConfiguration configuration)
         {
-            _userRepository = userRepository;
+            _userStore = userStore;
             _configuration = configuration;
         }
 
@@ -32,7 +32,7 @@ public static class ForgotPasswordCommand
                     return Failure("Email address is required", "ForgotPassword.Validation");
                 }
 
-                var user = await _userRepository.GetUserByEmailAddressAsync(request.EmailAddress, cancellationToken);
+                var user = await _userStore.GetByEmailAddressAsync(request.EmailAddress, cancellationToken);
                 if (user == null)
                 {
                     return new Result<string>(string.Empty, true, "ForgotPassword.Success", "If an account with that email exists, you will receive a password reset link.");
@@ -44,7 +44,7 @@ public static class ForgotPasswordCommand
                 user.ModifiedOn = DateTime.UtcNow;
                 user.ModifiedBy = "system";
 
-                await _userRepository.UpdateUserAsync(user, cancellationToken);
+                await _userStore.UpdateAsync(user, cancellationToken);
 
                 var resetLink = $"{AuthenticationCommandHelpers.GetBaseWebUrl(_configuration)}/authentication/reset-password?email={Uri.EscapeDataString(request.EmailAddress)}&token={Uri.EscapeDataString(resetToken)}";
                 var emailBody = AuthenticationCommandHelpers.BuildResetPasswordEmailBody(user.FirstName, resetToken, resetLink);

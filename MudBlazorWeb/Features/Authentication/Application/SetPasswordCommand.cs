@@ -1,6 +1,6 @@
 using MediatR;
 
-using MudBlazorWeb.Features.Users.Domain;
+using MudBlazorWeb.Features.Authentication.Domain;
 using MudBlazorWeb.Shared;
 
 namespace MudBlazorWeb.Features.Authentication.Application;
@@ -11,11 +11,11 @@ public static class SetPasswordCommand
 
     internal sealed class Handler : IRequestHandler<Command, Result<string>>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IAuthenticationUserStore _userStore;
 
-        public Handler(IUserRepository userRepository)
+        public Handler(IAuthenticationUserStore userStore)
         {
-            _userRepository = userRepository;
+            _userStore = userStore;
         }
 
         public async Task<Result<string>> Handle(Command request, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public static class SetPasswordCommand
                     return Failure(validationMessage, "SetPassword.Validation");
                 }
 
-                var user = await _userRepository.GetUserByEmailAddressAsync(request.EmailAddress, cancellationToken);
+                var user = await _userStore.GetByEmailAddressAsync(request.EmailAddress, cancellationToken);
                 if (user == null)
                 {
                     return Failure("User not found", "SetPassword.UserNotFound");
@@ -57,7 +57,7 @@ public static class SetPasswordCommand
                 user.ModifiedOn = DateTime.UtcNow;
                 user.ModifiedBy = user.EmailAddress;
 
-                await _userRepository.UpdateUserAsync(user, cancellationToken);
+                await _userStore.UpdateAsync(user, cancellationToken);
 
                 return new Result<string>(user.Id.ToString(), true, "SetPassword.Success", "Password set successfully. You can now log in.");
             }

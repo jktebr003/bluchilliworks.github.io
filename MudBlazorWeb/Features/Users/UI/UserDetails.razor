@@ -3,15 +3,14 @@
 @using Fluxor
 @using Fluxor.Blazor.Web.Components
 @using MudBlazor
-@using MudBlazorWeb.Features.Authentication
-@using MudBlazorWeb.Features.Authentication.UI
 @using MudBlazorWeb.Shared.Enums
+@using MudBlazorWeb.Shared.Services
 @using static MudBlazorWeb.Features.Users.UI.UsersActions
 @implements IDisposable
 
 @inject IState<UsersState> UsersState
-@inject IState<AuthenticationState> AuthState
-@inject IAuthenticationService AuthService
+@inject ICurrentUserContext CurrentUserContext
+@inject ICurrentUserAuthorizationService CurrentUserAuthorizationService
 @inject IDispatcher Dispatcher
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
@@ -217,11 +216,11 @@
         UsersState.StateChanged += OnStateChanged;
 
         // Get current user
-        var currentUser = await AuthService.GetCurrentUserAsync();
+        var currentUser = await CurrentUserContext.GetCurrentUserAsync();
         currentUserId = currentUser?.ID;
 
         // Verify user is staff
-        if (!await IsStaffUser())
+        if (!await CurrentUserAuthorizationService.IsStaffAsync())
         {
             Snackbar.Add("You must be a staff member to view user details", MudBlazor.Severity.Error);
             NavigationManager.NavigateTo("/users");
@@ -267,12 +266,6 @@
         }
 
         InvokeAsync(StateHasChanged);
-    }
-
-    private async Task<bool> IsStaffUser()
-    {
-        var currentUser = await AuthService.GetCurrentUserAsync();
-        return currentUser?.UserRole == UserType.Staff;
     }
 
     private async Task OpenChangePasswordDialog()

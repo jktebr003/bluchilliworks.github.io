@@ -95,6 +95,8 @@ builder.Services.AddValidatorsFromAssembly(assembly);
 builder.Services.AddScoped<LocalStorageHelper>();
 builder.Services.AddScoped<AuthenticationStateProvider, DatabaseAuthenticationStateProvider>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<ICurrentUserContext, AuthenticationCurrentUserContext>();
+builder.Services.AddScoped<ICurrentUserAuthorizationService, CurrentUserAuthorizationService>();
 builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<BusyDialogService>();

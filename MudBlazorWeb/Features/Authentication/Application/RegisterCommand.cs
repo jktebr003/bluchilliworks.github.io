@@ -2,7 +2,7 @@ using System.Globalization;
 
 using MediatR;
 
-using MudBlazorWeb.Features.Users.Domain;
+using MudBlazorWeb.Features.Authentication.Domain;
 using MudBlazorWeb.Shared;
 using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Extensions;
@@ -15,12 +15,12 @@ public static class RegisterCommand
 
     internal sealed class Handler : IRequestHandler<Command, Result<string>>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IAuthenticationUserStore _userStore;
         private readonly IConfiguration _configuration;
 
-        public Handler(IUserRepository userRepository, IConfiguration configuration)
+        public Handler(IAuthenticationUserStore userStore, IConfiguration configuration)
         {
-            _userRepository = userRepository;
+            _userStore = userStore;
             _configuration = configuration;
         }
 
@@ -35,7 +35,7 @@ public static class RegisterCommand
                     return Failure("Please provide email address, first name, and last name.", "CreateUser.Validation");
                 }
 
-                var existingUser = await _userRepository.GetUserByEmailAddressAsync(request.EmailAddress, cancellationToken);
+                var existingUser = await _userStore.GetByEmailAddressAsync(request.EmailAddress, cancellationToken);
                 if (existingUser != null)
                 {
                     return Failure("A user with this email address already exists.", "CreateUser.UserExists");
@@ -45,7 +45,7 @@ public static class RegisterCommand
                 var verificationToken = SecurityExtension.CreateRandomVerificationCode(6);
                 var tokenExpiry = now.AddHours(24).ToString("O", CultureInfo.InvariantCulture);
 
-                var user = new User
+                var user = new AuthenticationUser
                 {
                     Id = Guid.NewGuid(),
                     Name = $"{request.FirstName} {request.LastName}".Trim(),
@@ -66,7 +66,7 @@ public static class RegisterCommand
                     CreatedBy = "system"
                 };
 
-                await _userRepository.SaveUserAsync(user, cancellationToken);
+                await _userStore.SaveAsync(user, cancellationToken);
 
                 var verificationLink = $"{AuthenticationCommandHelpers.GetBaseWebUrl(_configuration)}/authentication/setup-password?token={Uri.EscapeDataString(verificationToken)}&email={Uri.EscapeDataString(request.EmailAddress)}";
                 var emailBody = AuthenticationCommandHelpers.BuildVerificationEmailBody(request.FirstName, verificationToken, verificationLink);
