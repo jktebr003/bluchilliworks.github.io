@@ -6,12 +6,10 @@ using Microsoft.AspNetCore.Components.Authorization;
 
 using MudBlazorWeb.Features.Authentication.Application;
 using MudBlazorWeb.Shared;
-using MudBlazorWeb.Features.Authentication.UI;
-using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Helpers;
 using MudBlazorWeb.Shared.Models;
 
-namespace MudBlazorWeb.Features.Authentication;
+namespace MudBlazorWeb.Features.Authentication.UI;
 
 public interface IAuthenticationService
 {

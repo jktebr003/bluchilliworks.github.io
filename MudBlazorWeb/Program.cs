@@ -95,6 +95,7 @@ builder.Services.AddSwaggerGen(options =>
     if (File.Exists(xmlPath))
     {
         options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+        Console.WriteLine($"✅ XML documentation loaded: {xmlPath}");
     }
 });
 
@@ -180,6 +181,7 @@ if (app.Environment.IsDevelopment())
         options.EnablePersistAuthorization();
         options.RoutePrefix = "swagger";
     });
+    Console.WriteLine("✅ Swagger configured");
 }
 
 app.UseHttpsRedirection();

@@ -1,7 +1,7 @@
 using MudBlazorWeb.Shared.Models;
 using MudBlazorWeb.Shared.Services;
 
-namespace MudBlazorWeb.Features.Authentication;
+namespace MudBlazorWeb.Features.Authentication.UI;
 
 public sealed class AuthenticationCurrentUserContext : ICurrentUserContext
 {
