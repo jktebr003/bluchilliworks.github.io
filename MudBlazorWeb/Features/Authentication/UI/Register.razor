@@ -5,6 +5,7 @@
 @using Fluxor.Blazor.Web.Components
 @using Microsoft.AspNetCore.Components.Forms
 @using MudBlazor
+@using MudBlazorWeb.Shared.Components
 @using MudBlazorWeb.Features.Authentication.UI
 
 @inject IState<AuthenticationState> AuthState
@@ -15,7 +16,7 @@
 
 <div>
     <div>
-        <span class="heading-meta">Register</span>
+        <MudText Typo="Typo.caption" Class="heading-meta">Register</MudText>
         <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Sign-up</MudText>
 
         <div>
@@ -29,41 +30,55 @@
                             </div>
                             @if (!string.IsNullOrEmpty(AuthState.Value.ErrorMessage))
                             {
-                                <div class="alert alert-danger mb-3">@AuthState.Value.ErrorMessage</div>
+                                <MudAlert Severity="Severity.Error" Class="mb-3">@AuthState.Value.ErrorMessage</MudAlert>
                             }
                             <EditForm Model="registerModel" OnValidSubmit="OnRegister">
                                 <DataAnnotationsValidator />
-                                <ValidationSummary />
 
-                                <div class="mb-3">
-                                    <label for="firstName" class="form-label">First Name *</label>
-                                    <InputText id="firstName" class="form-control login-input" @bind-Value="registerModel.FirstName" placeholder="Enter your first name" />
-                                    <ValidationMessage For="@(() => registerModel.FirstName)" />
-                                </div>
+                                <MudTextField T="string"
+                                              Label="First Name *"
+                                              Placeholder="Enter your first name"
+                                              Class="mb-3"
+                                              Variant="Variant.Outlined"
+                                              FullWidth="true"
+                                              For="@(() => registerModel.FirstName)"
+                                              @bind-Value="registerModel.FirstName" />
 
-                                <div class="mb-3">
-                                    <label for="lastName" class="form-label">Last Name *</label>
-                                    <InputText id="lastName" class="form-control login-input" @bind-Value="registerModel.LastName" placeholder="Enter your last name" />
-                                    <ValidationMessage For="@(() => registerModel.LastName)" />
-                                </div>
+                                <MudTextField T="string"
+                                              Label="Last Name *"
+                                              Placeholder="Enter your last name"
+                                              Class="mb-3"
+                                              Variant="Variant.Outlined"
+                                              FullWidth="true"
+                                              For="@(() => registerModel.LastName)"
+                                              @bind-Value="registerModel.LastName" />
 
-                                <div class="mb-3">
-                                    <label for="emailAddress" class="form-label">Email Address *</label>
-                                    <InputText id="emailAddress" type="email" class="form-control login-input" @bind-Value="registerModel.EmailAddress" placeholder="Enter your email address" />
-                                    <ValidationMessage For="@(() => registerModel.EmailAddress)" />
-                                </div>
+                                <MudTextField T="string"
+                                              Label="Email Address *"
+                                              Placeholder="Enter your email address"
+                                              InputType="InputType.Email"
+                                              Class="mb-3"
+                                              Variant="Variant.Outlined"
+                                              FullWidth="true"
+                                              For="@(() => registerModel.EmailAddress)"
+                                              @bind-Value="registerModel.EmailAddress" />
 
-                                <button type="submit" class="btn btn-primary w-100 login-btn" disabled="@AuthState.Value.IsBusy">
+                                <MudButton ButtonType="ButtonType.Submit"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           FullWidth="true"
+                                           Class="login-btn"
+                                           Disabled="@AuthState.Value.IsBusy">
                                     @if (AuthState.Value.IsBusy)
                                     {
-                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="me-2" />
                                         <span>Creating Account...</span>
                                     }
                                     else
                                     {
                                         <span>Create Account</span>
                                     }
-                                </button>
+                                </MudButton>
                             </EditForm>
                         </MudCardContent>
                     </MudCard>
@@ -72,8 +87,8 @@
                     <div class="div-login-register-form">
                         <div class="div-login-register-form-contents">
                             <MudText Typo="Typo.h6" GutterBottom="true" class="ttl-sub-heading">Join BluChilliWorks</MudText>
-                            <p>Already have an account?</p>
-                            <MudFab Color="Color.Transparent" Style="margin-top: 2rem; color: white; border: 2px solid white" StartIcon="@Icons.Material.Filled.Login" Label="Sign In" Href="/authentication/login" />
+                            <MudText Typo="Typo.body1">Already have an account?</MudText>
+                            <MudFab Color="Color.Transparent" Style="margin-top: 2rem; color: black; border: 2px solid black" StartIcon="@Icons.Material.Filled.Login" Label="Sign In" Href="/authentication/login" />
                         </div>
                     </div>
                 </MudItem>

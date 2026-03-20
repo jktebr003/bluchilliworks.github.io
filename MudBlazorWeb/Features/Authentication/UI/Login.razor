@@ -5,6 +5,7 @@
 @using Fluxor.Blazor.Web.Components
 @using Microsoft.AspNetCore.Components.Forms
 @using MudBlazor
+@using MudBlazorWeb.Shared.Components
 @using MudBlazorWeb.Features.Authentication.UI
 
 @inject IState<AuthenticationState> AuthState
@@ -15,7 +16,7 @@
 
 <div>
     <div>
-        <span class="heading-meta">Login</span>
+        <MudText Typo="Typo.caption" Class="heading-meta">Login</MudText>
         <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Sign-in</MudText>
 
         <div>
@@ -33,35 +34,46 @@
                             }
                             <EditForm Model="loginModel" OnValidSubmit="OnLogin">
                                 <DataAnnotationsValidator />
-                                <ValidationSummary />
 
-                                <div class="mb-3">
-                                    <label for="username" class="form-label">Username *</label>
-                                    <InputText id="username" class="form-control login-input" @bind-Value="loginModel.Username" placeholder="Enter your username" />
-                                    <ValidationMessage For="@(() => loginModel.Username)" />
-                                </div>
+                                <MudTextField T="string"
+                                              Label="Username *"
+                                              Placeholder="Enter your username"
+                                              Class="mb-3"
+                                              Variant="Variant.Outlined"
+                                              FullWidth="true"
+                                              For="@(() => loginModel.Username)"
+                                              @bind-Value="loginModel.Username" />
 
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">Password *</label>
-                                    <InputText id="password" type="password" class="form-control login-input" @bind-Value="loginModel.Password" placeholder="Enter your password" />
-                                    <ValidationMessage For="@(() => loginModel.Password)" />
-                                </div>
+                                <MudTextField T="string"
+                                              Label="Password *"
+                                              Placeholder="Enter your password"
+                                              InputType="InputType.Password"
+                                              Class="mb-3"
+                                              Variant="Variant.Outlined"
+                                              FullWidth="true"
+                                              For="@(() => loginModel.Password)"
+                                              @bind-Value="loginModel.Password" />
 
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <a href="/authentication/forgot-password" class="login-link">Forgot password?</a>
+                                    <MudLink Href="/authentication/forgot-password" Class="login-link">Forgot password?</MudLink>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary w-100 login-btn" disabled="@AuthState.Value.IsBusy">
+                                <MudButton ButtonType="ButtonType.Submit"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           FullWidth="true"
+                                           Class="login-btn"
+                                           Disabled="@AuthState.Value.IsBusy">
                                     @if (AuthState.Value.IsBusy)
                                     {
-                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="me-2" />
                                         <span>Signing in...</span>
                                     }
                                     else
                                     {
                                         <span>Sign In</span>
                                     }
-                                </button>
+                                </MudButton>
                             </EditForm>
                         </MudCardContent>
                     </MudCard>
@@ -70,7 +82,7 @@
                     <div class="div-login-register-form">
                         <div class="div-login-register-form-contents">
                             <MudText Typo="Typo.h6" GutterBottom="true" class="ttl-sub-heading">Welcome to login</MudText>
-                            <p>Don't have an account?</p>
+                            <MudText Typo="Typo.body1">Don't have an account?</MudText>
                             <MudFab Color="Color.Transparent" Style="margin-top: 2rem; color: black; border: 2px solid black" StartIcon="@Icons.Material.Filled.Edit" Label="Sign Up" Href="/authentication/register" />
                         </div>
                     </div>

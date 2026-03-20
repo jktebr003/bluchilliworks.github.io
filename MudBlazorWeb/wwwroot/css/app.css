@@ -6,6 +6,25 @@
     padding-top: 7.5rem;
 }
 
+.div-login-register-form {
+    background: var(--mud-palette-primary);
+    color: #000 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border: 1px solid #F5F5F5;
+    border-radius: 4px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}
+
+.div-login-register-form-contents {
+    text-align: center;
+}
+
 .heading-meta {
     margin-top: 15px;
     margin-bottom: 15px;
