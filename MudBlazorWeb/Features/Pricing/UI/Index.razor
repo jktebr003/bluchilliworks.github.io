@@ -3,12 +3,11 @@
 @using MudBlazor
 @using MudBlazorWeb.Shared.Enums
 @using MudBlazorWeb.Shared.Models
+@using MudBlazorWeb.Shared.Services
 
 @using Fluxor
 @using Fluxor.Blazor.Web.Components
-@using Microsoft.AspNetCore.Components.Authorization
 @using MudBlazorWeb.Features.Pricing.Application
-@using MudBlazorWeb.Features.Authentication
 @using MudBlazorWeb.Features.Users.UI
 @using static MudBlazorWeb.Features.Users.UI.UsersActions
 @using static MudBlazorWeb.Features.Pricing.UI.PricingAction
@@ -17,8 +16,7 @@
 @inject IState<UsersState> UsersState
 @inject IDispatcher Dispatcher
 @inject ISnackbar Snackbar
-@inject AuthenticationStateProvider AuthStateProvider
-@inject IAuthenticationService AuthService
+@inject ICurrentUserContext CurrentUserContext
 
 @inherits FluxorComponent
 
@@ -109,25 +107,16 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await CheckAuthenticationStatus();
         Dispatcher.Dispatch(new LoadPackagesAction());
 
-        // Load current user profile if authenticated
-        if (isAuthenticated)
-        {
-            var user = await AuthService.GetCurrentUserAsync();
-            if (user?.ID != null)
-            {
-                Dispatcher.Dispatch(new LoadUserProfileAction(user.ID));
-            }
-        }
-    }
+        var user = await CurrentUserContext.GetCurrentUserAsync();
+        isAuthenticated = user != null;
 
-    private async Task CheckAuthenticationStatus()
-    {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
-        StateHasChanged();
+        // Load current user profile if authenticated
+        if (user?.ID != null)
+        {
+            Dispatcher.Dispatch(new LoadUserProfileAction(user.ID));
+        }
     }
 
     private void OnPackageTypeChanged(PackageType value)

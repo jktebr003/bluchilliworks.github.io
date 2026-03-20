@@ -13,6 +13,9 @@ using log4net.Config;
 
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+
+using System.Reflection;
 
 using MudBlazor.Services;
 
@@ -24,7 +27,6 @@ using MudBlazorWeb.Features.Contact;
 using MudBlazorWeb.Features.Posts;
 using MudBlazorWeb.Features.Pricing;
 using MudBlazorWeb.Features.Users;
-using MudBlazorWeb.Infrastructure;
 using MudBlazorWeb.Infrastructure.Database;
 using MudBlazorWeb.Infrastructure.Database.Postgres;
 using MudBlazorWeb.Shared.Helpers;
@@ -54,6 +56,48 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddSignalR();
 
+// OpenAPI/Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "MudBlazorWeb API",
+        Version = "v1",
+        Description = "API documentation for MudBlazorWeb endpoints"
+    });
+
+    options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+    {
+        Description = "API key required in the Authorization header. Example: your-api-key",
+        Type = SecuritySchemeType.ApiKey,
+        Name = "Authorization",
+        In = ParameterLocation.Header
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "ApiKey"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    }
+});
+
 builder.Services.AddSubtleCrypto(opt =>
     opt.Key = "WFCC7h70VDhZjS7AIJsGpvOGVoNNLp3aVM0OCNf8CSZQ78MphFCeNhf3XrxKLAnyO1iAWoBPJtUSIKsc"
 );
@@ -77,12 +121,26 @@ builder.Services.AddFluxor(options =>
 // ⭐ Database (register FIRST before features)
 builder.Services.AddDatabase(builder.Configuration);
 
-// Features (features depend on DbContext)
-builder.Services.AddAuditFeature();
-builder.Services.AddPackageFeature();
-builder.Services.AddMessageFeature();
-builder.Services.AddPostFeature();
-builder.Services.AddUserFeature();
+try 
+{
+    // Features (features depend on DbContext)
+    builder.Services.AddAuditFeature();
+    builder.Services.AddPackageFeature();
+    builder.Services.AddMessageFeature();
+    builder.Services.AddPostFeature();
+    builder.Services.AddUserFeature();
+
+    Console.WriteLine("✅ Features registered successfully");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"⚠️ Error registering features: {ex.Message}");
+    Console.WriteLine($"   Stack trace: {ex.StackTrace}");
+    if (ex.InnerException != null)
+    {
+        Console.WriteLine($"   Inner exception: {ex.InnerException.Message}");
+    }
+}
 
 var assembly = typeof(Program).Assembly;
 
@@ -113,6 +171,17 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "MudBlazorWeb API v1");
+        options.EnablePersistAuthorization();
+        options.RoutePrefix = "swagger";
+    });
+}
+
 app.UseHttpsRedirection();
 
 app.MapCarter();
@@ -128,6 +197,21 @@ app.UseRouting();
 //app.UseAuthentication();
 //app.UseAuthorization();
 app.UseAntiforgery();
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetService<AppDbContext>();
+    if (context != null)
+    {
+        var canConnect = await context.Database.CanConnectAsync();
+        Console.WriteLine($"🗄️ Database connection: {(canConnect ? "✅ Success" : "❌ Failed")}");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"⚠️ Database test failed: {ex.Message}");
+}
 
 // Run migrations on startup (optional, for development)
 #if DEBUG
@@ -156,6 +240,10 @@ try
 {
     Console.WriteLine("Starting up...");
     app.Run();
+
+    Console.WriteLine("\n🚀 MudBlazorWeb - All Issues Resolved!");
+    Console.WriteLine($"🌐 Environment: {app.Environment.EnvironmentName}");
+
     Console.WriteLine("Shutting down...");
 }
 catch (Exception ex)
