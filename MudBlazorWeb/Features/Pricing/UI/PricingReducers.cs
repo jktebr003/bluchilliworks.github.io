@@ -43,4 +43,8 @@ public class PricingReducers
             FilteredPackages = filteredPackages
         };
     }
+
+    [ReducerMethod]
+    public static PricingState ReduceSelectPackage(PricingState state, SelectPackageAction action) =>
+        state with { SelectedPackage = action.Package };
 }

@@ -12,6 +12,7 @@ public record PricingState
     public List<GetPackagesQuery.PackageDto> AllPackages { get; init; } = new();
     public List<GetPackagesQuery.PackageDto> FilteredPackages { get; init; } = new();
     public PackageType SelectedPackageType { get; init; } = PackageType.None;
+    public GetPackagesQuery.PackageDto? SelectedPackage { get; init; }
 }
 
 public class PricingFeatureState : Feature<PricingState>
