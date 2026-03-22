@@ -54,9 +54,10 @@
                                               For="@(() => loginModel.Password)"
                                               @bind-Value="loginModel.Password" />
 
-                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                <MudStack Spacing="2" Class="d-flex justify-content-between align-items-center mb-3">
                                     <MudLink Href="/authentication/forgot-password" Class="login-link">Forgot password?</MudLink>
-                                </div>
+                                    <MudLink Href="/authentication/resend-verification" Class="login-link">Resend verification email</MudLink>
+                                </MudStack>
 
                                 <MudButton ButtonType="ButtonType.Submit"
                                            Variant="Variant.Filled"

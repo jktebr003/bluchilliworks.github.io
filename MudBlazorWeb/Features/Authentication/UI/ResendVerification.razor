@@ -1,4 +1,4 @@
-@page "/authentication/forgot-password"
+@page "/authentication/resend-verification"
 
 @using System.ComponentModel.DataAnnotations
 @using Fluxor
@@ -16,46 +16,44 @@
 
 <div>
     <div>
-        <MudText Typo="Typo.caption" Class="heading-meta">Password Recovery</MudText>
-        <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Forgot Password</MudText>
+        <MudText Typo="Typo.caption" Class="heading-meta">Email Verification</MudText>
+        <MudText Typo="Typo.h4" GutterBottom="true" class="ttl-heading">Resend Verification</MudText>
 
         <div>
             <MudGrid>
                 <MudItem xs="12" sm="6">
                     <MudCard Class="pb-3 div-login" style="height:100%">
-                        <MudCardMedia Image="img/forgot-password.png" />
                         <MudCardContent>
                             <div class="mb-3">
                                 <MudText Typo="Typo.body2" Class="mb-2">
-                                    Enter your email address and we'll send you a link to reset your password.
+                                    Enter your email address and we'll resend your account verification email.
                                 </MudText>
                             </div>
-                            
+
                             @if (!string.IsNullOrEmpty(successMessage))
                             {
                                 <MudAlert Severity="Severity.Success" Class="mb-3">@successMessage</MudAlert>
                             }
-                            
+
                             @if (!string.IsNullOrEmpty(AuthState.Value.ErrorMessage))
                             {
                                 <MudAlert Severity="Severity.Error" Class="mb-3">@AuthState.Value.ErrorMessage</MudAlert>
                             }
-                            
+
                             @if (string.IsNullOrEmpty(successMessage))
                             {
-                                <EditForm Model="forgotPasswordModel" OnValidSubmit="OnForgotPassword">
+                                <EditForm Model="resendModel" OnValidSubmit="OnResendVerification">
                                     <DataAnnotationsValidator />
-                                    <ValidationSummary />
 
                                     <MudTextField T="string"
                                                   Label="Email Address *"
                                                   Placeholder="Enter your email address"
                                                   InputType="InputType.Email"
-                                                  Class="mb-3 login-input"
+                                                  Class="mb-3"
                                                   Variant="Variant.Outlined"
                                                   FullWidth="true"
-                                                  For="@(() => forgotPasswordModel.EmailAddress)"
-                                                  @bind-Value="forgotPasswordModel.EmailAddress" />
+                                                  For="@(() => resendModel.EmailAddress)"
+                                                  @bind-Value="resendModel.EmailAddress" />
 
                                     <MudButton ButtonType="ButtonType.Submit"
                                                Variant="Variant.Filled"
@@ -70,12 +68,12 @@
                                         }
                                         else
                                         {
-                                            <span>Send Reset Link</span>
+                                            <span>Resend Verification Email</span>
                                         }
                                     </MudButton>
                                 </EditForm>
                             }
-                            
+
                             <div class="d-flex justify-content-center mt-3">
                                 <MudLink Href="/authentication/login" Class="login-link">Back to Login</MudLink>
                             </div>
@@ -85,13 +83,13 @@
                 <MudItem xs="12" sm="6">
                     <div class="div-login-register-form">
                         <div class="div-login-register-form-contents">
-                            <MudText Typo="Typo.h6" GutterBottom="true" class="ttl-sub-heading">Password Recovery</MudText>
-                            <MudText Typo="Typo.body1">We'll help you get back into your account</MudText>
-                            <MudList T="string" Dense="true" Class="password-reset-info">
-                                <MudListItem T="string">Enter your email address</MudListItem>
-                                <MudListItem T="string">Check your inbox for the reset link</MudListItem>
-                                <MudListItem T="string">Click the link and create a new password</MudListItem>
-                                <MudListItem T="string">The link expires in 1 hour</MudListItem>
+                            <MudText Typo="Typo.h6" GutterBottom="true" class="ttl-sub-heading">Email Verification</MudText>
+                            <MudText Typo="Typo.body1">Didn't receive your verification email?</MudText>
+                            <MudList T="string" Dense="true" Class="verification-info">
+                                <MudListItem T="string">Enter the email you registered with</MudListItem>
+                                <MudListItem T="string">Check your inbox and spam folder</MudListItem>
+                                <MudListItem T="string">Click the verification link in the email</MudListItem>
+                                <MudListItem T="string">The link expires in 24 hours</MudListItem>
                             </MudList>
                         </div>
                     </div>
@@ -104,50 +102,26 @@
 <ProgressSpinner IsBusy="AuthState.Value.IsBusy" />
 
 @code {
-    private ForgotPasswordModel forgotPasswordModel = new();
+    private ResendVerificationModel resendModel = new();
     private string? successMessage;
 
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        
-        // Subscribe to state changes
-        AuthState.StateChanged += OnStateChanged;
-    }
-
-    private void OnStateChanged(object? sender, EventArgs e)
-    {
-        // Check if forgot password was successful
-        if (!AuthState.Value.IsBusy && string.IsNullOrEmpty(AuthState.Value.ErrorMessage))
-        {
-            // Action might have succeeded - check if we got here from the forgot password effect
-            // This is handled in the effects now, but we can show success message
-            InvokeAsync(StateHasChanged);
-        }
-    }
-
-    private void OnForgotPassword()
+    private void OnResendVerification()
     {
         successMessage = null;
-        Dispatcher.Dispatch(new ForgotPasswordAction(forgotPasswordModel.EmailAddress));
-        
-        // Show success message (even if user doesn't exist for security)
-        Task.Delay(500).ContinueWith(_ => 
+        Dispatcher.Dispatch(new ResendVerificationAction(resendModel.EmailAddress));
+
+        // Show success message regardless of outcome for security (avoid email enumeration)
+        Task.Delay(500).ContinueWith(_ =>
         {
-            successMessage = "If an account with that email exists, you will receive a password reset link shortly.";
+            successMessage = "If an account with that email exists and is unverified, you will receive a new verification email shortly.";
             InvokeAsync(StateHasChanged);
         });
     }
 
-    public void Dispose()
+    public class ResendVerificationModel
     {
-        AuthState.StateChanged -= OnStateChanged;
-    }
-
-    public class ForgotPasswordModel
-    {
-        [Required(ErrorMessage = "Email address is required")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
+        [Required]
+        [EmailAddress]
         public string EmailAddress { get; set; } = string.Empty;
     }
 }

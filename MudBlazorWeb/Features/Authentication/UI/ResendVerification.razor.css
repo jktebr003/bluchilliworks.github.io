@@ -1,0 +1,20 @@
+.verification-info {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 20px;
+}
+
+.verification-info li {
+    padding: 8px 0;
+    padding-left: 30px;
+    position: relative;
+}
+
+.verification-info li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 18px;
+}
