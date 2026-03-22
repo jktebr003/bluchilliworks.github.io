@@ -49,7 +49,7 @@
         width: 60%;
         height: 4px;
         content: '';
-        background: #ff4081;
+        background: var(--mud-palette-secondary);
     }
 
 .ttl-heading {
@@ -67,5 +67,5 @@
         width: 60px;
         height: 4px;
         content: '';
-        background: #ffc43d;
+        background: var(--mud-palette-tertiary);
     }

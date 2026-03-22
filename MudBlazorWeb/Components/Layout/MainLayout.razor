@@ -36,9 +36,9 @@
 </MudLayout>
 
 <style>
-    .mud-theme-light .mud-navmenu .mud-nav-link.active {
-        background-color: #e8edec;
-        color: #0b3c49;
+    .mud-navmenu .mud-nav-link.active {
+        background-color: @_activeNavBackground;
+        color: @_activeNavText;
         border-radius: 6px;
     }
 </style>
@@ -55,6 +55,9 @@
     private bool _isDarkMode = true;
     private MudTheme? _theme = null;
     private string _selectedThemeName = "Teal";
+    private ThemeOption? _activeTheme;
+    private string _activeNavBackground = "#e8edec";
+    private string _activeNavText = "#0b3c49";
     private ThemeOption[] _themeOptions = [];
 
     private record ThemeOption(string Name, string PreviewColor, PaletteLight Light, PaletteDark Dark);
@@ -69,6 +72,7 @@
             new ThemeOption("Crimson", "#C1121F", CrimsonLight, CrimsonDark),
             new ThemeOption("Indigo",  "#3A0CA3", IndigoLight,  IndigoDark),
             new ThemeOption("Forest",  "#386641", ForestLight,  ForestDark),
+            new ThemeOption("Formula 1", "#0d3d8e", Formula1Light, Formula1Dark),
         ];
 
         ApplyTheme(_themeOptions[0]);
@@ -76,6 +80,7 @@
 
     private void ApplyTheme(ThemeOption option)
     {
+        _activeTheme = option;
         _selectedThemeName = option.Name;
         _theme = new MudTheme
         {
@@ -83,6 +88,8 @@
             PaletteDark = option.Dark,
             LayoutProperties = new LayoutProperties()
         };
+
+        UpdateActiveNavColors();
     }
 
     private void DrawerToggle()
@@ -93,6 +100,35 @@
     private void DarkModeToggle()
     {
         _isDarkMode = !_isDarkMode;
+        UpdateActiveNavColors();
+    }
+
+    private void UpdateActiveNavColors()
+    {
+        if (_activeTheme is null)
+            return;
+
+        if (_isDarkMode)
+        {
+            var darkBase = _activeTheme.Dark.Tertiary ?? _activeTheme.Dark.Secondary ?? _activeTheme.Dark.Primary ?? new MudBlazor.Utilities.MudColor("#0d3d8e");
+            _activeNavBackground = ToRgba(darkBase, "0.20");
+            _activeNavText = "#FFFFFF";
+            return;
+        }
+
+        var lightBase = _activeTheme.Light.Tertiary ?? _activeTheme.Light.Secondary ?? _activeTheme.Light.Primary ?? new MudBlazor.Utilities.MudColor("#0d3d8e");
+        _activeNavBackground = ToRgba(lightBase, "0.10");
+        _activeNavText = ToHex(_activeTheme.Light.Primary ?? new MudBlazor.Utilities.MudColor("#0b3c49"));
+    }
+
+    private static string ToRgba(MudBlazor.Utilities.MudColor color, string alpha)
+    {
+        return $"rgba({color.R},{color.G},{color.B},{alpha})";
+    }
+
+    private static string ToHex(MudBlazor.Utilities.MudColor color)
+    {
+        return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
     }
 
     public string DarkLightModeButtonIcon => _isDarkMode switch
@@ -343,6 +379,69 @@
         TableLines = "#BC4749",
         Divider = "#BC4749",
         OverlayLight = "#F0F7EE1A",
+    };
+
+    // ── Formula 1 ────────────────────────────────────────────────────────────────
+    private static readonly PaletteLight Formula1Light = new()
+    {
+        Primary = "#0d3d8e",
+        Secondary = "#974a27",
+        Tertiary = "#025159",
+        Surface = "#FFFFFF",
+        Background = "#F4F7FC",
+        BackgroundGray = "#F4F7FC",
+        AppbarText = "#FFFFFF",
+        AppbarBackground = "rgba(13,61,142,0.92)",
+        DrawerBackground = "#F4F7FC",
+        ActionDefault = "#0d3d8e",
+        ActionDisabled = "#0d3d8e4D",
+        ActionDisabledBackground = "#0d3d8e1A",
+        TextPrimary = "#0d3d8e",
+        TextSecondary = "#974a27",
+        TextDisabled = "#0d3d8e66",
+        DrawerIcon = "#0d3d8e",
+        DrawerText = "#0d3d8e",
+        GrayLight = "#025159",
+        GrayLighter = "#FFFFFF",
+        Info = "#0d3d8e",
+        Success = "#025159",
+        Warning = "#974a27",
+        Error = "#974a27",
+        LinesDefault = "#025159",
+        TableLines = "#025159",
+        Divider = "#025159",
+        OverlayLight = "#0d3d8e26",
+    };
+
+    private static readonly PaletteDark Formula1Dark = new()
+    {
+        Primary = "#0d3d8e",
+        Secondary = "#974a27",
+        Tertiary = "#025159",
+        Surface = "#0A1E3F",
+        Background = "#0A1E3F",
+        BackgroundGray = "#0A1E3F",
+        AppbarText = "#FFFFFF",
+        AppbarBackground = "rgba(13,61,142,0.95)",
+        DrawerBackground = "#0A1E3F",
+        ActionDefault = "#0d3d8e",
+        ActionDisabled = "#0d3d8e4D",
+        ActionDisabledBackground = "#0d3d8e1A",
+        TextPrimary = "#FFFFFF",
+        TextSecondary = "#974a27",
+        TextDisabled = "#FFFFFF66",
+        DrawerIcon = "#FFFFFF",
+        DrawerText = "#FFFFFF",
+        GrayLight = "#974a27",
+        GrayLighter = "#0A1E3F",
+        Info = "#FFFFFF",
+        Success = "#025159",
+        Warning = "#974a27",
+        Error = "#974a27",
+        LinesDefault = "#025159",
+        TableLines = "#025159",
+        Divider = "#025159",
+        OverlayLight = "#FFFFFF1A",
     };
 }
 
