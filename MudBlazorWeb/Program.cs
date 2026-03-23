@@ -157,6 +157,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, DatabaseAuthenticationSt
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<ICurrentUserContext, AuthenticationCurrentUserContext>();
 builder.Services.AddScoped<ICurrentUserAuthorizationService, CurrentUserAuthorizationService>();
+builder.Services.AddScoped<NavigationTelemetryService>();
 builder.Services.AddAuthorizationCore();
 
 builder.Services.AddSingleton<BusyDialogService>();
