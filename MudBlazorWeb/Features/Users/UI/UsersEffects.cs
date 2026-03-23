@@ -1,6 +1,7 @@
 using Fluxor;
 using MediatR;
 
+using MudBlazorWeb.Features.Pricing.Application;
 using MudBlazorWeb.Features.Users.Application;
 using MudBlazorWeb.Shared.Models;
 using MudBlazorWeb.Shared.Services;
@@ -78,7 +79,9 @@ public class UsersEffects
 
             if (result.Success && result.Value != null)
             {
-                dispatcher.Dispatch(new LoadUserProfileSuccessAction(MapToUserResponse(result.Value)));
+                var userResponse = MapToUserResponse(result.Value);
+                userResponse.Package = await FetchPackageResponseAsync(result.Value.PackageId);
+                dispatcher.Dispatch(new LoadUserProfileSuccessAction(userResponse));
             }
             else
             {
@@ -113,6 +116,7 @@ public class UsersEffects
                 if (userResult.Success && userResult.Value != null)
                 {
                     var updatedUser = MapToUserResponse(userResult.Value);
+                    updatedUser.Package = await FetchPackageResponseAsync(userResult.Value.PackageId);
                     await _currentUserContext.UpdateCurrentUserAsync(updatedUser);
 
                     dispatcher.Dispatch(new UpdateUserProfileSuccessAction(updatedUser));
@@ -366,6 +370,28 @@ public class UsersEffects
             DeletedOn = dto.DeletedOn?.ToString("O"),
             DeletedBy = dto.DeletedBy,
             IsDeleted = dto.IsDeleted
+        };
+    }
+
+    private async Task<PackageResponse?> FetchPackageResponseAsync(Guid packageId)
+    {
+        if (packageId == Guid.Empty)
+            return null;
+
+        var packageResult = await _mediator.Send(new GetPackageQuery.Query(packageId));
+        if (!packageResult.Success || packageResult.Value == null)
+            return null;
+
+        var dto = packageResult.Value;
+        return new PackageResponse
+        {
+            ID = dto.Id.ToString(),
+            Name = dto.Name,
+            Description = dto.Description,
+            Code = dto.Code,
+            Price = dto.Price,
+            Type = dto.PackageType,
+            ShowPackage = dto.ShowPackage
         };
     }
 }

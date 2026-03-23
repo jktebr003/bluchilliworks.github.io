@@ -1,4 +1,11 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Authorization
+@using MudBlazorWeb.Features.Authentication.UI
+@using MudBlazorWeb.Shared.Models
+@inject IAuthenticationService AuthenticationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -25,7 +32,27 @@
             }
         </MudMenu>
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        @if (_isAuthenticated)
+        {
+            <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+                <ActivatorContent>
+                    <MudAvatar Color="Color.Secondary" Size="Size.Small" Style="cursor:pointer;margin:0 4px">@_userInitials</MudAvatar>
+                </ActivatorContent>
+                <ChildContent>
+                    <div class="px-4 py-2">
+                        <MudText Typo="Typo.subtitle2">@_userFullName</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@_userEmail</MudText>
+                    </div>
+                    <MudDivider />
+                    <MudMenuItem Icon="@Icons.Material.Filled.Person" Href="profile">My Profile</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="OnLogoutAsync">Logout</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        }
+        else
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Login" Color="Color.Inherit" Edge="Edge.End" Href="authentication/login" />
+        }
     </MudAppBar>
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
@@ -60,7 +87,57 @@
     private string _activeNavText = "#0b3c49";
     private ThemeOption[] _themeOptions = [];
 
+    private bool _isAuthenticated;
+    private string _userInitials = string.Empty;
+    private string _userFullName = string.Empty;
+    private string _userEmail = string.Empty;
+
     private record ThemeOption(string Name, string PreviewColor, PaletteLight Light, PaletteDark Dark);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshUserStateAsync();
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
+    }
+
+    private async void OnAuthStateChanged(Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState> task)
+    {
+        await RefreshUserStateAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshUserStateAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _isAuthenticated = state.User.Identity?.IsAuthenticated == true;
+        if (_isAuthenticated)
+        {
+            var user = await AuthenticationService.GetCurrentUserAsync();
+            _userFullName = $"{user?.FirstName} {user?.LastName}".Trim();
+            _userEmail = user?.EmailAddress ?? string.Empty;
+            var first = user?.FirstName?.Length > 0 ? user.FirstName[0].ToString() : string.Empty;
+            var last = user?.LastName?.Length > 0 ? user.LastName[0].ToString() : string.Empty;
+            _userInitials = $"{first}{last}".ToUpper();
+        }
+        else
+        {
+            _userFullName = string.Empty;
+            _userEmail = string.Empty;
+            _userInitials = string.Empty;
+        }
+    }
+
+    private async Task OnLogoutAsync()
+    {
+        await AuthenticationService.LogoutAsync();
+        await RefreshUserStateAsync();
+        NavigationManager.NavigateTo("/authentication/login");
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
+    }
 
     protected override void OnInitialized()
     {
