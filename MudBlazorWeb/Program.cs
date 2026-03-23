@@ -35,6 +35,7 @@ using MudBlazorWeb.Shared.Services;
 using MudExtensions.Services;
 
 using Solutaris.InfoWARE.ProtectedBrowserStorage.Extensions;
+using MudBlazorWeb.Infrastructure.Telemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -163,6 +164,10 @@ builder.Services.AddSingleton<BusyDialogService>();
 Console.WriteLine("✅ All available services registered successfully");
 
 var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+// Add HTTP request telemetry middleware early in the pipeline
+app.UseMiddleware<HttpRequestTelemetryMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
