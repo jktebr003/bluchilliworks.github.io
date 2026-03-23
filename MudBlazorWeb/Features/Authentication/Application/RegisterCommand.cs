@@ -17,11 +17,13 @@ public static class RegisterCommand
     {
         private readonly IAuthenticationUserStore _userStore;
         private readonly IConfiguration _configuration;
+        private readonly IEmailSender _emailSender;
 
-        public Handler(IAuthenticationUserStore userStore, IConfiguration configuration)
+        public Handler(IAuthenticationUserStore userStore, IConfiguration configuration, IEmailSender emailSender)
         {
             _userStore = userStore;
             _configuration = configuration;
+            _emailSender = emailSender;
         }
 
         public async Task<Result<string>> Handle(Command request, CancellationToken cancellationToken)
@@ -71,8 +73,7 @@ public static class RegisterCommand
                 var verificationLink = $"{AuthenticationCommandHelpers.GetBaseWebUrl(_configuration)}/authentication/setup-password?token={Uri.EscapeDataString(verificationToken)}&email={Uri.EscapeDataString(request.EmailAddress)}";
                 var emailBody = AuthenticationCommandHelpers.BuildVerificationEmailBody(request.FirstName, verificationToken, verificationLink);
 
-                await AuthenticationCommandHelpers.TrySendEmailAsync(
-                    _configuration,
+                await _emailSender.SendAsync(
                     request.EmailAddress,
                     "Welcome to BluChilliWorks - Verify Your Email",
                     emailBody,

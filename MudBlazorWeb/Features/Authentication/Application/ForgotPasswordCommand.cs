@@ -16,11 +16,13 @@ public static class ForgotPasswordCommand
     {
         private readonly IAuthenticationUserStore _userStore;
         private readonly IConfiguration _configuration;
+        private readonly IEmailSender _emailSender;
 
-        public Handler(IAuthenticationUserStore userStore, IConfiguration configuration)
+        public Handler(IAuthenticationUserStore userStore, IConfiguration configuration, IEmailSender emailSender)
         {
             _userStore = userStore;
             _configuration = configuration;
+            _emailSender = emailSender;
         }
 
         public async Task<Result<string>> Handle(Command request, CancellationToken cancellationToken)
@@ -49,8 +51,7 @@ public static class ForgotPasswordCommand
                 var resetLink = $"{AuthenticationCommandHelpers.GetBaseWebUrl(_configuration)}/authentication/reset-password?email={Uri.EscapeDataString(request.EmailAddress)}&token={Uri.EscapeDataString(resetToken)}";
                 var emailBody = AuthenticationCommandHelpers.BuildResetPasswordEmailBody(user.FirstName, resetToken, resetLink);
 
-                await AuthenticationCommandHelpers.TrySendEmailAsync(
-                    _configuration,
+                await _emailSender.SendAsync(
                     request.EmailAddress,
                     "Password Reset Request",
                     emailBody,
