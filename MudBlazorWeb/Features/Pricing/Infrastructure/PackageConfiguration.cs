@@ -9,7 +9,7 @@ public class PackageConfiguration : IEntityTypeConfiguration<Package>
 {
     public void Configure(EntityTypeBuilder<Package> builder)
     {
-        builder.ToTable("Packages");
+        builder.ToTable("Packages", schema: "catalog");
 
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id).ValueGeneratedOnAdd();

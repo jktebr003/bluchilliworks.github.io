@@ -40,7 +40,7 @@ public class PostRepository : IPostRepository
 				""DeletedOn"",
 				""DeletedBy"",
 				""IsDeleted""
-			FROM ""Posts""
+			FROM content.""Posts""
 			WHERE ""IsDeleted"" = false AND ""UserId"" = @UserId
 			ORDER BY ""PostedOn"" DESC";
 
@@ -74,7 +74,7 @@ public class PostRepository : IPostRepository
 				""DeletedOn"",
 				""DeletedBy"",
 				""IsDeleted""
-			FROM ""Posts""
+			FROM content.""Posts""
 			WHERE ""IsDeleted"" = false
 			ORDER BY ""PostedOn"" DESC";
 
@@ -108,7 +108,7 @@ public class PostRepository : IPostRepository
 				""DeletedOn"",
 				""DeletedBy"",
 				""IsDeleted""
-			FROM ""Posts""
+			FROM content.""Posts""
 			WHERE ""Id"" = @Id AND ""IsDeleted"" = false";
 
 		var row = await connection.QuerySingleOrDefaultAsync<PostRow>(

@@ -33,7 +33,7 @@ public class AuditRepository : IAuditRepository
                 ""ChangedColumns"",
                 ""CreatedBy"",
                 ""CreatedDate""
-            FROM ""Audits""
+            FROM audit.""Audits""
             ORDER BY ""CreatedDate"" DESC";
 
         var audits = await connection.QueryAsync<Audit>(

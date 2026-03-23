@@ -9,7 +9,7 @@ public class PostConfiguration: IEntityTypeConfiguration<Post>
 {
     public void Configure(EntityTypeBuilder<Post> builder)
     {
-        builder.ToTable("Posts");
+        builder.ToTable("Posts", schema: "content");
 
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id).ValueGeneratedOnAdd();

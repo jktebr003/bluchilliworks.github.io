@@ -7,7 +7,7 @@ public class AuditConfiguration : IEntityTypeConfiguration<Audit>
 {
     public void Configure(EntityTypeBuilder<Audit> builder)
     {
-        builder.ToTable("Audits");
+        builder.ToTable("Audits", schema: "audit");
 
         builder.HasKey(a => a.Id);
         builder.Property(p => p.Id).ValueGeneratedOnAdd();

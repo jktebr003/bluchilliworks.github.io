@@ -40,7 +40,7 @@ public class MessageRepository : IMessageRepository
                 ""DeletedOn"",
                 ""DeletedBy"",
                 ""IsDeleted""
-            FROM ""Messages""
+            FROM system.""Messages""
             WHERE ""IsDeleted"" = false
             ORDER BY ""CreatedOn"" DESC";
 
@@ -74,7 +74,7 @@ public class MessageRepository : IMessageRepository
                 ""DeletedOn"",
                 ""DeletedBy"",
                 ""IsDeleted""
-            FROM ""Messages""
+            FROM system.""Messages""
             WHERE ""Id"" = @Id AND ""IsDeleted"" = false";
 
         var message = await connection.QuerySingleOrDefaultAsync<Message>(

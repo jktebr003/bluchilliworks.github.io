@@ -35,7 +35,7 @@ public class PackageRepository : IPackageRepository
                 ""DeletedOn"",
                 ""DeletedBy"",
                 ""IsDeleted""
-            FROM ""Packages""
+            FROM catalog.""Packages""
             WHERE ""IsDeleted"" = false
             ORDER BY ""CreatedOn"" DESC";
 
@@ -64,7 +64,7 @@ public class PackageRepository : IPackageRepository
                 ""DeletedOn"",
                 ""DeletedBy"",
                 ""IsDeleted""
-            FROM ""Packages""
+            FROM catalog.""Packages""
             WHERE ""Id"" = @Id AND ""IsDeleted"" = false";
 
         var package = await connection.QuerySingleOrDefaultAsync<Package>(

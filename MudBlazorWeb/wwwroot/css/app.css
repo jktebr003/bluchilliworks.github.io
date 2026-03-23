@@ -1,3 +1,44 @@
+body,
+/* .heading-meta, */
+.mud-typography,
+.mud-input,
+.mud-input-label,
+.mud-button,
+.mud-chip,
+.mud-table,
+.mud-list,
+.mud-nav-link,
+.mud-dialog,
+.mud-popover {
+    font-family: "Outfit", sans-serif;
+}
+
+.heading-meta {
+    font-family: "Bitcount", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+/* .heading-meta, */
+.main-heading,
+.ttl-heading,
+.mud-typography-h1,
+.mud-typography-h2,
+.mud-typography-h3
+/* .mud-typography-h4,
+.mud-typography-h5,
+.mud-typography-h6, 
+.mud-button-label */ {
+    font-family: "Edu AU VIC WA NT Guides", sans-serif;
+    /* font-family: "Kaushan Script", cursive; */
+    /* font-family: "Quicksand", sans-serif; */
+    /* font-family: "Outfit", sans-serif; */ 
+}
+
 .div-background-primary {
     padding-top: 7.5rem;
 }
@@ -16,7 +57,7 @@
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
-    border: 1px solid #F5F5F5;
+    border: 1px solid #f5f5f5;
     border-radius: 4px;
     box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
 }
@@ -42,15 +83,15 @@
     position: relative;
 }
 
-    .main-heading:after {
-        position: absolute;
-        bottom: -6px;
-        left: 0;
-        width: 60%;
-        height: 4px;
-        content: '';
-        background: var(--mud-palette-secondary);
-    }
+.main-heading:after {
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 60%;
+    height: 4px;
+    content: "";
+    background: var(--mud-palette-secondary);
+}
 
 .ttl-heading {
     margin-bottom: 1.5em;
@@ -60,12 +101,12 @@
     position: relative;
 }
 
-    .ttl-heading:after {
-        position: absolute;
-        bottom: -6px;
-        left: 0;
-        width: 60px;
-        height: 4px;
-        content: '';
-        background: var(--mud-palette-tertiary);
-    }
+.ttl-heading:after {
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    content: "";
+    background: var(--mud-palette-tertiary);
+}

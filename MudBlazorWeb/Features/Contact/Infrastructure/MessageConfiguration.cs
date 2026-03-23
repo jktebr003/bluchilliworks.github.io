@@ -9,7 +9,7 @@ public class MessageConfiguration: IEntityTypeConfiguration<Message>
 {
     public void Configure(EntityTypeBuilder<Message> builder)
     {
-        builder.ToTable("Messages");
+        builder.ToTable("Messages", schema: "system");
 
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id).ValueGeneratedOnAdd();

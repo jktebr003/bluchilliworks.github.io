@@ -22,6 +22,9 @@ public class AppDbContext : DbContext, IAuditDbContext
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Job> Jobs => Set<Job>();
+    public DbSet<Qualification> Qualifications => Set<Qualification>();
+    public DbSet<Certification> Certifications => Set<Certification>();
 
     public string GenerateReferenceNumber<T>() where T : class
     {
@@ -144,6 +147,9 @@ public class AppDbContext : DbContext, IAuditDbContext
         modelBuilder.ApplyConfiguration(new MessageConfiguration());
         modelBuilder.ApplyConfiguration(new PostConfiguration());
         modelBuilder.ApplyConfiguration(new UserConfiguration());
+        modelBuilder.ApplyConfiguration(new JobConfiguration());
+        modelBuilder.ApplyConfiguration(new QualificationConfiguration());
+        modelBuilder.ApplyConfiguration(new CertificationConfiguration());
 
         // Alternative: If you want to keep assembly scanning, be more specific
         // modelBuilder.ApplyConfigurationsFromAssembly(

@@ -51,7 +51,7 @@ public class UserRepository : IUserRepository
                 u.""DeletedOn"",
                 u.""DeletedBy"",
                 u.""IsDeleted""
-            FROM ""Users"" u
+            FROM users.""Users"" u
             WHERE u.""IsDeleted"" = false AND u.""EmailAddress"" = @EmailAddress
             ORDER BY u.""CreatedOn"" DESC";
 
@@ -100,7 +100,7 @@ public class UserRepository : IUserRepository
                 u.""DeletedOn"",
                 u.""DeletedBy"",
                 u.""IsDeleted""
-            FROM ""Users"" u
+            FROM users.""Users"" u
             WHERE u.""IsDeleted"" = false AND u.""EmailAddress"" = @EmailAddress";
 
         var row = await connection.QuerySingleOrDefaultAsync<UserRow>(
@@ -143,7 +143,7 @@ public class UserRepository : IUserRepository
                 u.""DeletedOn"",
                 u.""DeletedBy"",
                 u.""IsDeleted""
-            FROM ""Users"" u
+            FROM users.""Users"" u
             WHERE u.""IsDeleted"" = false
             ORDER BY u.""CreatedOn"" DESC";
 
@@ -192,7 +192,7 @@ public class UserRepository : IUserRepository
                 u.""DeletedOn"",
                 u.""DeletedBy"",
                 u.""IsDeleted""
-            FROM ""Users"" u
+            FROM users.""Users"" u
             WHERE u.""Id"" = @Id AND u.""IsDeleted"" = false";
 
         var row = await connection.QuerySingleOrDefaultAsync<UserRow>(
@@ -268,8 +268,8 @@ public class UserRepository : IUserRepository
                 u.""DeletedOn"",
                 u.""DeletedBy"",
                 u.""IsDeleted""
-            FROM ""Users"" u
-            LEFT JOIN ""Packages"" p ON p.""Id"" = u.""PackageId""
+                        FROM users.""Users"" u
+                        LEFT JOIN catalog.""Packages"" p ON p.""Id"" = u.""PackageId""
             WHERE u.""IsDeleted"" = false
               AND (@Search IS NULL
                     OR u.""Name"" ILIKE @SearchPattern
