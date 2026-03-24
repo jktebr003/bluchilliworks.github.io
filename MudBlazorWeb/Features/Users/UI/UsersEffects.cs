@@ -34,7 +34,13 @@ public class UsersEffects
 
             if (result.Success && result.Value != null)
             {
-                var users = result.Value.Select(MapToUserResponse).ToList();
+                var users = new List<UserResponse>();
+                foreach (var dto in result.Value)
+                {
+                    var user = MapToUserResponse(dto);
+                    user.Package = await FetchPackageResponseAsync(dto.PackageId);
+                    users.Add(user);
+                }
 
                 dispatcher.Dispatch(new LoadUsersSuccessAction(
                     users,
@@ -268,7 +274,13 @@ public class UsersEffects
 
             if (result.Success && result.Value != null)
             {
-                var users = result.Value.Select(MapToUserResponse).ToList();
+                var users = new List<UserResponse>();
+                foreach (var dto in result.Value)
+                {
+                    var user = MapToUserResponse(dto);
+                    user.Package = await FetchPackageResponseAsync(dto.PackageId);
+                    users.Add(user);
+                }
 
                 dispatcher.Dispatch(new SearchUsersSuccessAction(
                     users,

@@ -1,3 +1,4 @@
+using System.Data;
 using Dapper;
 
 using Microsoft.EntityFrameworkCore;
@@ -266,35 +267,54 @@ public class UserRepository : IUserRepository
                         FROM users.""Users"" u
                         LEFT JOIN catalog.""Packages"" p ON p.""Id"" = u.""PackageId""
             WHERE u.""IsDeleted"" = false
-              AND (@Search IS NULL
+              AND (@HasSearch = false
                     OR u.""Name"" ILIKE @SearchPattern
                     OR u.""FirstName"" ILIKE @SearchPattern
                     OR u.""LastName"" ILIKE @SearchPattern
                     OR u.""Username"" ILIKE @SearchPattern
                     OR u.""EmailAddress"" ILIKE @SearchPattern
                     OR COALESCE(u.""MobileNumber"", '') ILIKE @SearchPattern)
-              AND (@Role IS NULL OR u.""UserType"" = @Role)
-              AND (@Gender IS NULL OR u.""Gender"" ILIKE @Gender)
-              AND (@Package IS NULL
-                    OR COALESCE(p.""Name"", '') ILIKE @PackagePattern
-                    OR CAST(u.""PackageId"" AS text) ILIKE @PackagePattern)
-              AND (@EmailVerified IS NULL OR u.""EmailVerified"" = @EmailVerified)
-              AND (@DobFrom IS NULL
-                    OR (u.""DateOfBirth"" ~ '^\\d{4}-\\d{2}-\\d{2}$' AND u.""DateOfBirth""::date >= @DobFrom))
-              AND (@DobTo IS NULL
-                    OR (u.""DateOfBirth"" ~ '^\\d{4}-\\d{2}-\\d{2}$' AND u.""DateOfBirth""::date <= @DobTo))
+              AND (@HasRole = false OR u.""UserType"" = @Role)
+              AND (@HasGender = false OR u.""Gender"" ILIKE @Gender)
+              AND (@HasPackage = false
+                  OR COALESCE(p.""Name"", '') ILIKE @PackagePattern::text
+                  OR CAST(u.""PackageId"" AS text) ILIKE @PackagePattern::text)
+              AND (@HasEmailVerified = false OR u.""EmailVerified"" = @EmailVerified)
+              AND (@HasDobFrom = false
+                  OR (u.""DateOfBirth"" ~ '^\\d{4}-\\d{2}-\\d{2}$' AND u.""DateOfBirth""::date >= @DobFrom))
+              AND (@HasDobTo = false
+                  OR (u.""DateOfBirth"" ~ '^\\d{4}-\\d{2}-\\d{2}$' AND u.""DateOfBirth""::date <= @DobTo))
             ORDER BY u.""CreatedOn"" DESC";
 
+          var hasSearch = !string.IsNullOrWhiteSpace(search);
+          var hasRole = role.HasValue;
+          var hasGender = !string.IsNullOrWhiteSpace(gender);
+          var hasPackage = !string.IsNullOrWhiteSpace(package);
+          var hasEmailVerified = emailVerified.HasValue;
+          var hasDobFrom = dobFrom.HasValue;
+          var hasDobTo = dobTo.HasValue;
+
         var parameters = new DynamicParameters();
-        parameters.Add("Search", string.IsNullOrWhiteSpace(search) ? null : search);
-        parameters.Add("SearchPattern", string.IsNullOrWhiteSpace(search) ? null : $"%{search}%");
-        parameters.Add("Role", role.HasValue ? (int)role.Value : null);
-        parameters.Add("Gender", string.IsNullOrWhiteSpace(gender) ? null : gender);
-        parameters.Add("Package", string.IsNullOrWhiteSpace(package) ? null : package);
-        parameters.Add("PackagePattern", string.IsNullOrWhiteSpace(package) ? null : $"%{package}%");
-        parameters.Add("EmailVerified", emailVerified);
-        parameters.Add("DobFrom", dobFrom?.Date);
-        parameters.Add("DobTo", dobTo?.Date);
+          parameters.Add("HasSearch", hasSearch, DbType.Boolean);
+          parameters.Add("SearchPattern", hasSearch ? $"%{search}%" : string.Empty, DbType.String);
+
+          parameters.Add("HasRole", hasRole, DbType.Boolean);
+          parameters.Add("Role", hasRole ? (int)role!.Value : 0, DbType.Int32);
+
+          parameters.Add("HasGender", hasGender, DbType.Boolean);
+          parameters.Add("Gender", hasGender ? gender! : string.Empty, DbType.String);
+
+          parameters.Add("HasPackage", hasPackage, DbType.Boolean);
+          parameters.Add("PackagePattern", hasPackage ? $"%{package}%" : string.Empty, DbType.String);
+
+          parameters.Add("HasEmailVerified", hasEmailVerified, DbType.Boolean);
+          parameters.Add("EmailVerified", hasEmailVerified && emailVerified!.Value, DbType.Boolean);
+
+          parameters.Add("HasDobFrom", hasDobFrom, DbType.Boolean);
+          parameters.Add("DobFrom", hasDobFrom ? dobFrom!.Value.Date : DateTime.MinValue.Date, DbType.Date);
+
+          parameters.Add("HasDobTo", hasDobTo, DbType.Boolean);
+          parameters.Add("DobTo", hasDobTo ? dobTo!.Value.Date : DateTime.MinValue.Date, DbType.Date);
 
         var rows = await connection.QueryAsync<UserRow>(
             new CommandDefinition(sql, parameters, cancellationToken: cancellationToken));
