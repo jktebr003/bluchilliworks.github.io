@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 
@@ -9,51 +10,47 @@ namespace MudBlazorWeb.Infrastructure.Telemetry;
 public sealed class NavigationTelemetryService : IDisposable
 {
     private readonly NavigationManager _navigationManager;
-    private readonly ILogger<NavigationTelemetryService> _logger;
     private string? _lastRelativeUri;
     private DateTimeOffset? _lastNavigationAt;
     private bool _disposed;
 
     public NavigationTelemetryService(
-        NavigationManager navigationManager,
-        ILogger<NavigationTelemetryService> logger)
+        NavigationManager navigationManager)
     {
         _navigationManager = navigationManager;
-        _logger = logger;
         _navigationManager.LocationChanged += OnLocationChanged;
     }
 
     public void TrackInitialPage()
     {
         var currentRelativeUri = NormalizeRelativeUri(_navigationManager.Uri);
-        LogNavigation("(start)", currentRelativeUri, wasIntercepted: true, isInitial: true);
+        var navigationId = CreateNavigationId();
+
+        Console.WriteLine($"🏁 [{navigationId}] (start) -> {currentRelativeUri} - Initial page tracked");
+
         _lastRelativeUri = currentRelativeUri;
         _lastNavigationAt = DateTimeOffset.UtcNow;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var navigationId = CreateNavigationId();
         var destinationRelativeUri = NormalizeRelativeUri(args.Location);
         var sourceRelativeUri = _lastRelativeUri ?? "(unknown)";
+        var navigationMode = args.IsNavigationIntercepted ? "intercepted" : "programmatic";
 
-        LogNavigation(sourceRelativeUri, destinationRelativeUri, args.IsNavigationIntercepted, isInitial: false);
+        Console.WriteLine($"🧭 [{navigationId}] {sourceRelativeUri} -> {destinationRelativeUri} - Navigation started ({navigationMode})");
+
+        var now = DateTimeOffset.UtcNow;
+        var elapsedSincePreviousMs = _lastNavigationAt is null ? 0 : (long)(now - _lastNavigationAt.Value).TotalMilliseconds;
+
+        stopwatch.Stop();
+
+        Console.WriteLine($"✅ [{navigationId}] {sourceRelativeUri} -> {destinationRelativeUri} - Navigation completed in {stopwatch.ElapsedMilliseconds}ms (Mode={navigationMode}, ElapsedMsSincePrevious={elapsedSincePreviousMs})");
 
         _lastRelativeUri = destinationRelativeUri;
-        _lastNavigationAt = DateTimeOffset.UtcNow;
-    }
-
-    private void LogNavigation(string from, string to, bool wasIntercepted, bool isInitial)
-    {
-        var now = DateTimeOffset.UtcNow;
-        var elapsedMs = _lastNavigationAt is null ? 0 : (long)(now - _lastNavigationAt.Value).TotalMilliseconds;
-
-        _logger.LogInformation(
-            "FrontendNavigation Initial={IsInitial} Intercepted={WasIntercepted} From={From} To={To} ElapsedMsSincePrevious={ElapsedMs}",
-            isInitial,
-            wasIntercepted,
-            from,
-            to,
-            elapsedMs);
+        _lastNavigationAt = now;
     }
 
     private string NormalizeRelativeUri(string absoluteUri)
@@ -66,6 +63,11 @@ public sealed class NavigationTelemetryService : IDisposable
 
         var pathOnly = relative.Split('?', '#')[0];
         return string.IsNullOrWhiteSpace(pathOnly) ? "/" : $"/{pathOnly.TrimStart('/')}";
+    }
+
+    private static string CreateNavigationId()
+    {
+        return Guid.NewGuid().ToString("N")[..8];
     }
 
     public void Dispose()
