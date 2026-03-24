@@ -2,6 +2,7 @@
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Authorization
 @using MudBlazorWeb.Features.Authentication.UI
+@using MudBlazorWeb.Shared.Components
 @using MudBlazorWeb.Shared.Models
 @inject IAuthenticationService AuthenticationService
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -57,8 +58,11 @@
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="pt-16 pa-4">
-        @Body
+    <MudMainContent Class="pt-16 pa-4 app-main-content">
+        <div class="app-page-content">
+            @Body
+        </div>
+        <SiteFooter />
     </MudMainContent>
     <MudScrollToTop>
         <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowUpward" />
@@ -66,6 +70,16 @@
 </MudLayout>
 
 <style>
+    .app-main-content {
+        min-height: calc(100vh - 64px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .app-page-content {
+        flex: 1 0 auto;
+    }
+
     .mud-navmenu .mud-nav-link.active {
         background-color: @_activeNavBackground;
         color: @_activeNavText;
