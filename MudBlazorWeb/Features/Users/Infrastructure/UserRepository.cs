@@ -155,11 +155,6 @@ public class UserRepository : IUserRepository
 
     public async Task<User> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        // if (!Guid.TryParse(id, out var userId))
-        // {
-        //     throw new InvalidOperationException($"User ID '{id}' is not a valid GUID.");
-        // }
-
         var connection = _context.Database.GetDbConnection();
 
         var sql = @"

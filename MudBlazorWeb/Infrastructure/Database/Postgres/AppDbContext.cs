@@ -6,6 +6,8 @@ using MudBlazorWeb.Features.Posts.Domain;
 using MudBlazorWeb.Features.Posts.Infrastructure;
 using MudBlazorWeb.Features.Pricing.Domain;
 using MudBlazorWeb.Features.Pricing.Infrastructure;
+using MudBlazorWeb.Features.UserSessions.Domain;
+using MudBlazorWeb.Features.UserSessions.Infrastructure;
 using MudBlazorWeb.Features.Users.Domain;
 using MudBlazorWeb.Features.Users.Infrastructure;
 using MudBlazorWeb.Infrastructure.Database.Postgres.Common;
@@ -22,6 +24,7 @@ public class AppDbContext : DbContext, IAuditDbContext
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<Qualification> Qualifications => Set<Qualification>();
     public DbSet<Certification> Certifications => Set<Certification>();
@@ -147,6 +150,7 @@ public class AppDbContext : DbContext, IAuditDbContext
         modelBuilder.ApplyConfiguration(new MessageConfiguration());
         modelBuilder.ApplyConfiguration(new PostConfiguration());
         modelBuilder.ApplyConfiguration(new UserConfiguration());
+        modelBuilder.ApplyConfiguration(new UserSessionConfiguration());
         modelBuilder.ApplyConfiguration(new JobConfiguration());
         modelBuilder.ApplyConfiguration(new QualificationConfiguration());
         modelBuilder.ApplyConfiguration(new CertificationConfiguration());

@@ -28,6 +28,7 @@ using MudBlazorWeb.Features.Authentication.UI;
 using MudBlazorWeb.Features.Contact;
 using MudBlazorWeb.Features.Posts;
 using MudBlazorWeb.Features.Pricing;
+using MudBlazorWeb.Features.UserSessions;
 using MudBlazorWeb.Features.Users;
 using MudBlazorWeb.Infrastructure.Database;
 using MudBlazorWeb.Infrastructure.Database.Postgres;
@@ -133,6 +134,7 @@ try
     builder.Services.AddMessageFeature();
     builder.Services.AddPostFeature();
     builder.Services.AddUserFeature();
+    builder.Services.AddUserSessionFeature();
 
     Console.WriteLine("✅ Features registered successfully");
 }
