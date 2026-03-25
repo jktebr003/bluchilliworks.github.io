@@ -8,6 +8,7 @@
     <NoWarn>$(NoWarn);1591</NoWarn>
     <UserSecretsId>143bb26d-ac85-4977-b7e3-63c0f5fc1cac</UserSecretsId>
     <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
 
 
@@ -37,6 +38,7 @@
     <PackageReference Include="MailKit" Version="4.14.1" />
     <PackageReference Include="Mapster" Version="7.4.0" />
     <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="MinVer" Version="4.3.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
       <PrivateAssets>all</PrivateAssets>

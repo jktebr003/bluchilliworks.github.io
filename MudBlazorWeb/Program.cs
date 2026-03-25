@@ -164,6 +164,7 @@ builder.Services.AddScoped<ICurrentUserContext, AuthenticationCurrentUserContext
 builder.Services.AddScoped<ICurrentUserAuthorizationService, CurrentUserAuthorizationService>();
 builder.Services.AddScoped<NavigationTelemetryService>();
 builder.Services.AddAuthorizationCore();
+builder.Services.AddSingleton<IAppVersionService, AppVersionService>();
 
 builder.Services.AddSingleton<BusyDialogService>();
 
