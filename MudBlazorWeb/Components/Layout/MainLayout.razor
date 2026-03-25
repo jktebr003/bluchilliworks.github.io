@@ -58,7 +58,7 @@
     <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="pt-16 pa-4 app-main-content">
+    <MudMainContent Class="pt-16 app-main-content">
         <div class="app-page-content">
             @Body
         </div>
@@ -78,6 +78,7 @@
 
     .app-page-content {
         flex: 1 0 auto;
+        padding: 1rem;
     }
 
     .mud-navmenu .mud-nav-link.active {
@@ -96,9 +97,9 @@
 
 @code {
     private bool _drawerOpen = true;
-    private bool _isDarkMode = true;
+    private bool _isDarkMode = false;
     private MudTheme? _theme = null;
-    private string _selectedThemeName = "Teal";
+    private string _selectedThemeName = "Ocean Mist";
     private ThemeOption? _activeTheme;
     private string _activeNavBackground = "#e8edec";
     private string _activeNavText = "#0b3c49";
@@ -171,7 +172,17 @@
             @* new ThemeOption("Formula 1", "#0d3d8e", Formula1Light, Formula1Dark), *@
         ];
 
-        ApplyTheme(_themeOptions[0]);
+        var defaultTheme = _themeOptions[0];
+        foreach (var option in _themeOptions)
+        {
+            if (option.Name == "Ocean Mist")
+            {
+                defaultTheme = option;
+                break;
+            }
+        }
+
+        ApplyTheme(defaultTheme);
     }
 
     private void ApplyTheme(ThemeOption option)
