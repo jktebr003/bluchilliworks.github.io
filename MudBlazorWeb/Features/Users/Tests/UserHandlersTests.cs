@@ -1,5 +1,6 @@
 using MudBlazorWeb.Features.Users.Application;
 using MudBlazorWeb.Features.Users.Domain;
+using MudBlazorWeb.Shared;
 using MudBlazorWeb.Shared.Enums;
 using MudBlazorWeb.Shared.Models;
 
@@ -337,7 +338,7 @@ public class UserHandlersTests
 		string email, string username)
 	{
 		var repository = new StubUserRepository();
-		var handler = new UpdateUserCommand.Handler(repository);
+		var handler = new UpdateUserCommand.Handler(repository, new NoOpDomainEventsDispatcher());
 
 		var request = new UpdateUserRequest
 		{
@@ -356,7 +357,7 @@ public class UserHandlersTests
 	public async Task UpdateUserHandler_ShouldReturnNotFound_WhenUserDoesNotExist()
 	{
 		var repository = new StubUserRepository(); // throws by default
-		var handler = new UpdateUserCommand.Handler(repository);
+		var handler = new UpdateUserCommand.Handler(repository, new NoOpDomainEventsDispatcher());
 
 		var request = new UpdateUserRequest
 		{
@@ -381,7 +382,7 @@ public class UserHandlersTests
 		{
 			GetByIdHandler = (_, _) => Task.FromResult(existingUser)
 		};
-		var handler = new UpdateUserCommand.Handler(repository);
+		var handler = new UpdateUserCommand.Handler(repository, new NoOpDomainEventsDispatcher());
 
 		var request = new UpdateUserRequest
 		{
@@ -404,7 +405,7 @@ public class UserHandlersTests
 	}
 
 	[Fact]
-	public async Task UpdateUserHandler_ShouldMapJobs_WhenJobsProvided()
+	public async Task UpdateUserHandler_ShouldDispatchJobsEvent_WhenJobsProvided()
 	{
 		var userId = Guid.NewGuid();
 		var existingUser = MakeUser(userId, "jobuser", UserType.Customer);
@@ -413,7 +414,8 @@ public class UserHandlersTests
 		{
 			GetByIdHandler = (_, _) => Task.FromResult(existingUser)
 		};
-		var handler = new UpdateUserCommand.Handler(repository);
+		var dispatcher = new CapturingDomainEventsDispatcher();
+		var handler = new UpdateUserCommand.Handler(repository, dispatcher);
 
 		var request = new UpdateUserRequest
 		{
@@ -430,9 +432,10 @@ public class UserHandlersTests
 		var result = await handler.Handle(new UpdateUserCommand.Command(request), CancellationToken.None);
 
 		Assert.True(result.Success);
-		Assert.NotNull(repository.UpdatedUser!.Jobs);
-		Assert.Single(repository.UpdatedUser.Jobs!);
-		Assert.Equal("Acme", repository.UpdatedUser.Jobs![0].Company);
+		var jobsEvent = Assert.Single(dispatcher.DispatchedEvents.OfType<UserJobsUpdatedEvent>());
+		Assert.Equal(userId, jobsEvent.UserId);
+		Assert.Single(jobsEvent.IncomingJobs);
+		Assert.Equal("Acme", jobsEvent.IncomingJobs.First().Company);
 	}
 
 	// ---------------------------------------------------------------------------
@@ -452,6 +455,23 @@ public class UserHandlersTests
 		CreatedOn = DateTime.UtcNow,
 		CreatedBy = "test"
 	};
+
+	private sealed class NoOpDomainEventsDispatcher : IDomainEventsDispatcher
+	{
+		public Task DispatchAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken = default)
+			=> Task.CompletedTask;
+	}
+
+	private sealed class CapturingDomainEventsDispatcher : IDomainEventsDispatcher
+	{
+		public List<IDomainEvent> DispatchedEvents { get; } = [];
+
+		public Task DispatchAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken = default)
+		{
+			DispatchedEvents.AddRange(domainEvents);
+			return Task.CompletedTask;
+		}
+	}
 
 	private sealed class StubUserRepository : IUserRepository
 	{

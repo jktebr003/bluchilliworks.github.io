@@ -88,10 +88,12 @@ public static class UpdateUserCommand
 	internal sealed class Handler : IRequestHandler<Command, Result<string>>
 	{
 		private readonly IUserRepository _userRepository;
+		private readonly IDomainEventsDispatcher _domainEventsDispatcher;
 
-		public Handler(IUserRepository userRepository)
+		public Handler(IUserRepository userRepository, IDomainEventsDispatcher domainEventsDispatcher)
 		{
 			_userRepository = userRepository;
+			_domainEventsDispatcher = domainEventsDispatcher;
 		}
 
 		public async Task<Result<string>> Handle(Command request, CancellationToken cancellationToken)
@@ -141,16 +143,8 @@ public static class UpdateUserCommand
 
 			if (request.Request.Jobs != null)
 			{
-				existingUser.Jobs = request.Request.Jobs.Select(j => new Job
-				{
-					Id = Guid.NewGuid(),
-					UserId = existingUser.Id,
-					Company = j.Company,
-					Position = j.Position,
-					StartDate = j.StartDate,
-					EndDate = j.EndDate,
-					Responsibilities = j.Responsibilities
-				}).ToList();
+				var jobsEvent = new UserJobsUpdatedEvent(existingUser.Id, request.Request.Jobs, request.Request.ModifiedBy);
+				await _domainEventsDispatcher.DispatchAsync([jobsEvent], cancellationToken);
 			}
 
 			if (request.Request.Qualifications != null)

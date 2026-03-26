@@ -39,6 +39,7 @@ using MudExtensions.Services;
 
 using Solutaris.InfoWARE.ProtectedBrowserStorage.Extensions;
 using MudBlazorWeb.Infrastructure.Telemetry;
+using MudBlazorWeb.Shared;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -156,6 +157,8 @@ builder.Services.AddCarter();
 
 builder.Services.AddValidatorsFromAssembly(assembly);
 
+builder.Services.AddAuthorizationCore();
+
 builder.Services.AddScoped<LocalStorageHelper>();
 builder.Services.AddScoped<AuthenticationStateProvider, DatabaseAuthenticationStateProvider>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -163,10 +166,9 @@ builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<ICurrentUserContext, AuthenticationCurrentUserContext>();
 builder.Services.AddScoped<ICurrentUserAuthorizationService, CurrentUserAuthorizationService>();
 builder.Services.AddScoped<NavigationTelemetryService>();
-builder.Services.AddAuthorizationCore();
 builder.Services.AddSingleton<IAppVersionService, AppVersionService>();
-
 builder.Services.AddSingleton<BusyDialogService>();
+builder.Services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
 Console.WriteLine("✅ All available services registered successfully");
 
