@@ -6,6 +6,7 @@ using MudBlazorWeb.Features.Users.Domain;
 using MudBlazorWeb.Filters;
 using MudBlazorWeb.Shared;
 using MudBlazorWeb.Shared.Enums;
+using MudBlazorWeb.Shared.Models;
 
 namespace MudBlazorWeb.Features.Users.Application;
 
@@ -26,7 +27,10 @@ public static class GetUserByIdQuery
 		int Avatar,
 		UserType UserRole,
 		string? Skills,
-		string? Hobbies) : BaseAuditableDto
+		string? Hobbies,
+		IEnumerable<JobResponse>? Jobs,
+		IEnumerable<QualificationResponse>? Qualifications,
+		IEnumerable<CertificationResponse>? Certifications) : BaseAuditableDto
 	{
 		public static UserDto FromEntity(User user)
 		{
@@ -45,7 +49,37 @@ public static class GetUserByIdQuery
 				user.Avatar,
 				(UserType)user.UserType,
 				user.Skills,
-				user.Hobbies)
+				user.Hobbies,
+				user.Jobs?.Select(job => new JobResponse
+				{
+					ID = job.Id.ToString(),
+					Company = job.Company,
+					Position = job.Position,
+					StartDate = job.StartDate,
+					EndDate = job.EndDate,
+					Responsibilities = job.Responsibilities,
+					CreatedOn = job.CreatedOn.ToString("O"),
+					CreatedBy = job.CreatedBy,
+					ModifiedOn = job.ModifiedOn?.ToString("O"),
+					ModifiedBy = job.ModifiedBy,
+					DeletedOn = job.DeletedOn?.ToString("O"),
+					DeletedBy = job.DeletedBy,
+					IsDeleted = job.IsDeleted
+				}),
+				user.Qualifications?.Select(qualification => new QualificationResponse
+				{
+					ID = qualification.Id.ToString(),
+					Title = qualification.Title,
+					Institution = qualification.Institution,
+					Year = qualification.Year
+				}),
+				user.Certifications?.Select(certification => new CertificationResponse
+				{
+					ID = certification.Id.ToString(),
+					Title = certification.Title,
+					Institution = certification.Institution,
+					Year = certification.Year
+				}))
 			{
 				Id = user.Id,
 				CreatedOn = user.CreatedOn,
@@ -86,7 +120,7 @@ public static class GetUserByIdQuery
 		private sealed record UserDtoEmpty : UserDto
 		{
 			public static readonly UserDtoEmpty Instance = new();
-			private UserDtoEmpty() : base(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, null, null, false, null, null, Guid.Empty, 0, UserType.None, null, null) { }
+			private UserDtoEmpty() : base(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, null, null, false, null, null, Guid.Empty, 0, UserType.None, null, null, null, null, null) { }
 		}
 	}
 }

@@ -61,7 +61,7 @@ public class JobRepository : IJobRepository
     public async Task CreateJobAsync(Job job, CancellationToken cancellationToken = default)
     {
         await _context.Jobs.AddAsync(job, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        _context.SaveChanges(job.CreatedBy ?? "System", cancellationToken);
     }
 
     public async Task UpdateJobAsync(Job job, CancellationToken cancellationToken = default)
@@ -75,7 +75,12 @@ public class JobRepository : IJobRepository
             throw new InvalidOperationException($"Job with ID {job.Id} was not found.");
         }
 
-        _context.Entry(tracked).CurrentValues.SetValues(job);
-        await _context.SaveChangesAsync(cancellationToken);
+        // _context.Entry(tracked).CurrentValues.SetValues(job);
+        // await _context.SaveChangesAsync(cancellationToken);
+
+        var currentRecord = _context.Set<Job>().Entry(tracked);
+        currentRecord.CurrentValues.SetValues(job);
+
+        _context.SaveChanges(job.ModifiedBy ?? "System", cancellationToken);
     }
 }

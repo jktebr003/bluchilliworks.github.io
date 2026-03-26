@@ -156,47 +156,14 @@ public class UserRepository : IUserRepository
 
     public async Task<User> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var connection = _context.Database.GetDbConnection();
+        var user = await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Jobs!.Where(j => !j.IsDeleted))
+            .Include(u => u.Qualifications)
+            .Include(u => u.Certifications)
+            .SingleOrDefaultAsync(u => u.Id == id && !u.IsDeleted, cancellationToken);
 
-        var sql = @"
-            SELECT
-                u.""Id"",
-                u.""Name"",
-                u.""FirstName"",
-                u.""LastName"",
-                u.""Username"",
-                u.""EmailAddress"",
-                u.""TelephoneNumber"",
-                u.""MobileNumber"",
-                u.""HashedPassword"",
-                u.""EmailVerified"",
-                u.""EmailVerificationToken"",
-                u.""EmailVerificationTokenExpiry"",
-                u.""PasswordResetToken"",
-                u.""PasswordResetTokenExpiry"",
-                u.""Gender"",
-                u.""DateOfBirth"",
-                u.""PackageId"",
-                u.""Avatar"",
-                u.""UserType"",
-                u.""Skills"",
-                u.""Hobbies"",
-                u.""CreatedOn"",
-                u.""CreatedBy"",
-                u.""ModifiedOn"",
-                u.""ModifiedBy"",
-                u.""DeletedOn"",
-                u.""DeletedBy"",
-                u.""IsDeleted""
-            FROM users.""Users"" u
-            WHERE u.""Id"" = @Id AND u.""IsDeleted"" = false";
-
-        var row = await connection.QuerySingleOrDefaultAsync<UserRow>(
-            new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
-
-        return row == null
-            ? throw new InvalidOperationException($"User with ID {id} was not found.")
-            : MapRowToUser(row);
+        return user ?? throw new InvalidOperationException($"User with ID {id} was not found.");
     }
 
     public async Task SaveUserAsync(User user, CancellationToken cancellationToken = default)

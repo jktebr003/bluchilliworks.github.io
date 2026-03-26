@@ -201,7 +201,10 @@ public class UsersEffectsTests
             Avatar: 17,
             UserRole: UserType.Customer,
             Skills: null,
-            Hobbies: null)
+            Hobbies: null,
+            Jobs: null,
+            Qualifications: null,
+            Certifications: null)
         {
             Id = userId,
             CreatedOn = DateTime.UtcNow,
