@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using MudBlazorWeb.Infrastructure.Database.Postgres.Common;
 
 namespace MudBlazorWeb.Features.Users.Domain;
 
-public class Certification
+public class Certification : BaseAuditableEntity
 {
     [Key]
     public Guid Id { get; set; }

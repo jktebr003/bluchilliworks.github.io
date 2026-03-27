@@ -99,6 +99,104 @@ public class UsersEffectsTests
     }
 
     [Fact]
+    public async Task HandleUpdateUserProfile_ShouldIncludeJobs_InDispatchedUser_WhenJobsProvided()
+    {
+        var userId = Guid.NewGuid();
+        var jobId = Guid.NewGuid();
+        var auth = new FakeCurrentUserContext();
+
+        var mediator = new FakeMediator
+        {
+            SendHandler = request =>
+            {
+                return request switch
+                {
+                    UpdateUserCommand.Command => Task.FromResult<object?>(new Result<string>(userId.ToString(), true)),
+                    GetUserByIdQuery.Query => Task.FromResult<object?>(new Result<GetUserByIdQuery.UserDto>(
+                        CreateGetUserByIdDtoWithJobs(userId, "updated", jobId), true)),
+                    _ => throw new InvalidOperationException("Unexpected request")
+                };
+            }
+        };
+
+        var request = new UpdateUserRequest
+        {
+            Id = userId,
+            Username = "updated",
+            EmailAddress = "u@example.com",
+            UserType = UserType.Customer,
+            Jobs =
+            [
+                new JobResponse { ID = jobId.ToString(), Company = "Acme", Position = "Dev", StartDate = "2020-01", EndDate = "2022-01", Responsibilities = "Code" }
+            ]
+        };
+
+        var effects = new UsersEffects(mediator, auth, new StaticUsersState(new UsersState()));
+        var dispatcher = new FakeDispatcher();
+
+        await effects.HandleUpdateUserProfile(new UpdateUserProfileAction(request), dispatcher);
+
+        var action = Assert.Single(dispatcher.DispatchedActions);
+        var success = Assert.IsType<UpdateUserProfileSuccessAction>(action);
+        Assert.NotNull(success.User.Jobs);
+        Assert.Single(success.User.Jobs!);
+        var job = success.User.Jobs!.First();
+        Assert.Equal("Acme", job.Company);
+        Assert.Equal("Dev", job.Position);
+        Assert.Equal("2020-01", job.StartDate);
+        Assert.Equal("2022-01", job.EndDate);
+        Assert.Equal("Code", job.Responsibilities);
+    }
+
+    [Fact]
+    public async Task HandleUpdateUserProfile_ShouldIncludeCertifications_InDispatchedUser_WhenCertificationsProvided()
+    {
+        var userId = Guid.NewGuid();
+        var certId = Guid.NewGuid();
+        var auth = new FakeCurrentUserContext();
+
+        var mediator = new FakeMediator
+        {
+            SendHandler = request =>
+            {
+                return request switch
+                {
+                    UpdateUserCommand.Command => Task.FromResult<object?>(new Result<string>(userId.ToString(), true)),
+                    GetUserByIdQuery.Query => Task.FromResult<object?>(new Result<GetUserByIdQuery.UserDto>(
+                        CreateGetUserByIdDtoWithCertifications(userId, "updated", certId), true)),
+                    _ => throw new InvalidOperationException("Unexpected request")
+                };
+            }
+        };
+
+        var request = new UpdateUserRequest
+        {
+            Id = userId,
+            Username = "updated",
+            EmailAddress = "u@example.com",
+            UserType = UserType.Customer,
+            Certifications =
+            [
+                new CertificationResponse { ID = certId.ToString(), Title = "AWS Certified", Institution = "Amazon", Year = 2023 }
+            ]
+        };
+
+        var effects = new UsersEffects(mediator, auth, new StaticUsersState(new UsersState()));
+        var dispatcher = new FakeDispatcher();
+
+        await effects.HandleUpdateUserProfile(new UpdateUserProfileAction(request), dispatcher);
+
+        var action = Assert.Single(dispatcher.DispatchedActions);
+        var success = Assert.IsType<UpdateUserProfileSuccessAction>(action);
+        Assert.NotNull(success.User.Certifications);
+        Assert.Single(success.User.Certifications!);
+        var cert = success.User.Certifications!.First();
+        Assert.Equal("AWS Certified", cert.Title);
+        Assert.Equal("Amazon", cert.Institution);
+        Assert.Equal(2023, cert.Year);
+    }
+
+    [Fact]
     public async Task HandleChangeUserRole_ShouldDispatchSuccess_AndReloadDetails_WhenMediatorSucceeds()
     {
         var userId = Guid.NewGuid().ToString();
@@ -205,6 +303,64 @@ public class UsersEffectsTests
             Jobs: null,
             Qualifications: null,
             Certifications: null)
+        {
+            Id = userId,
+            CreatedOn = DateTime.UtcNow,
+            CreatedBy = "test"
+        };
+
+    private static GetUserByIdQuery.UserDto CreateGetUserByIdDtoWithJobs(Guid userId, string username, Guid jobId)
+        => new(
+            Name: "Alice",
+            FirstName: "Alice",
+            LastName: "One",
+            Username: username,
+            EmailAddress: "a@example.com",
+            TelephoneNumber: null,
+            MobileNumber: null,
+            EmailVerified: true,
+            Gender: null,
+            DateOfBirth: null,
+            PackageId: Guid.Empty,
+            Avatar: 17,
+            UserRole: UserType.Customer,
+            Skills: null,
+            Hobbies: null,
+            Jobs:
+            [
+                new JobResponse { ID = jobId.ToString(), Company = "Acme", Position = "Dev", StartDate = "2020-01", EndDate = "2022-01", Responsibilities = "Code" }
+            ],
+            Qualifications: null,
+            Certifications: null)
+        {
+            Id = userId,
+            CreatedOn = DateTime.UtcNow,
+            CreatedBy = "test"
+        };
+
+    private static GetUserByIdQuery.UserDto CreateGetUserByIdDtoWithCertifications(Guid userId, string username, Guid certId)
+        => new(
+            Name: "Alice",
+            FirstName: "Alice",
+            LastName: "One",
+            Username: username,
+            EmailAddress: "a@example.com",
+            TelephoneNumber: null,
+            MobileNumber: null,
+            EmailVerified: true,
+            Gender: null,
+            DateOfBirth: null,
+            PackageId: Guid.Empty,
+            Avatar: 17,
+            UserRole: UserType.Customer,
+            Skills: null,
+            Hobbies: null,
+            Jobs: null,
+            Qualifications: null,
+            Certifications:
+            [
+                new CertificationResponse { ID = certId.ToString(), Title = "AWS Certified", Institution = "Amazon", Year = 2023 }
+            ])
         {
             Id = userId,
             CreatedOn = DateTime.UtcNow,

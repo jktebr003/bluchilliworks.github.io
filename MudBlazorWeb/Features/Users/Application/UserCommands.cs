@@ -161,14 +161,16 @@ public static class UpdateUserCommand
 
 			if (request.Request.Certifications != null)
 			{
-				existingUser.Certifications = request.Request.Certifications.Select(c => new Certification
-				{
-					Id = Guid.NewGuid(),
-					UserId = existingUser.Id,
-					Title = c.Title,
-					Institution = c.Institution,
-					Year = c.Year
-				}).ToList();
+				// existingUser.Certifications = request.Request.Certifications.Select(c => new Certification
+				// {
+				// 	Id = Guid.NewGuid(),
+				// 	UserId = existingUser.Id,
+				// 	Title = c.Title,
+				// 	Institution = c.Institution,
+				// 	Year = c.Year
+				// }).ToList();
+				var certificationsEvent = new UserCertificationsUpdatedEvent(existingUser.Id, request.Request.Certifications, request.Request.ModifiedBy);
+				await _domainEventsDispatcher.DispatchAsync([certificationsEvent], cancellationToken);
 			}
 
 			await _userRepository.UpdateUserAsync(existingUser, cancellationToken);
