@@ -197,6 +197,54 @@ public class UsersEffectsTests
     }
 
     [Fact]
+    public async Task HandleUpdateUserProfile_ShouldIncludeQualifications_InDispatchedUser_WhenQualificationsProvided()
+    {
+        var userId = Guid.NewGuid();
+        var qualificationId = Guid.NewGuid();
+        var auth = new FakeCurrentUserContext();
+
+        var mediator = new FakeMediator
+        {
+            SendHandler = request =>
+            {
+                return request switch
+                {
+                    UpdateUserCommand.Command => Task.FromResult<object?>(new Result<string>(userId.ToString(), true)),
+                    GetUserByIdQuery.Query => Task.FromResult<object?>(new Result<GetUserByIdQuery.UserDto>(
+                        CreateGetUserByIdDtoWithQualifications(userId, "updated", qualificationId), true)),
+                    _ => throw new InvalidOperationException("Unexpected request")
+                };
+            }
+        };
+
+        var request = new UpdateUserRequest
+        {
+            Id = userId,
+            Username = "updated",
+            EmailAddress = "u@example.com",
+            UserType = UserType.Customer,
+            Qualifications =
+            [
+                new QualificationResponse { ID = qualificationId.ToString(), Title = "BSc Computer Science", Institution = "State University", Year = 2020 }
+            ]
+        };
+
+        var effects = new UsersEffects(mediator, auth, new StaticUsersState(new UsersState()));
+        var dispatcher = new FakeDispatcher();
+
+        await effects.HandleUpdateUserProfile(new UpdateUserProfileAction(request), dispatcher);
+
+        var action = Assert.Single(dispatcher.DispatchedActions);
+        var success = Assert.IsType<UpdateUserProfileSuccessAction>(action);
+        Assert.NotNull(success.User.Qualifications);
+        Assert.Single(success.User.Qualifications!);
+        var qualification = success.User.Qualifications!.First();
+        Assert.Equal("BSc Computer Science", qualification.Title);
+        Assert.Equal("State University", qualification.Institution);
+        Assert.Equal(2020, qualification.Year);
+    }
+
+    [Fact]
     public async Task HandleChangeUserRole_ShouldDispatchSuccess_AndReloadDetails_WhenMediatorSucceeds()
     {
         var userId = Guid.NewGuid().ToString();
@@ -361,6 +409,35 @@ public class UsersEffectsTests
             [
                 new CertificationResponse { ID = certId.ToString(), Title = "AWS Certified", Institution = "Amazon", Year = 2023 }
             ])
+        {
+            Id = userId,
+            CreatedOn = DateTime.UtcNow,
+            CreatedBy = "test"
+        };
+
+    private static GetUserByIdQuery.UserDto CreateGetUserByIdDtoWithQualifications(Guid userId, string username, Guid qualificationId)
+        => new(
+            Name: "Alice",
+            FirstName: "Alice",
+            LastName: "One",
+            Username: username,
+            EmailAddress: "a@example.com",
+            TelephoneNumber: null,
+            MobileNumber: null,
+            EmailVerified: true,
+            Gender: null,
+            DateOfBirth: null,
+            PackageId: Guid.Empty,
+            Avatar: 17,
+            UserRole: UserType.Customer,
+            Skills: null,
+            Hobbies: null,
+            Jobs: null,
+            Qualifications:
+            [
+                new QualificationResponse { ID = qualificationId.ToString(), Title = "BSc Computer Science", Institution = "State University", Year = 2020 }
+            ],
+            Certifications: null)
         {
             Id = userId,
             CreatedOn = DateTime.UtcNow,

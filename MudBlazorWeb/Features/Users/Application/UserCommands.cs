@@ -149,26 +149,12 @@ public static class UpdateUserCommand
 
 			if (request.Request.Qualifications != null)
 			{
-				existingUser.Qualifications = request.Request.Qualifications.Select(q => new Qualification
-				{
-					Id = Guid.NewGuid(),
-					UserId = existingUser.Id,
-					Title = q.Title,
-					Institution = q.Institution,
-					Year = q.Year
-				}).ToList();
+				var qualificationsEvent = new UserQualificationsUpdatedEvent(existingUser.Id, request.Request.Qualifications, request.Request.ModifiedBy);
+				await _domainEventsDispatcher.DispatchAsync([qualificationsEvent], cancellationToken);
 			}
 
 			if (request.Request.Certifications != null)
 			{
-				// existingUser.Certifications = request.Request.Certifications.Select(c => new Certification
-				// {
-				// 	Id = Guid.NewGuid(),
-				// 	UserId = existingUser.Id,
-				// 	Title = c.Title,
-				// 	Institution = c.Institution,
-				// 	Year = c.Year
-				// }).ToList();
 				var certificationsEvent = new UserCertificationsUpdatedEvent(existingUser.Id, request.Request.Certifications, request.Request.ModifiedBy);
 				await _domainEventsDispatcher.DispatchAsync([certificationsEvent], cancellationToken);
 			}

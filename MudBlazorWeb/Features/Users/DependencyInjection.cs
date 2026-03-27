@@ -16,9 +16,11 @@ public static class DependencyInjection
 		services.AddScoped<IUserRepository, UserRepository>();
 		services.AddScoped<IJobRepository, JobRepository>();
 		services.AddScoped<ICertificationRepository, CertificationRepository>();
+		services.AddScoped<IQualificationRepository, QualificationRepository>();
 		services.AddScoped<IAuthenticationUserStore, AuthenticationUserStore>();
 		services.AddScoped<IDomainEventHandler<UserJobsUpdatedEvent>, UserJobsUpdatedEventHandler>();
 		services.AddScoped<IDomainEventHandler<UserCertificationsUpdatedEvent>, UserCertificationsUpdatedEventHandler>();
+		services.AddScoped<IDomainEventHandler<UserQualificationsUpdatedEvent>, UserQualificationsUpdatedEventHandler>();
 
 		return services;
 	}
