@@ -1,0 +1,64 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "docker-compose: up (debug)",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "-f",
+        "docker-compose.yml",
+        "-f",
+        "docker-compose.debug.yml",
+        "up",
+        "--build",
+        "-d"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker-compose: up (release)",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "-f",
+        "docker-compose.yml",
+        "up",
+        "--build",
+        "-d"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "docker-compose: down",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "-f",
+        "docker-compose.yml",
+        "-f",
+        "docker-compose.debug.yml",
+        "down",
+        "--remove-orphans"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "docker-compose: push",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "compose",
+        "-f",
+        "docker-compose.yml",
+        "push"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

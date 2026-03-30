@@ -1,0 +1,10 @@
+services:
+  mudblazorweb:
+    build:
+      target: final-debug
+      args:
+        BUILD_CONFIGURATION: Debug
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "${APP_HTTPS_PORT:-8081}:8081"

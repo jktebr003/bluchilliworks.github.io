@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach to MudBlazorWeb in Docker",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickRemoteProcess}",
+      "pipeTransport": {
+        "pipeProgram": "powershell",
+        "pipeArgs": [
+          "-NoProfile",
+          "-File",
+          ".vscode/scripts/docker-exec-compose.ps1"
+        ],
+        "debuggerPath": "C:\\vsdbg\\vsdbg.exe",
+        "pipeCwd": "${workspaceFolder}",
+        "quoteArgs": false
+      },
+      "sourceFileMap": {
+        "C:\\src\\MudBlazorWeb": "${workspaceFolder}"
+      },
+      "justMyCode": true
+    }
+  ]
+}

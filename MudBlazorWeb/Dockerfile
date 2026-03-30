@@ -31,3 +31,12 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "MudBlazorWeb.dll"]
+
+# Debug image for VS Code attach debugging (Windows containers).
+FROM final AS final-debug
+USER ContainerAdministrator
+SHELL ["powershell", "-NoProfile", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+RUN Invoke-WebRequest -UseBasicParsing -Uri https://aka.ms/getvsdbgps1 -OutFile C:\\getvsdbg.ps1; \
+	C:\\getvsdbg.ps1 -Version latest -RuntimeID win-x64 -InstallPath C:\\vsdbg; \
+	Remove-Item C:\\getvsdbg.ps1 -Force
+USER ContainerUser
