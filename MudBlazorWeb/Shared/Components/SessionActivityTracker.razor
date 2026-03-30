@@ -1,0 +1,44 @@
+@implements IAsyncDisposable
+
+@using Microsoft.Extensions.Options
+@using Microsoft.JSInterop
+@using MudBlazorWeb.Features.Authentication.Infrastructure
+
+@inject IJSRuntime JSRuntime
+@inject IOptions<SessionAuthenticationOptions> SessionAuthenticationOptions
+
+@code {
+    private IJSObjectReference? _module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/session-activity.js");
+        await _module.InvokeVoidAsync(
+            "start",
+            "/api/auth/session/refresh",
+            SessionAuthenticationOptions.Value.ActivityRefreshThrottleSeconds * 1000,
+            "/authentication/login");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.InvokeVoidAsync("stop");
+            await _module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+}

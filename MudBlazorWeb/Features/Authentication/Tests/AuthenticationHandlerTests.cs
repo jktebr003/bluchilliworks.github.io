@@ -475,9 +475,13 @@ public class AuthenticationHandlerTests
 
     private sealed class StubAuthenticationUserStore : IAuthenticationUserStore
     {
+        public AuthenticationUser? UserById { get; init; }
         public AuthenticationUser? UserByEmail { get; init; }
         public AuthenticationUser? LastSavedUser { get; private set; }
         public AuthenticationUser? LastUpdatedUser { get; private set; }
+
+        public Task<AuthenticationUser?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => Task.FromResult(UserById ?? UserByEmail);
 
         public Task<AuthenticationUser?> GetByEmailAddressAsync(string? emailAddress, CancellationToken cancellationToken = default)
             => Task.FromResult(UserByEmail);

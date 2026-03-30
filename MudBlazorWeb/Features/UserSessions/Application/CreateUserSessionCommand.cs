@@ -2,6 +2,7 @@ using Carter;
 
 using MediatR;
 
+using MudBlazorWeb.Features.Authentication.Infrastructure;
 using MudBlazorWeb.Features.UserSessions.Domain;
 using MudBlazorWeb.Filters;
 using MudBlazorWeb.Shared;
@@ -30,14 +31,18 @@ public static class CreateUserSessionCommand
 			}
 
 			var now = DateTime.UtcNow;
+			var nowOffset = DateTimeOffset.UtcNow;
+			var rawSessionToken = $"manual-{Guid.NewGuid():N}";
 			var userSession = new UserSession
 			{
 				Id = Guid.NewGuid(),
 				UserId = request.Request.UserId,
-				SessionToken = Guid.NewGuid().ToString("N"),
+				SessionTokenHash = SessionTokenHasher.HashToken(rawSessionToken),
 				IdleDuration = 30,
-				LastAccessedOn = now.ToString("o"),
-				ExpiresOn = now.AddMinutes(30).ToString("o"),
+				LastAccessedOn = nowOffset,
+				ExpiresOn = nowOffset.AddMinutes(30),
+				AbsoluteExpiresOn = nowOffset.AddHours(8),
+				UserStateVersion = "manual-session",
 				IsExpired = false,
 				IsActive = true,
 				CreatedOn = request.Request.CreatedOn == default ? now : request.Request.CreatedOn,
@@ -84,7 +89,7 @@ public static class UpdateUserSessionCommand
 
 			existingSession.UserId = request.Request.UserId;
 			existingSession.LastAccessedOn = request.Request.LastAccessedOn ?? existingSession.LastAccessedOn;
-			existingSession.ExpiresOn = DateTime.UtcNow.AddMinutes(existingSession.IdleDuration).ToString("o");
+			existingSession.ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(existingSession.IdleDuration);
 			existingSession.IsExpired = request.Request.IsExpired;
 			existingSession.ModifiedOn = request.Request.ModifiedOn;
 			existingSession.ModifiedBy = request.Request.ModifiedBy;

@@ -157,11 +157,26 @@ builder.Services.AddCarter();
 
 builder.Services.AddValidatorsFromAssembly(assembly);
 
-builder.Services.AddAuthorizationCore();
+builder.Services.Configure<SessionAuthenticationOptions>(
+    builder.Configuration.GetSection(SessionAuthenticationOptions.SectionName));
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = SessionAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = SessionAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, SessionAuthenticationHandler>(
+        SessionAuthenticationDefaults.AuthenticationScheme,
+        _ => { });
+
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddScoped<LocalStorageHelper>();
-builder.Services.AddScoped<AuthenticationStateProvider, DatabaseAuthenticationStateProvider>();
-builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<SessionCookieManager>();
+builder.Services.AddScoped<IUserSessionManager, UserSessionManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, SessionRevalidatingAuthenticationStateProvider>();
+builder.Services.AddScoped<MudBlazorWeb.Features.Authentication.UI.IAuthenticationService, MudBlazorWeb.Features.Authentication.UI.AuthenticationService>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<ICurrentUserContext, AuthenticationCurrentUserContext>();
 builder.Services.AddScoped<ICurrentUserAuthorizationService, CurrentUserAuthorizationService>();
@@ -200,19 +215,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapCarter();
-
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
+
+app.MapCarter();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-app.UseStaticFiles();
-app.UseRouting();
-//app.UseAuthentication();
-//app.UseAuthorization();
-app.UseAntiforgery();
 
 try
 {

@@ -2,6 +2,7 @@ namespace MudBlazorWeb.Features.Authentication.Domain;
 
 public interface IAuthenticationUserStore
 {
+    Task<AuthenticationUser?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<AuthenticationUser?> GetByEmailAddressAsync(string? emailAddress, CancellationToken cancellationToken = default);
     Task SaveAsync(AuthenticationUser user, CancellationToken cancellationToken = default);
     Task UpdateAsync(AuthenticationUser user, CancellationToken cancellationToken = default);

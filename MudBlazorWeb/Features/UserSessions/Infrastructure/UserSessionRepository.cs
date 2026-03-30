@@ -2,6 +2,7 @@ using Dapper;
 
 using Microsoft.EntityFrameworkCore;
 
+using MudBlazorWeb.Features.Authentication.Infrastructure;
 using MudBlazorWeb.Features.UserSessions.Domain;
 using MudBlazorWeb.Infrastructure.Database.Postgres;
 
@@ -10,6 +11,26 @@ namespace MudBlazorWeb.Features.UserSessions.Infrastructure;
 public class UserSessionRepository : IUserSessionRepository
 {
     private readonly AppDbContext _context;
+
+    private const string SessionSelectColumns = @"
+                ""Id"",
+                ""UserId"",
+                ""SessionTokenHash"",
+                ""IdleDuration"",
+                ""LastAccessedOn"",
+                ""ExpiresOn"",
+                ""AbsoluteExpiresOn"",
+                ""RevokedOn"",
+                ""UserStateVersion"",
+                ""IsExpired"",
+                ""IsActive"",
+                ""CreatedOn"",
+                ""CreatedBy"",
+                ""ModifiedOn"",
+                ""ModifiedBy"",
+                ""DeletedOn"",
+                ""DeletedBy"",
+                ""IsDeleted""";
 
     public UserSessionRepository(AppDbContext context)
     {
@@ -20,23 +41,9 @@ public class UserSessionRepository : IUserSessionRepository
     {
         var connection = _context.Database.GetDbConnection();
 
-        var sql = @"
+        var sql = $@"
             SELECT
-                ""Id"",
-                ""UserId"",
-                ""SessionToken"",
-                ""IdleDuration"",
-                ""LastAccessedOn"",
-                ""ExpiresOn"",
-                ""IsExpired"",
-                ""IsActive"",
-                ""CreatedOn"",
-                ""CreatedBy"",
-                ""ModifiedOn"",
-                ""ModifiedBy"",
-                ""DeletedOn"",
-                ""DeletedBy"",
-                ""IsDeleted""
+{SessionSelectColumns}
             FROM users.""UserSessions""
             WHERE ""IsDeleted"" = false AND ""UserId"" = @UserId
             ORDER BY ""CreatedOn"" DESC";
@@ -51,23 +58,9 @@ public class UserSessionRepository : IUserSessionRepository
     {
         var connection = _context.Database.GetDbConnection();
 
-        var sql = @"
+        var sql = $@"
             SELECT
-                ""Id"",
-                ""UserId"",
-                ""SessionToken"",
-                ""IdleDuration"",
-                ""LastAccessedOn"",
-                ""ExpiresOn"",
-                ""IsExpired"",
-                ""IsActive"",
-                ""CreatedOn"",
-                ""CreatedBy"",
-                ""ModifiedOn"",
-                ""ModifiedBy"",
-                ""DeletedOn"",
-                ""DeletedBy"",
-                ""IsDeleted""
+{SessionSelectColumns}
             FROM users.""UserSessions""
             WHERE ""IsDeleted"" = false
             ORDER BY ""CreatedOn"" DESC";
@@ -85,66 +78,34 @@ public class UserSessionRepository : IUserSessionRepository
             throw new ArgumentException("User session ID must be a valid GUID.", nameof(id));
         }
 
-        var connection = _context.Database.GetDbConnection();
-
-        var sql = @"
-            SELECT
-                ""Id"",
-                ""UserId"",
-                ""SessionToken"",
-                ""IdleDuration"",
-                ""LastAccessedOn"",
-                ""ExpiresOn"",
-                ""IsExpired"",
-                ""IsActive"",
-                ""CreatedOn"",
-                ""CreatedBy"",
-                ""ModifiedOn"",
-                ""ModifiedBy"",
-                ""DeletedOn"",
-                ""DeletedBy"",
-                ""IsDeleted""
-            FROM users.""UserSessions""
-            WHERE ""Id"" = @Id AND ""IsDeleted"" = false";
-
-        var row = await connection.QuerySingleOrDefaultAsync<UserSessionRow>(
-            new CommandDefinition(sql, new { Id = parsedId }));
+        var row = await FindUserSessionByIdAsync(parsedId);
 
         return row == null
             ? throw new InvalidOperationException($"User session with ID {id} was not found.")
-            : MapRowToUserSession(row);
+            : row;
     }
 
     public async Task<UserSession> GetUserSessionBySessionTokenAsync(string sessionToken)
     {
-        var connection = _context.Database.GetDbConnection();
-
-        var sql = @"
-            SELECT
-                ""Id"",
-                ""UserId"",
-                ""SessionToken"",
-                ""IdleDuration"",
-                ""LastAccessedOn"",
-                ""ExpiresOn"",
-                ""IsExpired"",
-                ""IsActive"",
-                ""CreatedOn"",
-                ""CreatedBy"",
-                ""ModifiedOn"",
-                ""ModifiedBy"",
-                ""DeletedOn"",
-                ""DeletedBy"",
-                ""IsDeleted""
-            FROM users.""UserSessions""
-            WHERE ""SessionToken"" = @SessionToken AND ""IsDeleted"" = false";
-
-        var row = await connection.QuerySingleOrDefaultAsync<UserSessionRow>(
-            new CommandDefinition(sql, new { SessionToken = sessionToken }));
+        var row = await FindUserSessionByTokenHashAsync(SessionTokenHasher.HashToken(sessionToken));
 
         return row == null
             ? throw new InvalidOperationException($"User session with token {sessionToken} was not found.")
-            : MapRowToUserSession(row);
+            : row;
+    }
+
+    public async Task<UserSession?> FindUserSessionByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.UserSessions
+            .AsNoTracking()
+            .SingleOrDefaultAsync(existing => existing.Id == id && !existing.IsDeleted, cancellationToken);
+    }
+
+    public async Task<UserSession?> FindUserSessionByTokenHashAsync(string sessionTokenHash, CancellationToken cancellationToken = default)
+    {
+        return await _context.UserSessions
+            .AsNoTracking()
+            .SingleOrDefaultAsync(existing => existing.SessionTokenHash == sessionTokenHash && !existing.IsDeleted, cancellationToken);
     }
 
     public async Task SaveUserSessionAsync(UserSession userSession)
@@ -176,10 +137,13 @@ public class UserSessionRepository : IUserSessionRepository
         {
             Id = row.Id,
             UserId = row.UserId,
-            SessionToken = row.SessionToken,
+            SessionTokenHash = row.SessionTokenHash,
             IdleDuration = row.IdleDuration,
             LastAccessedOn = row.LastAccessedOn,
             ExpiresOn = row.ExpiresOn,
+            AbsoluteExpiresOn = row.AbsoluteExpiresOn,
+            RevokedOn = row.RevokedOn,
+            UserStateVersion = row.UserStateVersion,
             IsExpired = row.IsExpired,
             IsActive = row.IsActive,
             CreatedOn = row.CreatedOn,
@@ -196,10 +160,13 @@ public class UserSessionRepository : IUserSessionRepository
     {
         public Guid Id { get; set; }
         public string? UserId { get; set; }
-        public string? SessionToken { get; set; }
+        public string SessionTokenHash { get; set; } = string.Empty;
         public int IdleDuration { get; set; }
-        public string? LastAccessedOn { get; set; }
-        public string? ExpiresOn { get; set; }
+        public DateTimeOffset LastAccessedOn { get; set; }
+        public DateTimeOffset ExpiresOn { get; set; }
+        public DateTimeOffset AbsoluteExpiresOn { get; set; }
+        public DateTimeOffset? RevokedOn { get; set; }
+        public string UserStateVersion { get; set; } = string.Empty;
         public bool IsExpired { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedOn { get; set; }

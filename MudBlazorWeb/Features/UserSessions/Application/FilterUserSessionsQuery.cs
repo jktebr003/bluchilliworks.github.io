@@ -12,10 +12,12 @@ public static class FilterUserSessionsQuery
 {
 	public record UserSessionDto(
 		string? UserId,
-		string? SessionToken,
+		string? SessionTokenHash,
 		int IdleDuration,
 		string? LastAccessedOn,
 		string? ExpiresOn,
+		string? AbsoluteExpiresOn,
+		string? RevokedOn,
 		bool IsExpired,
 		bool IsActive) : BaseAuditableDto
 	{
@@ -23,10 +25,12 @@ public static class FilterUserSessionsQuery
 		{
 			return new UserSessionDto(
 				userSession.UserId,
-				userSession.SessionToken,
+				userSession.SessionTokenHash,
 				userSession.IdleDuration,
-				userSession.LastAccessedOn,
-				userSession.ExpiresOn,
+				userSession.LastAccessedOn.ToString("O"),
+				userSession.ExpiresOn.ToString("O"),
+				userSession.AbsoluteExpiresOn.ToString("O"),
+				userSession.RevokedOn?.ToString("O"),
 				userSession.IsExpired,
 				userSession.IsActive)
 			{

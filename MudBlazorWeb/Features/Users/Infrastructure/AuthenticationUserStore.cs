@@ -12,6 +12,19 @@ internal sealed class AuthenticationUserStore : IAuthenticationUserStore
         _userRepository = userRepository;
     }
 
+    public async Task<AuthenticationUser?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await _userRepository.GetUserByIdAsync(id, cancellationToken);
+            return ToAuthenticationUser(user);
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
     public async Task<AuthenticationUser?> GetByEmailAddressAsync(string? emailAddress, CancellationToken cancellationToken = default)
     {
         var user = await _userRepository.GetUserByEmailAddressAsync(emailAddress, cancellationToken);

@@ -59,7 +59,7 @@
     {
         await AuthenticationService.LogoutAsync();
         _isAuthenticated = false;
-        NavigationManager.NavigateTo("/authentication/login");
+        NavigationManager.NavigateTo("/authentication/login", forceLoad: true);
     }
 
     public void Dispose()

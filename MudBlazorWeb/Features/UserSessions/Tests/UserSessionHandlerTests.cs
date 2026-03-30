@@ -174,7 +174,7 @@ public class UserSessionHandlerTests
 		{
 			UserId = "user-1",
 			SessionToken = "token-1",
-			LastAccessedOn = "2026-03-24T00:00:00.0000000Z",
+			LastAccessedOn = new DateTimeOffset(2026, 3, 24, 0, 0, 0, TimeSpan.Zero),
 			IsExpired = true,
 			ModifiedBy = "editor",
 			ModifiedOn = new DateTime(2026, 3, 24, 0, 0, 0, DateTimeKind.Utc)
@@ -189,14 +189,18 @@ public class UserSessionHandlerTests
 
 	private static UserSession CreateSession(Guid id, string userId, string token)
 	{
+		var now = DateTimeOffset.UtcNow;
+
 		return new UserSession
 		{
 			Id = id,
 			UserId = userId,
-			SessionToken = token,
+			SessionTokenHash = token,
 			IdleDuration = 30,
-			LastAccessedOn = DateTime.UtcNow.ToString("o"),
-			ExpiresOn = DateTime.UtcNow.AddMinutes(30).ToString("o"),
+			LastAccessedOn = now,
+			ExpiresOn = now.AddMinutes(30),
+			AbsoluteExpiresOn = now.AddHours(8),
+			UserStateVersion = "test-version",
 			IsExpired = false,
 			IsActive = true,
 			CreatedOn = DateTime.UtcNow,
@@ -243,6 +247,26 @@ public class UserSessionHandlerTests
 			}
 
 			throw new InvalidOperationException("not found");
+		}
+
+		public Task<UserSession?> FindUserSessionByIdAsync(Guid id, CancellationToken cancellationToken = default)
+		{
+			if (GetByIdHandler == null)
+			{
+				return Task.FromResult<UserSession?>(null);
+			}
+
+			return Task.FromResult<UserSession?>(GetByIdHandler.Invoke(id.ToString()));
+		}
+
+		public Task<UserSession?> FindUserSessionByTokenHashAsync(string sessionTokenHash, CancellationToken cancellationToken = default)
+		{
+			if (GetByTokenHandler == null)
+			{
+				return Task.FromResult<UserSession?>(null);
+			}
+
+			return Task.FromResult<UserSession?>(GetByTokenHandler.Invoke(sessionTokenHash));
 		}
 
 		public Task SaveUserSessionAsync(UserSession userSession)

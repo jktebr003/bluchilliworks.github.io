@@ -8,6 +8,11 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
+@if (_isAuthenticated)
+{
+    <SessionActivityTracker />
+}
+
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
@@ -149,7 +154,7 @@
     {
         await AuthenticationService.LogoutAsync();
         await RefreshUserStateAsync();
-        NavigationManager.NavigateTo("/authentication/login");
+        NavigationManager.NavigateTo("/authentication/login", forceLoad: true);
     }
 
     public void Dispose()

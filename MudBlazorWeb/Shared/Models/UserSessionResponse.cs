@@ -8,7 +8,7 @@ namespace MudBlazorWeb.Shared.Models;
 
 public class UserSessionResponse : BaseResponse
 {
-    // <summary>
+    /// <summary>
     /// The User Id
     /// </summary>
     public string? UserId { get; set; }
@@ -16,7 +16,7 @@ public class UserSessionResponse : BaseResponse
     /// <summary>
     /// The Session Value
     /// </summary>
-    public string? SessionToken { get; set; }
+    public string? SessionTokenHash { get; set; }
 
     /// <summary>
     /// The Session Idle Duration
@@ -32,6 +32,16 @@ public class UserSessionResponse : BaseResponse
     /// The Expires On Date
     /// </summary>
     public string? ExpiresOn { get; set; }
+
+    /// <summary>
+    /// The Absolute Expires On Date
+    /// </summary>
+    public string? AbsoluteExpiresOn { get; set; }
+
+    /// <summary>
+    /// The revoked on date
+    /// </summary>
+    public string? RevokedOn { get; set; }
 
     /// <summary>
     /// Is Session Expired

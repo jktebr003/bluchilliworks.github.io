@@ -25,7 +25,7 @@ public class AuthenticationEffects
 			() =>
 			{
 				dispatcher.Dispatch(new LoginSuccessAction(true));
-				_navigationManager.NavigateTo("/");
+				_navigationManager.NavigateTo("/", forceLoad: true);
 			},
 			errorMessage => dispatcher.Dispatch(new LoginFailedAction(errorMessage)),
 			"Login failed. Please try again.");
