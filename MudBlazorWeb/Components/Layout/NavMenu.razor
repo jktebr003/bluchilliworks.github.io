@@ -12,9 +12,15 @@
     
     @* <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink> *@
     <MudNavLink Href="pricing" Match="NavLinkMatch.Prefix">Pricing</MudNavLink>
-    <MudNavLink Href="posts" Match="NavLinkMatch.Prefix">Posts</MudNavLink>
+    @if (_isAuthenticated)
+    {
+        <MudNavLink Href="posts" Match="NavLinkMatch.Prefix">Posts</MudNavLink>
+    }
     <MudNavLink Href="contact" Match="NavLinkMatch.Prefix">Contact</MudNavLink>
-    <MudNavLink Href="audits" Match="NavLinkMatch.Prefix">Audits</MudNavLink>
+    @if (_isAuthenticated)
+    {
+        <MudNavLink Href="audits" Match="NavLinkMatch.Prefix">Audits</MudNavLink>
+    }
     <MudNavGroup Title="Authentication" Icon="@Icons.Material.Filled.Lock" Expanded="false">
         @if (!_isAuthenticated)
         {
@@ -27,10 +33,13 @@
         <MudNavLink Href="authentication/register" Match="NavLinkMatch.All">Register</MudNavLink>
         <MudNavLink Href="authentication/forgot-password" Match="NavLinkMatch.All">Forgot Password</MudNavLink>
     </MudNavGroup>
-    <MudNavGroup Title="Users" Icon="@Icons.Material.Filled.People" Expanded="false">
-        <MudNavLink Href="users" Match="NavLinkMatch.All">User List</MudNavLink>
-        <MudNavLink Href="profile" Match="NavLinkMatch.All">Profile</MudNavLink>
-    </MudNavGroup>
+    @if (_isAuthenticated)
+    {
+        <MudNavGroup Title="Users" Icon="@Icons.Material.Filled.People" Expanded="false">
+            <MudNavLink Href="users" Match="NavLinkMatch.All">User List</MudNavLink>
+            <MudNavLink Href="profile" Match="NavLinkMatch.All">Profile</MudNavLink>
+        </MudNavGroup>
+    }
 </MudNavMenu>
 
 @code {

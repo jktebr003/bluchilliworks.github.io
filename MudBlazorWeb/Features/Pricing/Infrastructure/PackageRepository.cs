@@ -1,5 +1,3 @@
-using Dapper;
-
 using Microsoft.EntityFrameworkCore;
 
 using MudBlazorWeb.Features.Pricing.Domain;
@@ -18,59 +16,16 @@ public class PackageRepository : IPackageRepository
 
     public async Task<List<Package>> GetAllPackagesAsync(CancellationToken cancellationToken = default)
     {
-        var connection = _context.Database.GetDbConnection();
-
-        var sql = @"
-            SELECT 
-                ""Id"", 
-                ""Name"", 
-                ""Description"", 
-                ""Code"", 
-                ""Price"", 
-                ""Type"",
-                ""CreatedOn"",
-                ""CreatedBy"",
-                ""ModifiedOn"",
-                ""ModifiedBy"",
-                ""DeletedOn"",
-                ""DeletedBy"",
-                ""IsDeleted""
-            FROM catalog.""Packages""
-            WHERE ""IsDeleted"" = false
-            ORDER BY ""CreatedOn"" DESC";
-
-        var packages = await connection.QueryAsync<Package>(
-            new CommandDefinition(sql, cancellationToken: cancellationToken));
-
-        return packages.ToList();
+        return await _context.Packages
+            .Where(p => !p.IsDeleted)
+            .OrderByDescending(p => p.CreatedOn)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<Package?> GetPackageByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var connection = _context.Database.GetDbConnection();
-
-        var sql = @"
-            SELECT 
-                ""Id"", 
-                ""Name"", 
-                ""Description"", 
-                ""Code"", 
-                ""Price"", 
-                ""Type"",
-                ""CreatedOn"",
-                ""CreatedBy"",
-                ""ModifiedOn"",
-                ""ModifiedBy"",
-                ""DeletedOn"",
-                ""DeletedBy"",
-                ""IsDeleted""
-            FROM catalog.""Packages""
-            WHERE ""Id"" = @Id AND ""IsDeleted"" = false";
-
-        var package = await connection.QuerySingleOrDefaultAsync<Package>(
-            new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
-
-        return package;
+        return await _context.Packages
+            .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
     }
 
     public async Task SavePackageAsync(Package package, CancellationToken cancellationToken = default)
