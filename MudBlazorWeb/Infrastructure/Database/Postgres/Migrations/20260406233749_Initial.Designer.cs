@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MudBlazorWeb.Infrastructure.Database.Postgres.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260330152202_HardenUserSessionsForServerAuth")]
-    partial class HardenUserSessionsForServerAuth
+    [Migration("20260406233749_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
