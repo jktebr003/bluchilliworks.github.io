@@ -65,6 +65,7 @@ Run these commands from this folder after .env is configured:
 Optional debug/development run:
 
 1. docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build -d
+2. docker compose --env-file .env.testing -f docker-compose.testing.yml up --build -d
 
 ## CI/CD recommendation
 

@@ -233,17 +233,32 @@ try
     var context = scope.ServiceProvider.GetService<AppDbContext>();
     if (context != null)
     {
-        var canConnect = await context.Database.CanConnectAsync();
-        Console.WriteLine($"🗄️ Database connection: {(canConnect ? "✅ Success" : "❌ Failed")}");
+        try
+        {
+            // This will throw an exception with details if connection fails
+            await context.Database.ExecuteSqlRawAsync("SELECT 1");
+            Console.WriteLine($"🗄️ Database connection: ✅ Success");
+        }
+        catch (Exception dbEx)
+        {
+            Console.WriteLine($"🗄️ Database connection: ❌ Failed");
+            Console.WriteLine($"   Error: {dbEx.Message}");
+            Console.WriteLine($"   Type: {dbEx.GetType().Name}");
+            if (dbEx.InnerException != null)
+            {
+                Console.WriteLine($"   Inner: {dbEx.InnerException.Message}");
+            }
+        }
+        Console.WriteLine($"🗄️ Connection string: {app.Configuration["ConnectionStrings:DefaultConnection"]}");
     }
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"⚠️ Database test failed: {ex.Message}");
+    Console.WriteLine($"⚠️ Database context error: {ex.Message}");
 }
 
 // Run migrations on startup (optional, for development)
-#if DEBUG
+// #if DEBUG
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -263,7 +278,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
-#endif
+// #endif
 
 try
 {

@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  mudblazorweb:
+    image: ${DOCKERHUB_USER:-local}/mudblazorweb:${IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: MudBlazorWeb/Dockerfile
+      target: final
+      args:
+        BUILD_CONFIGURATION: ${BUILD_CONFIGURATION:-Testing}
+    env_file:
+      - .env.testing
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Testing
+    ports:
+      - "${APP_HTTP_PORT:-8080}:8080"
