@@ -1,4 +1,5 @@
 using System.Reflection;
+using Microsoft.Extensions.Configuration;
 
 namespace MudBlazorWeb.Shared.Services;
 
@@ -10,10 +11,12 @@ public interface IAppVersionService
 
 public sealed class AppVersionService : IAppVersionService
 {
+    private const string AppVersionSettingsKey = "AppVersion";
+
     public string DisplayVersion { get; }
     public string InformationalVersion { get; }
 
-    public AppVersionService()
+    public AppVersionService(IConfiguration configuration)
     {
         var assembly = Assembly.GetEntryAssembly() ?? typeof(AppVersionService).Assembly;
         var informational = assembly
@@ -22,23 +25,32 @@ public sealed class AppVersionService : IAppVersionService
         var fileVersion = assembly
             .GetCustomAttribute<AssemblyFileVersionAttribute>()
             ?.Version;
+        var appSettingsVersion = configuration[AppVersionSettingsKey];
 
         InformationalVersion = string.IsNullOrWhiteSpace(informational)
-            ? fileVersion ?? "0.0.0"
+            ? appSettingsVersion ?? fileVersion ?? "0.0.0"
             : informational;
 
-        DisplayVersion = ExtractDisplayVersion(InformationalVersion, fileVersion);
+        DisplayVersion = ExtractDisplayVersion(InformationalVersion, fileVersion ?? appSettingsVersion);
     }
 
     private static string ExtractDisplayVersion(string informationalVersion, string? fallbackVersion)
     {
-        var plusIndex = informationalVersion.IndexOf('+');
-        var versionCore = plusIndex >= 0
-            ? informationalVersion[..plusIndex]
-            : informationalVersion;
+        if (!string.IsNullOrWhiteSpace(informationalVersion))
+        {
+            var plusIndex = informationalVersion.IndexOf('+');
+            var versionCore = plusIndex >= 0
+                ? informationalVersion[..plusIndex]
+                : informationalVersion;
 
-        return string.IsNullOrWhiteSpace(versionCore)
-            ? fallbackVersion ?? "0.0.0"
-            : versionCore;
+            if (!string.IsNullOrWhiteSpace(versionCore))
+            {
+                return versionCore;
+            }
+        }
+
+        return string.IsNullOrWhiteSpace(fallbackVersion)
+            ? "0.0.0"
+            : fallbackVersion!;
     }
 }
