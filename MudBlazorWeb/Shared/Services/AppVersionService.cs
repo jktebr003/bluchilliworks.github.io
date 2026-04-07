@@ -1,4 +1,3 @@
-using System.Reflection;
 using Microsoft.Extensions.Configuration;
 
 namespace MudBlazorWeb.Shared.Services;
@@ -18,20 +17,10 @@ public sealed class AppVersionService : IAppVersionService
 
     public AppVersionService(IConfiguration configuration)
     {
-        var assembly = Assembly.GetEntryAssembly() ?? typeof(AppVersionService).Assembly;
-        var informational = assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            ?.InformationalVersion;
-        var fileVersion = assembly
-            .GetCustomAttribute<AssemblyFileVersionAttribute>()
-            ?.Version;
-        var appSettingsVersion = configuration[AppVersionSettingsKey];
+        var appSettingsVersion = configuration[AppVersionSettingsKey] ?? "0.0.0";
 
-        InformationalVersion = string.IsNullOrWhiteSpace(informational)
-            ? appSettingsVersion ?? fileVersion ?? "0.0.0"
-            : informational;
-
-        DisplayVersion = ExtractDisplayVersion(InformationalVersion, fileVersion ?? appSettingsVersion);
+        InformationalVersion = appSettingsVersion;
+        DisplayVersion = ExtractDisplayVersion(appSettingsVersion, null);
     }
 
     private static string ExtractDisplayVersion(string informationalVersion, string? fallbackVersion)
